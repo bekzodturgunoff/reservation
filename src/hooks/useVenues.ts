@@ -1,10 +1,10 @@
 import { useQuery } from '@tanstack/react-query'
-import { getActiveVenues, getVenueById } from '../api/venues'
+import { getVenues, getVenueById } from '../api/venues'
 
 export function useVenues(limit = 6) {
   return useQuery({
     queryKey: ['venues', 'active', limit],
-    queryFn: () => getActiveVenues(limit),
+    queryFn: () => getVenues(),
   })
 }
 
