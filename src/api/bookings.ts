@@ -62,3 +62,14 @@ export const cancelBookingWithSlot = async (bookingId: string, slotId: string): 
     .eq('id', slotId)
   if (slotError) throw slotError
 }
+
+export const getBookingsForVenueIds = async (venueIds: string[]): Promise<Booking[]> => {
+  if (venueIds.length === 0) return []
+  const { data, error } = await supabase
+    .from('bookings')
+    .select('*, venues!inner(id, name), slots(date, start_time, end_time), profiles(full_name, phone)')
+    .in('venue_id', venueIds)
+    .order('created_at', { ascending: false })
+  if (error) throw error
+  return data
+}

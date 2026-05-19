@@ -1,11 +1,177 @@
+import { useMemo } from 'react'
+import { Link } from 'react-router-dom'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { Building2, Users, CalendarCheck, Clock, Check, X, ArrowRight, ShieldAlert } from 'lucide-react'
 import { useTitle } from '../../hooks/useTitle'
+import { getAdminStats, getPendingVenues, approveVenue, rejectVenue } from '../../api/admin'
+import { formatDate } from '../../lib/utils'
+import Button from '../../components/ui/Button'
+import Skeleton from '../../components/ui/Skeleton'
+import { useToastStore } from '../../store/toastStore'
 
 const AdminDashboard = () => {
-  useTitle('Admin Dashboard')
+  useTitle('Admin panel')
+  const queryClient = useQueryClient()
+  const { addToast } = useToastStore()
+
+  const { data: stats, isLoading: statsLoading } = useQuery({
+    queryKey: ['admin', 'stats'],
+    queryFn: getAdminStats,
+    refetchInterval: 30000,
+  })
+
+  const { data: pendingVenues = [], isLoading: pendingLoading } = useQuery({
+    queryKey: ['admin', 'pending-venues'],
+    queryFn: getPendingVenues,
+  })
+
+  const recentPending = useMemo(() => pendingVenues.slice(0, 5), [pendingVenues])
+
+  const approveMutation = useMutation({
+    mutationFn: approveVenue,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin'] })
+      addToast({ type: 'success', message: 'Venue tasdiqlandi' })
+    },
+    onError: () => addToast({ type: 'error', message: 'Xatolik yuz berdi' }),
+  })
+
+  const rejectMutation = useMutation({
+    mutationFn: rejectVenue,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin'] })
+      addToast({ type: 'success', message: 'Venue rad etildi' })
+    },
+    onError: () => addToast({ type: 'error', message: 'Xatolik yuz berdi' }),
+  })
+
+  const statCards = [
+    { icon: <Building2 className="w-5 h-5 text-emerald-600" />, label: "Jami venuelar", value: stats?.totalVenues ?? '—', bg: 'bg-emerald-50' },
+    { icon: <Users className="w-5 h-5 text-blue-600" />, label: 'Foydalanuvchilar', value: stats?.totalUsers ?? '—', bg: 'bg-blue-50' },
+    { icon: <CalendarCheck className="w-5 h-5 text-purple-600" />, label: 'Bronlar', value: stats?.totalBookings ?? '—', bg: 'bg-purple-50' },
+    { icon: <Clock className="w-5 h-5 text-yellow-600" />, label: 'Kutilayotgan venuelar', value: stats?.pendingVenues ?? '—', bg: 'bg-yellow-50' },
+  ]
 
   return (
-    <div className="p-8">
-      <h1 className="text-2xl font-semibold">Admin Dashboard</h1>
+    <div className="space-y-8">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Admin panel</h1>
+          <p className="text-sm text-gray-500 mt-1">Platforma boshqaruvi</p>
+        </div>
+        <Link to="/admin/approvals">
+          <Button><ShieldAlert className="w-4 h-4" /> Tasdiqlashlar</Button>
+        </Link>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {statCards.map(card => (
+          <div key={card.label} className={`${card.bg} rounded-2xl p-5 border border-gray-100`}>
+            <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-sm mb-3">{card.icon}</div>
+            {statsLoading ? (
+              <Skeleton className="h-8 w-16" />
+            ) : (
+              <p className="text-2xl font-bold text-gray-900">{card.value}</p>
+            )}
+            <p className="text-sm text-gray-500 mt-1">{card.label}</p>
+          </div>
+        ))}
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-semibold text-gray-900">So'nggi kutilayotgan venuelar</h2>
+            {pendingVenues.length > 5 && (
+              <Link to="/admin/approvals" className="text-sm text-emerald-600 hover:underline flex items-center gap-1">
+                Barchasi <ArrowRight className="w-3 h-3" />
+              </Link>
+            )}
+          </div>
+          {pendingLoading ? (
+            <div className="space-y-3">
+              {[1, 2, 3].map(i => <Skeleton key={i} className="h-20 w-full" />)}
+            </div>
+          ) : recentPending.length === 0 ? (
+            <div className="text-center py-10 bg-gray-50 rounded-2xl">
+              <span className="text-4xl">✅</span>
+              <p className="text-gray-500 mt-2">Barcha venuelar ko'rib chiqilgan</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {recentPending.map(v => (
+                <div key={v.id} className="bg-white rounded-2xl border border-gray-100 p-4">
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="w-10 h-10 rounded-xl bg-yellow-100 flex items-center justify-center text-lg shrink-0">
+                        {v.categories?.icon || '🏢'}
+                      </div>
+                      <div className="min-w-0">
+                        <p className="font-medium text-gray-900 text-sm truncate">{v.name}</p>
+                        <p className="text-xs text-gray-500 truncate">
+                          {v.profiles?.full_name || 'Noma\'lum'} · {v.city} · {formatDate(v.created_at)}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0 ml-3">
+                      <button
+                        onClick={() => approveMutation.mutate(v.id)}
+                        disabled={approveMutation.isPending}
+                        className="p-2 rounded-lg bg-emerald-50 text-emerald-600 hover:bg-emerald-100 disabled:opacity-50 transition-colors"
+                        title="Tasdiqlash"
+                      >
+                        <Check className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => rejectMutation.mutate(v.id)}
+                        disabled={rejectMutation.isPending}
+                        className="p-2 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 disabled:opacity-50 transition-colors"
+                        title="Rad etish"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div>
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">Tezkor amallar</h2>
+          <div className="space-y-3">
+            <Link to="/admin/approvals" className="flex items-center justify-between bg-white rounded-2xl border border-gray-100 p-4 hover:shadow-sm transition-shadow">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-yellow-50 flex items-center justify-center">
+                  <ShieldAlert className="w-5 h-5 text-yellow-600" />
+                </div>
+                <div>
+                  <p className="font-medium text-gray-900 text-sm">Venuelarni tasdiqlash</p>
+                  <p className="text-xs text-gray-500">
+                    {pendingVenues.length} ta kutilayotgan venue
+                  </p>
+                </div>
+              </div>
+              <ArrowRight className="w-5 h-5 text-gray-400" />
+            </Link>
+            <Link to="/business/dashboard" className="flex items-center justify-between bg-white rounded-2xl border border-gray-100 p-4 hover:shadow-sm transition-shadow">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center">
+                  <Building2 className="w-5 h-5 text-emerald-600" />
+                </div>
+                <div>
+                  <p className="font-medium text-gray-900 text-sm">Barcha venuelar</p>
+                  <p className="text-xs text-gray-500">
+                    {stats?.totalVenues ?? '—'} ta venue
+                  </p>
+                </div>
+              </div>
+              <ArrowRight className="w-5 h-5 text-gray-400" />
+            </Link>
+          </div>
+        </div>
+      </div>
     </div>
   )
 }
