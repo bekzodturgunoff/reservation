@@ -12,6 +12,16 @@ export const getSlotsByVenueAndDate = async (venueId: string, date: string): Pro
   return data
 }
 
+export const getSlotById = async (slotId: string): Promise<Slot> => {
+  const { data, error } = await supabase
+    .from('slots')
+    .select('*')
+    .eq('id', slotId)
+    .single()
+  if (error) throw error
+  return data
+}
+
 export const createSlots = async (slots: Partial<Slot>[]): Promise<Slot[]> => {
   const { data, error } = await supabase
     .from('slots')
