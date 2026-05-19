@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useEffect } from 'react'
 import { RouterProvider } from 'react-router-dom'
 import { CalendarDaysIcon } from '@heroicons/react/24/outline'
 import { useTranslation } from 'react-i18next'
@@ -10,53 +10,23 @@ import './lib/i18n'
 
 const App = () => {
   const { t } = useTranslation()
-  const { setUser, setProfile, setLoading, logout } = useAuthStore()
-  const loading = useAuthStore(state => state.loading)
-  const initialized = useRef(false)
+  const { setUser, setProfile, setLoading, loading } = useAuthStore()
 
   useEffect(() => {
-    if (initialized.current) return
-    initialized.current = true
-
     const timeout = setTimeout(() => setLoading(false), 6000)
-
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
-      clearTimeout(timeout)
-      setUser(session?.user ?? null)
-      if (session?.user) {
-        try {
-          const profile = await getProfile(session.user.id)
-          setProfile(profile)
-        } catch {
-          setProfile(null)
-        }
-      }
-      setLoading(false)
-    }).catch(() => {
-      clearTimeout(timeout)
-      setLoading(false)
-    })
-
-    // Keep session alive by refreshing periodically
-    const refreshInterval = setInterval(async () => {
-      const { data: { session } } = await supabase.auth.getSession()
-      if (session) {
-        await supabase.auth.refreshSession()
-      }
-    }, 10 * 60 * 1000) // every 10 minutes
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         if (event === 'SIGNED_OUT') {
-          // Verify there's actually no valid session before logging out
-          const { data: { session: currentSession } } = await supabase.auth.getSession()
-          if (!currentSession) {
-            logout()
-          }
+          setUser(null)
+          setProfile(null)
+          clearTimeout(timeout)
+          setLoading(false)
           return
         }
 
-        if (event === 'TOKEN_REFRESHED' || event === 'SIGNED_IN' || event === 'USER_UPDATED') {
+        if (event === 'INITIAL_SESSION' || event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED') {
+          clearTimeout(timeout)
           setUser(session?.user ?? null)
           if (session?.user) {
             try {
@@ -65,16 +35,19 @@ const App = () => {
             } catch {
               setProfile(null)
             }
+          } else {
+            setProfile(null)
           }
+          setLoading(false)
         }
       }
     )
 
     return () => {
       subscription.unsubscribe()
-      clearInterval(refreshInterval)
+      clearTimeout(timeout)
     }
-  }, [])
+  }, [setUser, setProfile, setLoading])
 
   if (loading) {
     return (
