@@ -1,15 +1,30 @@
 import { supabase } from '../lib/supabase'
 import type { Slot } from '../types'
 
-export async function getSlotsByVenueAndDate(
-  venueId: string,
-  date: string
-): Promise<Slot[]> {
-  const { data } = await supabase
+export const getSlotsByVenueAndDate = async (venueId: string, date: string): Promise<Slot[]> => {
+  const { data, error } = await supabase
     .from('slots')
     .select('*')
     .eq('venue_id', venueId)
     .eq('date', date)
     .order('start_time')
-  return data || []
+  if (error) throw error
+  return data
+}
+
+export const createSlots = async (slots: Partial<Slot>[]): Promise<Slot[]> => {
+  const { data, error } = await supabase
+    .from('slots')
+    .insert(slots)
+    .select()
+  if (error) throw error
+  return data
+}
+
+export const updateSlotAvailability = async (slotId: string, isAvailable: boolean): Promise<void> => {
+  const { error } = await supabase
+    .from('slots')
+    .update({ is_available: isAvailable })
+    .eq('id', slotId)
+  if (error) throw error
 }

@@ -1,11 +1,7 @@
 import { useEffect } from 'react'
 
-export function useTitle(title: string) {
+export const useTitle = (title: string) => {
   useEffect(() => {
-    const prev = document.title
-    document.title = `BronUz | ${title}`
-    return () => {
-      document.title = prev
-    }
+    document.title = title ? `${title} | BronUz` : 'BronUz'
   }, [title])
 }

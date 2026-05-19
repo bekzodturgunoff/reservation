@@ -9,17 +9,10 @@ interface ToastState {
 
 export const useToastStore = create<ToastState>((set) => ({
   toasts: [],
-  addToast: (toast) => {
-    const id = crypto.randomUUID()
+  addToast: (toast) =>
     set((state) => ({
-      toasts: [...state.toasts, { ...toast, id }],
-    }))
-    setTimeout(() => {
-      set((state) => ({
-        toasts: state.toasts.filter((t) => t.id !== id),
-      }))
-    }, 4000)
-  },
+      toasts: [...state.toasts, { ...toast, id: crypto.randomUUID() }],
+    })),
   removeToast: (id) =>
     set((state) => ({
       toasts: state.toasts.filter((t) => t.id !== id),

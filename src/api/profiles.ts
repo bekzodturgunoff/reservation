@@ -1,20 +1,36 @@
 import { supabase } from '../lib/supabase'
 import type { Profile } from '../types'
 
-export async function getProfileById(id: string): Promise<Profile | null> {
-  const { data } = await supabase
+export const getProfile = async (userId: string): Promise<Profile> => {
+  const { data, error } = await supabase
     .from('profiles')
     .select('*')
-    .eq('id', id)
+    .eq('id', userId)
     .single()
+  if (error) throw error
   return data
 }
 
-export async function createProfile(profile: Profile): Promise<Profile | null> {
-  const { data } = await supabase
+export const updateProfile = async (userId: string, updates: Partial<Profile>): Promise<Profile> => {
+  const { data, error } = await supabase
     .from('profiles')
-    .insert(profile)
+    .update(updates)
+    .eq('id', userId)
     .select()
     .single()
+  if (error) throw error
   return data
+}
+
+export const uploadAvatar = async (userId: string, file: File): Promise<string> => {
+  const fileExt = file.name.split('.').pop()
+  const filePath = `${userId}/avatar.${fileExt}`
+
+  const { error: uploadError } = await supabase.storage
+    .from('avatars')
+    .upload(filePath, file, { upsert: true })
+  if (uploadError) throw uploadError
+
+  const { data } = supabase.storage.from('avatars').getPublicUrl(filePath)
+  return data.publicUrl
 }
