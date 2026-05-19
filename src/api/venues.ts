@@ -14,7 +14,7 @@ export interface VenueFilters {
 export const getVenues = async (filters: VenueFilters = {}): Promise<Venue[]> => {
   let query = supabase
     .from('venues')
-    .select('*')
+    .select('*, categories(id, slug, name_uz, name_ru, icon)')
     .eq('status', 'active')
 
   if (filters.city) query = query.eq('city', filters.city)
@@ -35,7 +35,7 @@ export const getVenues = async (filters: VenueFilters = {}): Promise<Venue[]> =>
 export const getVenueById = async (id: string): Promise<Venue & { avg_rating?: number; review_count?: number }> => {
   const { data, error } = await supabase
     .from('venues')
-    .select('*')
+    .select('*, categories(id, slug, name_uz, name_ru, icon)')
     .eq('id', id)
     .single()
   if (error) throw error
@@ -45,7 +45,7 @@ export const getVenueById = async (id: string): Promise<Venue & { avg_rating?: n
 export const getVenuesByOwner = async (ownerId: string): Promise<Venue[]> => {
   const { data, error } = await supabase
     .from('venues')
-    .select('*')
+    .select('*, categories(id, slug, name_uz, name_ru, icon)')
     .eq('owner_id', ownerId)
     .order('created_at', { ascending: false })
   if (error) throw error
