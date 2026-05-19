@@ -106,8 +106,8 @@ const Home = () => {
                 }}
                 className={`flex-shrink-0 flex flex-col items-center gap-1.5 px-4 py-3 rounded-xl text-xs font-medium transition-all ${
                   selectedCategory === ''
-                    ? 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200'
-                    : 'text-gray-500 hover:bg-gray-50'
+                    ? 'bg-emerald-50 text-emerald-700 border-2 border-emerald-200'
+                    : 'text-gray-500 hover:bg-gray-50 border-2 border-transparent'
                 }`}
               >
                 <span className="text-2xl">🏠</span>
@@ -123,8 +123,8 @@ const Home = () => {
                   }}
                   className={`flex-shrink-0 flex flex-col items-center gap-1.5 px-4 py-3 rounded-xl text-xs font-medium transition-all ${
                     selectedCategory === cat.slug
-                      ? 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200'
-                      : 'text-gray-500 hover:bg-gray-50'
+                      ? 'bg-emerald-50 text-emerald-700 border-2 border-emerald-200'
+                      : 'text-gray-500 hover:bg-gray-50 border-2 border-transparent'
                   }`}
                 >
                   <span className="text-2xl">{cat.icon}</span>
