@@ -31,3 +31,63 @@ html {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.5; }
 }
+
+/* Dark mode overrides */
+.dark body,
+.dark .bg-gray-50 { background-color: #0f172a; }
+.dark .bg-white { background-color: #1e293b; }
+.dark .text-gray-900 { color: #f1f5f9; }
+.dark .text-gray-700 { color: #cbd5e1; }
+.dark .text-gray-600 { color: #94a3b8; }
+.dark .text-gray-500 { color: #64748b; }
+.dark .text-gray-400 { color: #475569; }
+.dark .border-gray-100 { border-color: #334155; }
+.dark .border-gray-200 { border-color: #475569; }
+.dark .border-gray-300 { border-color: #64748b; }
+.dark .bg-gray-100 { background-color: #334155; }
+.dark .bg-gray-200 { background-color: #475569; }
+
+/* Navbar */
+.dark nav.bg-white { background-color: #1e293b; }
+.dark nav.border-b { border-color: #334155; }
+
+/* Cards */
+.dark .shadow-sm { box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.3); }
+.dark .shadow-lg { box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.4); }
+
+/* Inputs / selects */
+.dark input, .dark select, .dark textarea {
+  background-color: #0f172a;
+  color: #f1f5f9;
+  border-color: #475569;
+}
+.dark input::placeholder, .dark textarea::placeholder { color: #64748b; }
+
+/* Buttons - secondary */
+.dark button.bg-white { background-color: #334155; }
+
+/* Footer */
+.dark footer.bg-white { background-color: #1e293b; }
+.dark footer.border-t { border-color: #334155; }
+
+/* Badge backgrounds */
+.dark .bg-emerald-50 { background-color: rgba(5, 150, 105, 0.15); }
+.dark .text-emerald-700 { color: #34d399; }
+.dark .bg-emerald-100 { background-color: rgba(5, 150, 105, 0.2); }
+
+.dark .bg-yellow-50 { background-color: rgba(234, 179, 8, 0.15); }
+.dark .text-yellow-700 { color: #fbbf24; }
+.dark .text-yellow-800 { color: #fcd34d; }
+
+.dark .bg-blue-50 { background-color: rgba(59, 130, 246, 0.15); }
+.dark .text-blue-800 { color: #93c5fd; }
+
+.dark .bg-green-50 { background-color: rgba(34, 197, 94, 0.15); }
+.dark .text-green-800 { color: #86efac; }
+.dark .border-green-100 { border-color: rgba(34, 197, 94, 0.2); }
+.dark .bg-green-100 { background-color: rgba(34, 197, 94, 0.2); }
+
+.dark .bg-red-50 { background-color: rgba(239, 68, 68, 0.15); }
+.dark .text-red-700 { color: #fca5a5; }
+
+.dark .bg-gradient-to-br { background-image: linear-gradient(to bottom right, rgba(5, 150, 105, 0.2), rgba(5, 150, 105, 0.1)); }

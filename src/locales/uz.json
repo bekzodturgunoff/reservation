@@ -60,7 +60,8 @@
     "confirmed": "Tasdiqlangan",
     "completed": "Yakunlangan",
     "cancelled": "Bekor qilingan",
-    "viewAll": "Barchasini ko'rish"
+    "viewAll": "Barchasini ko'rish",
+    "language": "Til"
   },
   "home": {
     "title": "O'zbekistondagi eng yaxshi bron platformasi",

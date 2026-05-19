@@ -60,7 +60,8 @@
     "confirmed": "Confirmed",
     "completed": "Completed",
     "cancelled": "Cancelled",
-    "viewAll": "View all"
+    "viewAll": "View all",
+    "language": "Language"
   },
   "home": {
     "title": "The best booking platform in Uzbekistan",

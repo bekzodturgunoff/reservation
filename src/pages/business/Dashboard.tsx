@@ -245,11 +245,16 @@ const BusinessDashboard = () => {
           <div className="grid gap-3">
             {venues.map(v => (
               <Link key={v.id} to={`/business/venue/${v.id}/availability`} className="flex items-center justify-between bg-white rounded-2xl border border-gray-100 p-4 hover:shadow-sm transition-shadow">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center text-lg">{v.categories?.icon || '🏢'}</div>
-                  <div>
-                    <p className="font-medium text-gray-900 text-sm">{v.name}</p>
-                    <p className="text-xs text-gray-500">{v.city} · {v.categories?.name_uz || t('common.other')} · {formatPrice(v.price_per_slot)} {t(`common.pricing_units.${v.pricing_unit}`)}</p>
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center text-lg shrink-0">{v.categories?.icon || '🏢'}</div>
+                  <div className="min-w-0">
+                    <p className="font-medium text-gray-900 text-sm truncate">{v.name}</p>
+                    <p className="text-xs text-gray-500 truncate">
+                      {v.city} · {v.categories?.name_uz || t('common.other')}
+                      {v.services && v.services.length > 0
+                        ? ` · ${v.services.slice(0, 2).map(s => formatPrice(s.price) + '/' + t('common.pricing_units.' + s.unit)).join(', ')}${v.services.length > 2 ? ' +' + (v.services.length - 2) : ''}`
+                        : ` · ${formatPrice(v.price_per_slot)} ${t('common.pricing_units.' + (v.pricing_unit || 'per_hour'))}`}
+                    </p>
                   </div>
                 </div>
                 <Badge variant={v.status === 'active' ? 'success' : v.status === 'pending' ? 'warning' : 'danger'}>

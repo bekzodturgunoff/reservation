@@ -14,7 +14,7 @@ const Home = () => {
   const navigate = useNavigate()
 
   const [searchQuery, setSearchQuery] = useState('')
-  const [selectedCity, setSelectedCity] = useState('Tashkent')
+  const [selectedCity, setSelectedCity] = useState('')
   const [selectedCategory, setSelectedCategory] = useState('')
 
   const { data: categories = [] } = useQuery({
@@ -101,6 +101,7 @@ const Home = () => {
                 onChange={e => setSelectedCity(e.target.value)}
                 className="text-sm text-gray-700 outline-none bg-transparent py-2 pr-2 cursor-pointer"
               >
+                <option value="">{t('common.all')}</option>
                 {cities.map(city => (
                   <option key={city} value={city}>{city}</option>
                 ))}
@@ -161,7 +162,7 @@ const Home = () => {
           <div className="flex items-center justify-between mb-6">
             <div>
               <h2 className="text-xl font-bold text-gray-900">{t('home.popularTitle')}</h2>
-              <p className="text-sm text-gray-500 mt-0.5">{selectedCity} {t('home.popularSub')}</p>
+              <p className="text-sm text-gray-500 mt-0.5">{selectedCity || t('common.all')} {t('home.popularSub')}</p>
             </div>
             <button
               onClick={() => navigate('/search')}

@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
+import { Link } from 'react-router-dom'
 import { CameraIcon, CalendarDaysIcon, ClockIcon, MapPinIcon, XCircleIcon, StarIcon, TrashIcon } from '@heroicons/react/24/outline'
 import { useTranslation } from 'react-i18next'
 import { useAuthStore } from '../store/authStore'
@@ -320,14 +321,14 @@ const Profile = () => {
             ? <EmptyState text="Sevimli joylar yo'q" sub="Yoqtirgan venue laringizni saqlang" />
             : <div className="space-y-3">{(favorites as any[]).map((f: any) => (
               <div key={f.id} className="flex items-center justify-between bg-white rounded-2xl border border-gray-100 p-4 shadow-sm">
-                <div className="flex items-center gap-3">
+                <Link to={`/venues/${f.venue_id}`} className="flex items-center gap-3 flex-1 min-w-0">
                   <span className="text-2xl">{f.venues?.categories?.icon || '🏢'}</span>
-                  <div>
-                    <p className="font-medium text-gray-900 text-sm">{f.venues?.name}</p>
+                  <div className="min-w-0">
+                    <p className="font-medium text-gray-900 text-sm hover:text-emerald-600 transition-colors">{f.venues?.name}</p>
                     <p className="text-xs text-gray-500">{f.venues?.city}</p>
                   </div>
-                </div>
-                <button onClick={() => removeFavMutation.mutate(f.venue_id)} className="text-gray-400 hover:text-red-500 transition-colors">
+                </Link>
+                <button onClick={() => removeFavMutation.mutate(f.venue_id)} className="text-gray-400 hover:text-red-500 transition-colors shrink-0 ml-3">
                   <TrashIcon className="w-4 h-4" />
                 </button>
               </div>

@@ -1,23 +1,16 @@
 import { Link } from 'react-router-dom'
 import { CalendarDaysIcon, PhoneIcon, EnvelopeIcon } from '@heroicons/react/24/outline'
-import { useQuery } from '@tanstack/react-query'
-import { getCategories } from '../../api/categories'
 import { useTranslation } from 'react-i18next'
 
 const Footer = () => {
   const { t } = useTranslation()
-  const { data: categories = [] } = useQuery({
-    queryKey: ['categories'],
-    queryFn: getCategories,
-    staleTime: 300_000,
-  })
 
   return (
     <footer className="bg-white border-t border-gray-200 mt-auto">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10">
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 sm:gap-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 sm:gap-8">
 
-          <div className="md:col-span-2">
+          <div className="md:col-span-1">
             <Link to="/" className="flex items-center gap-2 mb-3">
               <div className="w-7 h-7 sm:w-8 sm:h-8 bg-emerald-600 rounded-lg flex items-center justify-center">
                 <CalendarDaysIcon className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
@@ -37,31 +30,24 @@ const Footer = () => {
             </div>
           </div>
 
-          <div className="hidden sm:block">
-            <h4 className="text-xs sm:text-sm font-semibold text-gray-900 mb-3">{t('footer.categories')}</h4>
+          <div>
+            <h4 className="text-xs sm:text-sm font-semibold text-gray-900 mb-3">{t('footer.site')}</h4>
             <ul className="space-y-2">
-              <li>
-                <Link to="/search" className="text-xs sm:text-sm text-gray-500 hover:text-emerald-600 transition-colors">
-                  {t('common.all')}
-                </Link>
-              </li>
-              {categories.slice(0, 10).map(cat => (
-                <li key={cat.slug}>
-                  <Link to={`/search?category=${cat.slug}`} className="text-xs sm:text-sm text-gray-500 hover:text-emerald-600 transition-colors">
-                    {cat.icon} {cat.name_uz}
-                  </Link>
-                </li>
-              ))}
+              <li><Link to="/search" className="text-xs sm:text-sm text-gray-500 hover:text-emerald-600 transition-colors">{t('footer.search')}</Link></li>
+              <li><Link to="/register" className="text-xs sm:text-sm text-gray-500 hover:text-emerald-600 transition-colors">{t('footer.register')}</Link></li>
+              <li><Link to="/login" className="text-xs sm:text-sm text-gray-500 hover:text-emerald-600 transition-colors">{t('footer.login')}</Link></li>
+              <li><Link to="/register" className="text-xs sm:text-sm text-gray-500 hover:text-emerald-600 transition-colors">{t('footer.forBusiness')}</Link></li>
             </ul>
           </div>
 
-          <div className="hidden md:block">
-            <h4 className="text-xs sm:text-sm font-semibold text-gray-900 mb-3">{t('footer.site')}</h4>
+          <div>
+            <h4 className="text-xs sm:text-sm font-semibold text-gray-900 mb-3">{t('footer.categories')}</h4>
             <ul className="space-y-2">
-              <li><Link to="/search" className="text-xs sm:text-sm text-gray-500 hover:text-emerald-600">{t('footer.search')}</Link></li>
-              <li><Link to="/register" className="text-xs sm:text-sm text-gray-500 hover:text-emerald-600">{t('footer.register')}</Link></li>
-              <li><Link to="/login" className="text-xs sm:text-sm text-gray-500 hover:text-emerald-600">{t('footer.login')}</Link></li>
-              <li><Link to="/register" className="text-xs sm:text-sm text-gray-500 hover:text-emerald-600">{t('footer.forBusiness')}</Link></li>
+              <li><Link to="/search" className="text-xs sm:text-sm text-gray-500 hover:text-emerald-600 transition-colors">{t('common.all')}</Link></li>
+              <li><Link to="/search?category=cafe" className="text-xs sm:text-sm text-gray-500 hover:text-emerald-600 transition-colors">☕ {t('footer.cafe')}</Link></li>
+              <li><Link to="/search?category=restaurant" className="text-xs sm:text-sm text-gray-500 hover:text-emerald-600 transition-colors">🍽️ {t('footer.restaurant')}</Link></li>
+              <li><Link to="/search?category=football" className="text-xs sm:text-sm text-gray-500 hover:text-emerald-600 transition-colors">⚽ {t('footer.football')}</Link></li>
+              <li><Link to="/search?category=gym" className="text-xs sm:text-sm text-gray-500 hover:text-emerald-600 transition-colors">🏋️ {t('footer.gym')}</Link></li>
             </ul>
           </div>
         </div>

@@ -23,18 +23,12 @@ export const getPendingVenues = async (): Promise<PendingVenue[]> => {
 }
 
 export const approveVenue = async (id: string): Promise<void> => {
-  const { error } = await supabase
-    .from('venues')
-    .update({ status: 'active' })
-    .eq('id', id)
+  const { error } = await supabase.rpc('approve_venue', { venue_id: id })
   if (error) throw error
 }
 
 export const rejectVenue = async (id: string): Promise<void> => {
-  const { error } = await supabase
-    .from('venues')
-    .update({ status: 'rejected' })
-    .eq('id', id)
+  const { error } = await supabase.rpc('reject_venue', { venue_id: id })
   if (error) throw error
 }
 
