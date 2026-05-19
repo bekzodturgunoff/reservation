@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { CalendarDaysIcon, CurrencyDollarIcon, StarIcon, Cog6ToothIcon, PlusCircleIcon, PaperAirplaneIcon, TrashIcon, ChartBarSquareIcon } from '@heroicons/react/24/outline'
@@ -36,7 +36,6 @@ const BusinessDashboard = () => {
   const user = useAuthStore(state => state.user)
   const { addToast } = useToastStore()
   const queryClient = useQueryClient()
-  const [copiedCode, setCopiedCode] = useState<string | null>(null)
 
   const { data: venues = [] } = useQuery({
     queryKey: ['venues', 'owner', profile?.id],
@@ -108,15 +107,6 @@ const BusinessDashboard = () => {
   )
 
   const linkedVenueIds = useMemo(() => new Set(telegramLinks.map(l => l.venue_id)), [telegramLinks])
-
-  const handleCopyCode = (venueId: string) => {
-    if (!user) return
-    const code = generateLinkCode(venueId, user.id)
-    navigator.clipboard.writeText(code)
-    setCopiedCode(venueId)
-    setTimeout(() => setCopiedCode(null), 3000)
-    addToast({ type: 'info', message: t('common.success') })
-  }
 
   return (
     <div className="space-y-8">
@@ -198,6 +188,7 @@ const BusinessDashboard = () => {
             {venues.map(v => {
               const isLinked = linkedVenueIds.has(v.id)
               const code = generateLinkCode(v.id, user?.id || '')
+              const telegramLink = `https://t.me/bron_uzb_bot?start=${code}`
               return (
                 <div key={v.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
                   <div className="flex items-center gap-3">
@@ -225,16 +216,14 @@ const BusinessDashboard = () => {
                         <TrashIcon className="w-3.5 h-3.5" /> {t('telegram.disconnect')}
                       </Button>
                     ) : (
-                      <div className="flex items-center gap-2">
-                        <Button size="sm" onClick={() => handleCopyCode(v.id)}>
-                          {copiedCode === v.id ? '✅' : t('telegram.linkVenue')}
-                        </Button>
-                        {copiedCode === v.id && (
-                          <span className="text-xs text-emerald-600 font-medium">
-                            {code}
-                          </span>
-                        )}
-                      </div>
+                      <a
+                        href={telegramLink}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white text-sm font-medium rounded-xl hover:bg-emerald-700 transition-colors"
+                      >
+                        <PaperAirplaneIcon className="w-3.5 h-3.5" /> {t('telegram.linkVenue')}
+                      </a>
                     )}
                   </div>
                 </div>
@@ -260,7 +249,7 @@ const BusinessDashboard = () => {
                   <div className="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center text-lg">{v.categories?.icon || '🏢'}</div>
                   <div>
                     <p className="font-medium text-gray-900 text-sm">{v.name}</p>
-                    <p className="text-xs text-gray-500">{v.city} · {v.categories?.name_uz || t('common.other')} · {formatPrice(v.price_per_slot)}{t('common.perHour')}</p>
+                    <p className="text-xs text-gray-500">{v.city} · {v.categories?.name_uz || t('common.other')} · {formatPrice(v.price_per_slot)} {t(`common.pricing_units.${v.pricing_unit}`)}</p>
                   </div>
                 </div>
                 <Badge variant={v.status === 'active' ? 'success' : v.status === 'pending' ? 'warning' : 'danger'}>
@@ -281,7 +270,7 @@ const BusinessDashboard = () => {
           </div>
         ) : (
           <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto scrollbar-hide">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-gray-100 text-gray-500 text-xs">

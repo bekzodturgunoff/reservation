@@ -40,7 +40,7 @@ const SlotPicker = ({ venueId, selectedSlot, onSelect }: SlotPickerProps) => {
 
   return (
     <div>
-      <div className="flex gap-2 overflow-x-auto pb-2 mb-4">
+      <div className="flex gap-2 overflow-x-auto pb-2 mb-4 scrollbar-hide">
         {dates.map(dateStr => {
           const { dayName, dayNum, isToday } = formatDisplay(dateStr)
           const isSelected = dateStr === selectedDate

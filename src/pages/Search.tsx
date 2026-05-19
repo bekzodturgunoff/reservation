@@ -204,7 +204,7 @@ const Search = () => {
         )}
       </div>
 
-      <div className="mt-5 mb-5 flex gap-2 overflow-x-auto pb-1">
+      <div className="mt-5 mb-5 flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
         <button
           onClick={() => setCategory('')}
           className={`flex-shrink-0 flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium transition-all border ${

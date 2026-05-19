@@ -2,14 +2,17 @@ import { useParams, Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { CalendarDaysIcon, ClockIcon, MapPinIcon, TagIcon, CheckCircleIcon, HomeIcon, UserIcon } from '@heroicons/react/24/outline'
 import { getBookingById } from '../api/bookings'
+import { useAuthStore } from '../store/authStore'
 import { useTitle } from '../hooks/useTitle'
 import { formatPrice, formatDate } from '../lib/utils'
 import Button from '../components/ui/Button'
+import ReviewForm from '../components/venue/ReviewForm'
 import { useTranslation } from 'react-i18next'
 
 const Confirmation = () => {
   const { bookingId } = useParams<{ bookingId: string }>()
   const { t } = useTranslation()
+  const user = useAuthStore(state => state.user)
   useTitle(t('confirmation.title'))
 
   const { data: booking, isLoading } = useQuery({
@@ -93,6 +96,12 @@ const Confirmation = () => {
               </div>
             </>
           )}
+          {booking.service_name && (
+            <div className="flex items-center gap-3">
+              <TagIcon className="w-4 h-4 text-gray-400" />
+              <span className="text-gray-700">{booking.service_name}</span>
+            </div>
+          )}
           <div className="flex items-center gap-3">
             <TagIcon className="w-4 h-4 text-gray-400" />
             <span className="font-semibold text-emerald-600">{formatPrice(booking.total_price)}</span>
@@ -105,6 +114,13 @@ const Confirmation = () => {
           )}
         </div>
       </div>
+
+      {/* Leave a review */}
+      {user && venue && (
+        <div className="mb-6 text-left">
+          <ReviewForm venueId={venue.id} bookingId={booking.id} />
+        </div>
+      )}
 
       {/* Telegram reminder */}
       <div className="p-4 bg-blue-50 rounded-xl border border-blue-100 mb-6 text-left">

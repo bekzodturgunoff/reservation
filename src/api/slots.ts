@@ -38,3 +38,21 @@ export const updateSlotAvailability = async (slotId: string, isAvailable: boolea
     .eq('id', slotId)
   if (error) throw error
 }
+
+export const blockDateSlots = async (venueId: string, date: string): Promise<void> => {
+  const { error } = await supabase
+    .from('slots')
+    .update({ is_available: false })
+    .eq('venue_id', venueId)
+    .eq('date', date)
+  if (error) throw error
+}
+
+export const unblockDateSlots = async (venueId: string, date: string): Promise<void> => {
+  const { error } = await supabase
+    .from('slots')
+    .update({ is_available: true })
+    .eq('venue_id', venueId)
+    .eq('date', date)
+  if (error) throw error
+}

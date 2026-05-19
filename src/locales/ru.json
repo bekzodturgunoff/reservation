@@ -32,9 +32,22 @@
     "confirmDelete": "Вы уверены, что хотите удалить",
     "noData": "Данные не найдены",
     "perHour": "/ час",
+    "perSession": "сеанс",
+    "perDay": "день",
+    "perMonth": "месяц",
+    "perPerson": "чел.",
+    "fixed": "фикс.",
     "hour": "час",
     "minute": "мин",
     "sum": "сум",
+    "pricing_units": {
+      "per_hour": "в час",
+      "per_session": "за сеанс",
+      "per_day": "в день",
+      "per_month": "в месяц",
+      "per_person": "за человека",
+      "fixed": "фиксировано"
+    },
     "days": {
       "short": ["Вс", "Пн", "Вт", "Ср", "Чт", "Пт", "Сб"]
     },
@@ -113,7 +126,10 @@
     "writeReview": "Написать отзыв",
     "submitReview": "Отправить отзыв",
     "reviewPlaceholder": "Поделитесь впечатлениями...",
-    "reviewSubmitted": "Отзыв успешно отправлен"
+    "reviewSubmitted": "Отзыв успешно отправлен",
+    "pricing": "Цены",
+    "selectService": "Выберите услугу",
+    "selectedService": "Выбранная услуга"
   },
   "booking": {
     "title": "Бронирование",
@@ -131,6 +147,7 @@
     "total": "Итого к оплате",
     "perHour": "за 1 час",
     "terms": "Подтверждая бронь, вы соглашаетесь с условиями обслуживания",
+    "selectedService": "Услуга:",
     "success": "Забронировано! Переход на страницу подтверждения...",
     "error": "Ошибка при бронировании"
   },
@@ -194,7 +211,8 @@
     "phoneDigitsOnly": "Только цифры",
     "passwordsNoMatch": "Пароли не совпадают",
     "haveAccount": "Есть аккаунт?",
-    "loginLink": "Войти"
+    "loginLink": "Войти",
+    "rememberMe": "Запомнить меня"
   },
   "business": {
     "dashboard": "Бизнес панель",
@@ -262,7 +280,18 @@
       "cancel": "Отмена",
       "update": "Обновить",
       "create": "Добавить",
-      "searching": "Поиск..."
+      "searching": "Поиск...",
+      "pricingUnit": "Модель ценообразования",
+      "pricingUnitPlaceholder": "Выберите модель ценообразования",
+      "services": "Варианты цен",
+      "addService": "Добавить вариант",
+      "serviceName": "Название",
+      "servicePrice": "Цена",
+      "serviceDescription": "Описание",
+      "serviceDuration": "Длительность (мин)",
+      "deleteService": "Удалить",
+      "serviceAdded": "Вариант добавлен",
+      "serviceDeleted": "Вариант удалён"
     },
     "availability": {
       "title": "Управление временем",
@@ -289,7 +318,11 @@
       "bulkEnd": "Конец",
       "bulkCreateBtn": "Создать",
       "created": "Слоты созданы",
-      "bulkCreated": "Все слоты созданы"
+      "bulkCreated": "Все слоты созданы",
+      "closeDate": "Закрыть эту дату",
+      "openDate": "Открыть эту дату",
+      "dateClosed": "Дата закрыта для брони",
+      "dateOpened": "Дата открыта для брони"
     }
   },
   "telegram": {

@@ -32,9 +32,22 @@
     "confirmDelete": "Are you sure you want to delete",
     "noData": "No data found",
     "perHour": "/ hour",
+    "perSession": "session",
+    "perDay": "day",
+    "perMonth": "month",
+    "perPerson": "person",
+    "fixed": "fixed",
     "hour": "hour",
     "minute": "minute",
     "sum": "sum",
+    "pricing_units": {
+      "per_hour": "per hour",
+      "per_session": "per session",
+      "per_day": "per day",
+      "per_month": "per month",
+      "per_person": "per person",
+      "fixed": "fixed"
+    },
     "days": {
       "short": ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
     },
@@ -113,7 +126,10 @@
     "writeReview": "Write a review",
     "submitReview": "Submit review",
     "reviewPlaceholder": "Share your experience...",
-    "reviewSubmitted": "Review submitted successfully"
+    "reviewSubmitted": "Review submitted successfully",
+    "pricing": "Pricing",
+    "selectService": "Choose a service",
+    "selectedService": "Selected service"
   },
   "booking": {
     "title": "Booking",
@@ -131,6 +147,7 @@
     "total": "Total",
     "perHour": "For 1 hour",
     "terms": "By confirming, you agree to the terms of service",
+    "selectedService": "Service:",
     "success": "Booked! Redirecting to confirmation...",
     "error": "Something went wrong while booking"
   },
@@ -194,7 +211,8 @@
     "phoneDigitsOnly": "Digits only",
     "passwordsNoMatch": "Passwords don't match",
     "haveAccount": "Already have an account?",
-    "loginLink": "Log in"
+    "loginLink": "Log in",
+    "rememberMe": "Remember me"
   },
   "business": {
     "dashboard": "Business dashboard",
@@ -262,7 +280,18 @@
       "cancel": "Cancel",
       "update": "Update",
       "create": "Create",
-      "searching": "Searching..."
+      "searching": "Searching...",
+      "pricingUnit": "Pricing model",
+      "pricingUnitPlaceholder": "Select pricing model",
+      "services": "Pricing options",
+      "addService": "Add option",
+      "serviceName": "Name",
+      "servicePrice": "Price",
+      "serviceDescription": "Description",
+      "serviceDuration": "Duration (min)",
+      "deleteService": "Delete",
+      "serviceAdded": "Option added",
+      "serviceDeleted": "Option removed"
     },
     "availability": {
       "title": "Manage time slots",
@@ -289,7 +318,11 @@
       "bulkEnd": "End date",
       "bulkCreateBtn": "Create",
       "created": "Slots created",
-      "bulkCreated": "All slots created"
+      "bulkCreated": "All slots created",
+      "closeDate": "Close this date",
+      "openDate": "Open this date",
+      "dateClosed": "Date closed for bookings",
+      "dateOpened": "Date reopened for bookings"
     }
   },
   "telegram": {

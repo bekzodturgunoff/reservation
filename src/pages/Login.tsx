@@ -18,6 +18,7 @@ const Login = () => {
   const location = useLocation()
   const { addToast } = useToastStore()
   const [loading, setLoading] = useState(false)
+  const [rememberMe, setRememberMe] = useState(true)
 
   const schema = useMemo(() => z.object({
     email: z.string().email(t('auth.validEmail')),
@@ -83,6 +84,15 @@ const Login = () => {
               error={errors.password?.message}
               {...register('password')}
             />
+            <label className="flex items-center gap-2 cursor-pointer select-none">
+              <input
+                type="checkbox"
+                checked={rememberMe}
+                onChange={() => setRememberMe(r => !r)}
+                className="w-4 h-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500 cursor-pointer"
+              />
+              <span className="text-sm text-gray-600">{t('auth.rememberMe')}</span>
+            </label>
             <Button type="submit" loading={loading} className="w-full" size="lg">
               {t('common.login')}
             </Button>

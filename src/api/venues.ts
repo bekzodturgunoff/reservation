@@ -1,5 +1,5 @@
 import { supabase } from '../lib/supabase'
-import type { Venue } from '../types'
+import type { Venue, VenueService } from '../types'
 
 export interface VenueFilters {
   category?: string
@@ -14,7 +14,7 @@ export interface VenueFilters {
 export const getVenues = async (filters: VenueFilters = {}): Promise<Venue[]> => {
   let query = supabase
     .from('venues')
-    .select('*, categories(id, slug, name_uz, name_ru, icon)')
+    .select('*, categories(id, slug, name_uz, name_ru, icon), services:venue_services(*)')
     .eq('status', 'active')
 
   if (filters.city) query = query.eq('city', filters.city)
@@ -35,7 +35,7 @@ export const getVenues = async (filters: VenueFilters = {}): Promise<Venue[]> =>
 export const getVenueById = async (id: string): Promise<Venue & { avg_rating?: number; review_count?: number }> => {
   const { data, error } = await supabase
     .from('venues')
-    .select('*, categories(id, slug, name_uz, name_ru, icon)')
+    .select('*, categories(id, slug, name_uz, name_ru, icon), services:venue_services(*)')
     .eq('id', id)
     .single()
   if (error) throw error
@@ -45,11 +45,51 @@ export const getVenueById = async (id: string): Promise<Venue & { avg_rating?: n
 export const getVenuesByOwner = async (ownerId: string): Promise<Venue[]> => {
   const { data, error } = await supabase
     .from('venues')
-    .select('*, categories(id, slug, name_uz, name_ru, icon)')
+    .select('*, categories(id, slug, name_uz, name_ru, icon), services:venue_services(*)')
     .eq('owner_id', ownerId)
     .order('created_at', { ascending: false })
   if (error) throw error
   return data
+}
+
+// --- Venue Services CRUD ---
+export const getVenueServices = async (venueId: string): Promise<VenueService[]> => {
+  const { data, error } = await supabase
+    .from('venue_services')
+    .select('*')
+    .eq('venue_id', venueId)
+    .order('sort_order', { ascending: true })
+  if (error) throw error
+  return data
+}
+
+export const createVenueService = async (service: Partial<VenueService>): Promise<VenueService> => {
+  const { data, error } = await supabase
+    .from('venue_services')
+    .insert(service)
+    .select()
+    .single()
+  if (error) throw error
+  return data
+}
+
+export const updateVenueService = async (id: string, updates: Partial<VenueService>): Promise<VenueService> => {
+  const { data, error } = await supabase
+    .from('venue_services')
+    .update(updates)
+    .eq('id', id)
+    .select()
+    .single()
+  if (error) throw error
+  return data
+}
+
+export const deleteVenueService = async (id: string): Promise<void> => {
+  const { error } = await supabase
+    .from('venue_services')
+    .delete()
+    .eq('id', id)
+  if (error) throw error
 }
 
 export const createVenue = async (venue: Partial<Venue>): Promise<Venue> => {

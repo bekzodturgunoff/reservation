@@ -14,7 +14,7 @@ import Badge from '../components/ui/Badge'
 import Button from '../components/ui/Button'
 import SlotPicker from '../components/venue/SlotPicker'
 import ReviewForm from '../components/venue/ReviewForm'
-import type { Slot } from '../types'
+import type { Slot, VenueService } from '../types'
 import { useTranslation } from 'react-i18next'
 
 const VenueDetail = () => {
@@ -24,6 +24,7 @@ const VenueDetail = () => {
   const { t } = useTranslation()
 
   const [selectedSlot, setSelectedSlot] = useState<Slot | null>(null)
+  const [selectedService, setSelectedService] = useState<VenueService | null>(null)
   const [photoIndex, setPhotoIndex] = useState(0)
 
   const { data: venue, isLoading } = useQuery({
@@ -39,6 +40,25 @@ const VenueDetail = () => {
   })
 
   useTitle(venue?.name || t('venue.about'))
+
+  const services = venue?.services || []
+
+  const effectivePrice = selectedService ? selectedService.price : (venue?.price_per_slot || 0)
+  const effectiveUnit = selectedService
+    ? selectedService.unit
+    : venue?.pricing_unit || 'per_hour'
+
+  const unitLabel = (unit: string) => {
+    const map: Record<string, string> = {
+      per_hour: t('venue.perHour'),
+      per_session: '/ ' + t('common.perSession'),
+      per_day: '/ ' + t('common.perDay'),
+      per_month: '/ ' + t('common.perMonth'),
+      per_person: '/ ' + t('common.perPerson'),
+      fixed: '',
+    }
+    return map[unit] || ''
+  }
 
   if (isLoading) {
     return (
@@ -75,7 +95,8 @@ const VenueDetail = () => {
       return
     }
     if (selectedSlot) {
-      navigate(`/booking/${venue.id}/${selectedSlot.id}`)
+      const params = selectedService ? `?serviceId=${selectedService.id}` : ''
+      navigate(`/booking/${venue.id}/${selectedSlot.id}${params}`)
     }
   }
 
@@ -153,8 +174,8 @@ const VenueDetail = () => {
               </div>
               <div className="flex items-center gap-1.5 text-lg font-semibold text-emerald-600">
                 <TagIcon className="w-5 h-5" />
-                {formatPrice(venue.price_per_slot, venue.currency)}
-                <span className="text-sm text-gray-400 font-normal">{t('venue.perHour')}</span>
+                {formatPrice(effectivePrice)}
+                {effectiveUnit && <span className="text-sm text-gray-400 font-normal">{unitLabel(effectiveUnit)}</span>}
               </div>
             </div>
 
@@ -180,6 +201,57 @@ const VenueDetail = () => {
               <p className="mt-4 text-gray-600 leading-relaxed">{venue.description}</p>
             )}
           </div>
+
+          {/* Pricing / Services */}
+          {services.length > 0 && (
+            <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
+              <div className="flex items-center gap-2 mb-4">
+                <TagIcon className="w-5 h-5 text-emerald-600" />
+                <h2 className="text-lg font-semibold text-gray-900">{t('venue.pricing')}</h2>
+              </div>
+              <p className="text-sm text-gray-500 mb-4">{t('venue.selectService')}</p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {services.map(s => {
+                  const isSelected = selectedService?.id === s.id
+                  return (
+                    <button
+                      key={s.id}
+                      type="button"
+                      onClick={() => setSelectedService(isSelected ? null : s)}
+                      className={`text-left rounded-xl border-2 p-4 transition-all ${
+                        isSelected
+                          ? 'border-emerald-500 bg-emerald-50'
+                          : 'border-gray-200 bg-white hover:border-emerald-300'
+                      }`}
+                    >
+                      <p className="font-semibold text-gray-900">{s.name}</p>
+                      <p className="text-lg font-bold text-emerald-600 mt-1">
+                        {formatPrice(s.price)}
+                        {s.unit !== 'fixed' && (
+                          <span className="text-sm font-normal text-gray-400">
+                            {' '}{unitLabel(s.unit)}
+                          </span>
+                        )}
+                      </p>
+                      {s.description && (
+                        <p className="text-xs text-gray-500 mt-1">{s.description}</p>
+                      )}
+                      {s.duration_minutes && (
+                        <p className="text-xs text-gray-400 mt-0.5">
+                          {s.duration_minutes} {t('common.minute')}
+                        </p>
+                      )}
+                      {isSelected && (
+                        <div className="mt-2 text-xs text-emerald-600 font-medium flex items-center gap-1">
+                          ✓ {t('venue.selectedService')}
+                        </div>
+                      )}
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+          )}
 
           {/* Slot picker */}
           <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
@@ -265,9 +337,17 @@ const VenueDetail = () => {
               </div>
               <div className="flex items-center gap-2 text-gray-600">
                 <TagIcon className="w-4 h-4 text-gray-400" />
-                <span className="font-medium text-emerald-600">{formatPrice(venue.price_per_slot, venue.currency)}</span>
-                <span className="text-gray-400">{t('venue.perHour')}</span>
+                <span className="font-medium text-emerald-600">{formatPrice(effectivePrice)}</span>
+                {effectiveUnit !== 'fixed' && (
+                  <span className="text-gray-400">{unitLabel(effectiveUnit)}</span>
+                )}
               </div>
+              {selectedService && (
+                <div className="flex items-center gap-2 text-gray-600">
+                  <StarIcon className="w-4 h-4 text-gray-400" />
+                  <span className="text-gray-700">{selectedService.name}</span>
+                </div>
+              )}
               {selectedSlot && (
                 <div className="flex items-center gap-2 text-gray-600">
                   <ClockIcon className="w-4 h-4 text-gray-400" />
@@ -280,7 +360,7 @@ const VenueDetail = () => {
               <div className="flex items-center justify-between mb-4">
                 <span className="text-sm text-gray-600">{t('venue.total')}:</span>
                 <span className="text-xl font-bold text-gray-900">
-                  {selectedSlot ? formatPrice(venue.price_per_slot, venue.currency) : '—'}
+                  {selectedSlot ? formatPrice(effectivePrice) : '—'}
                 </span>
               </div>
 

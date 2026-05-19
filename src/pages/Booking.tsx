@@ -1,9 +1,10 @@
 import { useState } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { CalendarDaysIcon, ClockIcon, MapPinIcon, TagIcon, CreditCardIcon, ArrowLeftIcon } from '@heroicons/react/24/outline'
 import { getVenueById } from '../api/venues'
 import { getSlotById, updateSlotAvailability } from '../api/slots'
+import { getVenueServices } from '../api/venues'
 import { createBooking } from '../api/bookings'
 import { useAuthStore } from '../store/authStore'
 import { useToastStore } from '../store/toastStore'
@@ -15,6 +16,8 @@ import { useTranslation } from 'react-i18next'
 
 const Booking = () => {
   const { venueId, slotId } = useParams<{ venueId: string; slotId: string }>()
+  const [searchParams] = useSearchParams()
+  const serviceId = searchParams.get('serviceId')
   const navigate = useNavigate()
   const { user, profile } = useAuthStore()
   const { addToast } = useToastStore()
@@ -37,6 +40,15 @@ const Booking = () => {
     enabled: !!slotId,
   })
 
+  const { data: services = [] } = useQuery({
+    queryKey: ['venue-services', venueId],
+    queryFn: () => getVenueServices(venueId!),
+    enabled: !!venueId && !!serviceId,
+  })
+
+  const selectedService = services.find(s => s.id === serviceId) || null
+  const effectivePrice = selectedService ? selectedService.price : (venue?.price_per_slot || 0)
+
   const loading = venueLoading || slotLoading
 
   const handleConfirm = async () => {
@@ -48,7 +60,10 @@ const Booking = () => {
         user_id: user.id,
         venue_id: venue.id,
         slot_id: slot.id,
-        total_price: venue.price_per_slot,
+        service_id: selectedService?.id || null,
+        service_name: selectedService?.name || '',
+        service_price: selectedService?.price || 0,
+        total_price: effectivePrice,
         note: note || null,
         status: 'confirmed',
       })
@@ -143,9 +158,25 @@ const Booking = () => {
                 {slot.start_time.slice(0, 5)} — {slot.end_time.slice(0, 5)}
               </span>
             </div>
+
+            {/* Selected service info */}
+            {selectedService && (
+              <div className="flex items-center gap-3 text-sm">
+                <TagIcon className="w-4 h-4 text-gray-400" />
+                <span className="text-gray-700">
+                  {t('booking.selectedService')} <strong>{selectedService.name}</strong>
+                </span>
+              </div>
+            )}
+
             <div className="flex items-center gap-3 text-sm">
               <TagIcon className="w-4 h-4 text-gray-400" />
-              <span className="font-semibold text-emerald-600">{formatPrice(venue.price_per_slot, venue.currency)}</span>
+              <span className="font-semibold text-emerald-600">{formatPrice(effectivePrice)}</span>
+              {venue.pricing_unit !== 'fixed' && (
+                <span className="text-gray-400">
+                  {t(`common.pricing_units.${venue.pricing_unit}`)}
+                </span>
+              )}
             </div>
           </div>
         </div>
@@ -199,8 +230,12 @@ const Booking = () => {
           <div className="flex items-center justify-between mb-4">
             <span className="text-gray-600">{t('booking.total')}</span>
             <div className="text-right">
-              <p className="text-2xl font-bold text-gray-900">{formatPrice(venue.price_per_slot, venue.currency)}</p>
-              <p className="text-xs text-gray-400">{t('booking.perHour')}</p>
+              <p className="text-2xl font-bold text-gray-900">{formatPrice(effectivePrice)}</p>
+              {venue.pricing_unit !== 'fixed' && (
+                <p className="text-xs text-gray-400">
+                  {t('common.pricing_units.' + venue.pricing_unit)}
+                </p>
+              )}
             </div>
           </div>
 

@@ -15,6 +15,21 @@ export interface Category {
   icon: string
 }
 
+export type PricingUnit = 'per_hour' | 'per_session' | 'per_day' | 'per_month' | 'per_person' | 'fixed'
+
+export interface VenueService {
+  id: string
+  venue_id: string
+  name: string
+  price: number
+  unit: PricingUnit
+  description: string
+  duration_minutes: number | null
+  is_featured: boolean
+  sort_order: number
+  created_at: string
+}
+
 export interface Venue {
   id: string
   owner_id: string
@@ -29,9 +44,11 @@ export interface Venue {
   photos: string[]
   price_per_slot: number
   currency: string
+  pricing_unit: PricingUnit
   status: 'pending' | 'active' | 'rejected'
   created_at: string
   categories?: Category
+  services?: VenueService[]
   avg_rating?: number
   review_count?: number
 }
@@ -50,6 +67,9 @@ export interface Booking {
   user_id: string
   venue_id: string
   slot_id: string
+  service_id: string | null
+  service_name: string
+  service_price: number
   status: 'confirmed' | 'cancelled' | 'completed'
   total_price: number
   note: string | null

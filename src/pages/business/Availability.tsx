@@ -3,7 +3,7 @@ import { useParams, Link } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { ChevronLeftIcon, ChevronRightIcon, ClockIcon, PlusIcon } from '@heroicons/react/24/outline'
 import { getVenuesByOwner } from '../../api/venues'
-import { getSlotsByVenueAndDate, createSlots, updateSlotAvailability } from '../../api/slots'
+import { getSlotsByVenueAndDate, createSlots, updateSlotAvailability, blockDateSlots, unblockDateSlots } from '../../api/slots'
 import { useAuthStore } from '../../store/authStore'
 import { useToastStore } from '../../store/toastStore'
 import { useTitle } from '../../hooks/useTitle'
@@ -80,6 +80,24 @@ const Availability = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['slots'] })
     },
+  })
+
+  const blockDateMutation = useMutation({
+    mutationFn: () => blockDateSlots(venue!.id, selectedDate!),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['slots'] })
+      addToast({ type: 'success', message: t('business.availability.dateClosed') })
+    },
+    onError: () => addToast({ type: 'error', message: t('common.error') }),
+  })
+
+  const unblockDateMutation = useMutation({
+    mutationFn: () => unblockDateSlots(venue!.id, selectedDate!),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['slots'] })
+      addToast({ type: 'success', message: t('business.availability.dateOpened') })
+    },
+    onError: () => addToast({ type: 'error', message: t('common.error') }),
   })
 
   const generateRangeMutation = useMutation({
@@ -290,6 +308,28 @@ const Availability = () => {
                   </div>
                 </div>
               )}
+
+              <div className="pt-4 border-t border-gray-100 flex gap-2">
+                <Button
+                  size="sm"
+                  variant="danger"
+                  className="flex-1"
+                  onClick={() => blockDateMutation.mutate()}
+                  loading={blockDateMutation.isPending}
+                  disabled={availableSlots.length === 0}
+                >
+                  {t('business.availability.closeDate')}
+                </Button>
+                <Button
+                  size="sm"
+                  className="flex-1"
+                  onClick={() => unblockDateMutation.mutate()}
+                  loading={unblockDateMutation.isPending}
+                  disabled={takenSlots.length === 0}
+                >
+                  {t('business.availability.openDate')}
+                </Button>
+              </div>
             </div>
           )}
         </div>

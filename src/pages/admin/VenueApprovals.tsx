@@ -133,7 +133,7 @@ const VenueApprovals = () => {
                 )}
 
                 {v.photos && v.photos.length > 0 && (
-                  <div className="flex gap-2 mt-4 overflow-x-auto pb-2">
+                  <div className="flex gap-2 mt-4 overflow-x-auto pb-2 scrollbar-hide">
                     {v.photos.slice(0, 4).map((photo, i) => (
                       <img
                         key={i}

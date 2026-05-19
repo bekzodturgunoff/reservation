@@ -32,9 +32,22 @@
     "confirmDelete": "ni o'chirishni xohlaysizmi?",
     "noData": "Ma'lumot topilmadi",
     "perHour": "/ soat",
+    "perSession": "martaba",
+    "perDay": "kun",
+    "perMonth": "oy",
+    "perPerson": "kishi",
+    "fixed": "qat'iy",
     "hour": "soat",
     "minute": "daqiqa",
     "sum": "so'm",
+    "pricing_units": {
+      "per_hour": "soatiga",
+      "per_session": "bir martalik",
+      "per_day": "kuniga",
+      "per_month": "oyiga",
+      "per_person": "kishi boshiga",
+      "fixed": "qat'iy"
+    },
     "days": {
       "short": ["Yak", "Du", "Se", "Chor", "Pay", "Ju", "Shan"]
     },
@@ -113,7 +126,10 @@
     "writeReview": "Izoh qoldirish",
     "submitReview": "Izohni yuborish",
     "reviewPlaceholder": "Tajribangiz bilan o'rtoqlashing...",
-    "reviewSubmitted": "Izoh muvaffaqiyatli yuborildi"
+    "reviewSubmitted": "Izoh muvaffaqiyatli yuborildi",
+    "pricing": "Narxlar",
+    "selectService": "Xizmatni tanlang",
+    "selectedService": "Tanlangan xizmat"
   },
   "booking": {
     "title": "Bron qilish",
@@ -131,6 +147,7 @@
     "total": "Jami to'lov",
     "perHour": "1 soat uchun",
     "terms": "Bronni tasdiqlash orqali siz xizmat ko'rsatish shartlariga rozilik bildirasiz",
+    "selectedService": "Xizmat:",
     "success": "Bron qilindi! Tasdiqlash sahifasiga o'tish...",
     "error": "Bron qilishda xatolik yuz berdi"
   },
@@ -194,7 +211,8 @@
     "phoneDigitsOnly": "Faqat raqamlar",
     "passwordsNoMatch": "Parollar mos emas",
     "haveAccount": "Hisobingiz bormi?",
-    "loginLink": "Kiring"
+    "loginLink": "Kiring",
+    "rememberMe": "Eslab qol"
   },
   "business": {
     "dashboard": "Biznes panel",
@@ -262,7 +280,18 @@
       "cancel": "Bekor qilish",
       "update": "Yangilash",
       "create": "Qo'shish",
-      "searching": "Qidirilmoqda..."
+      "searching": "Qidirilmoqda...",
+      "pricingUnit": "Narxlash modeli",
+      "pricingUnitPlaceholder": "Narxlash modelini tanlang",
+      "services": "Narx variantlari",
+      "addService": "Qo'shimcha qilish",
+      "serviceName": "Nomi",
+      "servicePrice": "Narxi",
+      "serviceDescription": "Tavsif",
+      "serviceDuration": "Davom (min)",
+      "deleteService": "O'chirish",
+      "serviceAdded": "Variant qo'shildi",
+      "serviceDeleted": "Variant o'chirildi"
     },
     "availability": {
       "title": "Vaqtlarni boshqarish",
@@ -289,7 +318,11 @@
       "bulkEnd": "Tugash",
       "bulkCreateBtn": "Yarating",
       "created": "Vaqtlar yaratildi",
-      "bulkCreated": "Barcha vaqtlar yaratildi"
+      "bulkCreated": "Barcha vaqtlar yaratildi",
+      "closeDate": "Bu sanani yopish",
+      "openDate": "Bu sanani ochish",
+      "dateClosed": "Sana bron uchun yopildi",
+      "dateOpened": "Sana bron uchun ochildi"
     }
   },
   "telegram": {
