@@ -1,9 +1,17 @@
 import { Link } from 'react-router-dom'
 import { CalendarDaysIcon, PhoneIcon, EnvelopeIcon } from '@heroicons/react/24/outline'
+import { useQuery } from '@tanstack/react-query'
+import { getCategories } from '../../api/categories'
 import { useTranslation } from 'react-i18next'
 
 const Footer = () => {
   const { t } = useTranslation()
+  const { data: categories = [] } = useQuery({
+    queryKey: ['categories'],
+    queryFn: getCategories,
+    staleTime: 300_000,
+  })
+
   return (
     <footer className="bg-white border-t border-gray-200 mt-auto">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10">
@@ -32,16 +40,15 @@ const Footer = () => {
           <div className="hidden sm:block">
             <h4 className="text-xs sm:text-sm font-semibold text-gray-900 mb-3">{t('footer.categories')}</h4>
             <ul className="space-y-2">
-              {[
-                { slug: 'cafe', label: t('footer.cafe') },
-                { slug: 'restaurant', label: t('footer.restaurant') },
-                { slug: 'football', label: t('footer.football') },
-                { slug: 'gaming', label: t('footer.gaming') },
-                { slug: 'gym', label: t('footer.gym') },
-              ].map(cat => (
+              <li>
+                <Link to="/search" className="text-xs sm:text-sm text-gray-500 hover:text-emerald-600 transition-colors">
+                  {t('common.all')}
+                </Link>
+              </li>
+              {categories.slice(0, 10).map(cat => (
                 <li key={cat.slug}>
                   <Link to={`/search?category=${cat.slug}`} className="text-xs sm:text-sm text-gray-500 hover:text-emerald-600 transition-colors">
-                    {cat.label}
+                    {cat.icon} {cat.name_uz}
                   </Link>
                 </li>
               ))}
@@ -54,7 +61,7 @@ const Footer = () => {
               <li><Link to="/search" className="text-xs sm:text-sm text-gray-500 hover:text-emerald-600">{t('footer.search')}</Link></li>
               <li><Link to="/register" className="text-xs sm:text-sm text-gray-500 hover:text-emerald-600">{t('footer.register')}</Link></li>
               <li><Link to="/login" className="text-xs sm:text-sm text-gray-500 hover:text-emerald-600">{t('footer.login')}</Link></li>
-              <li><a href="#" className="text-xs sm:text-sm text-gray-500 hover:text-emerald-600">{t('footer.forBusiness')}</a></li>
+              <li><Link to="/register" className="text-xs sm:text-sm text-gray-500 hover:text-emerald-600">{t('footer.forBusiness')}</Link></li>
             </ul>
           </div>
         </div>

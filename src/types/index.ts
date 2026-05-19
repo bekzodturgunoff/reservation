@@ -70,6 +70,15 @@ export interface Review {
   venues?: Venue
 }
 
+export interface TelegramLink {
+  id: string
+  user_id: string
+  venue_id: string
+  chat_id: number
+  created_at: string
+  venues?: Venue
+}
+
 export interface ToastMessage {
   id: string
   type: 'success' | 'error' | 'info' | 'warning'

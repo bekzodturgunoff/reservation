@@ -9,6 +9,7 @@ import { useAuthStore } from '../store/authStore'
 import { useToastStore } from '../store/toastStore'
 import { useTitle } from '../hooks/useTitle'
 import { formatPrice, formatDate } from '../lib/utils'
+import { sendTelegramNotification } from '../api/telegram'
 import Button from '../components/ui/Button'
 import { useTranslation } from 'react-i18next'
 
@@ -53,6 +54,17 @@ const Booking = () => {
       })
 
       await updateSlotAvailability(slot.id, false)
+
+      sendTelegramNotification({
+        venue_id: venue.id,
+        venue_name: venue.name,
+        customer_name: user.user_metadata?.full_name || user.email || 'Mijoz',
+        customer_phone: venue.phone || undefined,
+        date: slot.date,
+        start_time: slot.start_time.slice(0, 5),
+        end_time: slot.end_time.slice(0, 5),
+        note: note || undefined,
+      })
 
       addToast({ type: 'success', message: t('booking.success') })
       navigate(`/confirmation/${booking.id}`)

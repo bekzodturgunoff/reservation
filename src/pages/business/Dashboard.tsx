@@ -1,11 +1,13 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { useQuery } from '@tanstack/react-query'
-import { CalendarDaysIcon, CurrencyDollarIcon, StarIcon, Cog6ToothIcon, PlusCircleIcon } from '@heroicons/react/24/outline'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { CalendarDaysIcon, CurrencyDollarIcon, StarIcon, Cog6ToothIcon, PlusCircleIcon, PaperAirplaneIcon, TrashIcon } from '@heroicons/react/24/outline'
 import { useAuthStore } from '../../store/authStore'
 import { useTitle } from '../../hooks/useTitle'
+import { useToastStore } from '../../store/toastStore'
 import { getVenuesByOwner } from '../../api/venues'
 import { getBookingsForVenueIds } from '../../api/bookings'
+import { getTelegramLinks, deleteTelegramLink, generateLinkCode } from '../../api/telegram'
 import { formatPrice, formatDate, formatTime } from '../../lib/utils'
 import Badge, { type BadgeVariant } from '../../components/ui/Badge'
 import Button from '../../components/ui/Button'
@@ -26,6 +28,10 @@ const BusinessDashboard = () => {
   const { t } = useTranslation()
   useTitle(t('business.dashboard'))
   const profile = useAuthStore(state => state.profile)
+  const user = useAuthStore(state => state.user)
+  const { addToast } = useToastStore()
+  const queryClient = useQueryClient()
+  const [copiedCode, setCopiedCode] = useState<string | null>(null)
 
   const { data: venues = [] } = useQuery({
     queryKey: ['venues', 'owner', profile?.id],
@@ -40,6 +46,20 @@ const BusinessDashboard = () => {
     queryFn: () => getBookingsForVenueIds(venueIds),
     enabled: venueIds.length > 0,
   }) as { data: BookingWithProfile[] | undefined }
+
+  const { data: telegramLinks = [] } = useQuery({
+    queryKey: ['telegram-links', profile?.id],
+    queryFn: () => getTelegramLinks(profile!.id),
+    enabled: !!profile,
+  })
+
+  const deleteLinkMutation = useMutation({
+    mutationFn: deleteTelegramLink,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['telegram-links'] })
+      addToast({ type: 'success', message: t('common.success') })
+    },
+  })
 
   const now = new Date()
   const thisMonth = now.getMonth()
@@ -68,6 +88,17 @@ const BusinessDashboard = () => {
       .sort((a, b) => (a.slots?.date || '').localeCompare(b.slots?.date || '')),
     [bookings]
   )
+
+  const linkedVenueIds = useMemo(() => new Set(telegramLinks.map(l => l.venue_id)), [telegramLinks])
+
+  const handleCopyCode = (venueId: string) => {
+    if (!user) return
+    const code = generateLinkCode(venueId, user.id)
+    navigator.clipboard.writeText(code)
+    setCopiedCode(venueId)
+    setTimeout(() => setCopiedCode(null), 3000)
+    addToast({ type: 'info', message: t('common.success') })
+  }
 
   return (
     <div className="space-y-8">
@@ -103,6 +134,78 @@ const BusinessDashboard = () => {
           <Link to={`/business/venue/${venues[0].id}/availability`} className="flex items-center gap-2 px-4 py-2.5 bg-white rounded-xl border border-gray-200 text-sm font-medium text-gray-700 hover:border-emerald-300 transition-colors">
             <Cog6ToothIcon className="w-4 h-4 text-emerald-600" /> {t('business.manageSlots')}
           </Link>
+        )}
+      </div>
+
+      {/* Telegram Connect */}
+      <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
+        <div className="flex items-center gap-2 mb-4">
+          <PaperAirplaneIcon className="w-5 h-5 text-blue-500" />
+          <h2 className="text-lg font-semibold text-gray-900">{t('telegram.connect')}</h2>
+          {telegramLinks.length > 0 && (
+            <span className="text-xs bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded-full font-medium">
+              {t('telegram.connected')}
+            </span>
+          )}
+        </div>
+        <p className="text-sm text-gray-500 mb-4">{t('telegram.connectDesc')}</p>
+
+        <div className="p-4 bg-blue-50 rounded-xl border border-blue-100 mb-4">
+          <p className="text-sm text-blue-800">
+            {t('telegram.instructions')}
+          </p>
+        </div>
+
+        {venues.length === 0 ? (
+          <p className="text-sm text-gray-400">{t('business.emptyVenues')}</p>
+        ) : (
+          <div className="space-y-3">
+            {venues.map(v => {
+              const isLinked = linkedVenueIds.has(v.id)
+              const code = generateLinkCode(v.id, user?.id || '')
+              return (
+                <div key={v.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
+                  <div className="flex items-center gap-3">
+                    <span className="text-lg">{v.categories?.icon || '🏢'}</span>
+                    <div>
+                      <p className="text-sm font-medium text-gray-900">{v.name}</p>
+                      <p className="text-xs text-gray-500">
+                        {isLinked
+                          ? t('telegram.notificationsOn')
+                          : t('telegram.noVenuesLinked')}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {isLinked ? (
+                      <Button
+                        variant="danger"
+                        size="sm"
+                        loading={deleteLinkMutation.isPending}
+                        onClick={() => {
+                          const link = telegramLinks.find(l => l.venue_id === v.id)
+                          if (link) deleteLinkMutation.mutate(link.id)
+                        }}
+                      >
+                        <TrashIcon className="w-3.5 h-3.5" /> {t('telegram.disconnect')}
+                      </Button>
+                    ) : (
+                      <div className="flex items-center gap-2">
+                        <Button size="sm" onClick={() => handleCopyCode(v.id)}>
+                          {copiedCode === v.id ? '✅' : t('telegram.linkVenue')}
+                        </Button>
+                        {copiedCode === v.id && (
+                          <span className="text-xs text-emerald-600 font-medium">
+                            {code}
+                          </span>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )
+            })}
+          </div>
         )}
       </div>
 

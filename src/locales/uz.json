@@ -53,8 +53,8 @@
     "title": "O'zbekistondagi eng yaxshi bron platformasi",
     "hero1": "Xohlagan joyingizni",
     "hero2": "osongina bron qiling",
-    "subtitle": "Kafe, restoran, futbol maydonlari, gaming klublar va boshqa joylarni bir necha soniyada bron qiling",
-    "searchPlaceholder": "Kafe, futbol, gaming...",
+    "subtitle": "Har qanday joy yoki xizmatni bir necha soniyada bron qiling",
+    "searchPlaceholder": "Joy nomi, kategoriya...",
     "allCategories": "Hammasi",
     "popularTitle": "Mashhur joylar",
     "popularSub": "bo'yicha",
@@ -74,7 +74,7 @@
     "featureVerified": "Tekshirilgan joylar",
     "featureVerifiedDesc": "Faqat sifatli venues",
     "ctaTitle": "Biznesingizni BronUz ga qo'shing",
-    "ctaDesc": "Kafe, restoran, sport maydoni yoki boshqa joyingizni platformaga qo'shing va mijozlar soni oshirish",
+    "ctaDesc": "O'z joyingiz yoki xizmatingizni platformaga qo'shing va mijozlar sonini oshiring",
     "ctaButton": "Bepul ro'yxatdan o'ting"
   },
   "search": {
@@ -269,6 +269,16 @@
       "bulkCreated": "Barcha vaqtlar yaratildi"
     }
   },
+  "telegram": {
+    "connect": "Telegram ga ulash",
+    "connected": "✅ Telegram ulangan",
+    "connectDesc": "Yangi bronlar haqida tezkor xabar olish",
+    "instructions": "Telegram oching va @BronUzBot ga /start yozing",
+    "linkVenue": "Venue ni ulash",
+    "disconnect": "Uzish",
+    "notificationsOn": "Bildirishnomalar yoqilgan",
+    "noVenuesLinked": "Hali venue lar ulanmagan"
+  },
   "admin": {
     "dashboard": "Admin panel",
     "subtitle": "Platforma boshqaruvi",
@@ -305,7 +315,7 @@
     "categories": "Kategoriyalar"
   },
   "footer": {
-    "description": "O'zbekistondagi kafe, restoran, futbol maydonlari, gaming klublar va boshqa joylarni oson bron qiling.",
+    "description": "O'zbekistondagi istalgan joy yoki xizmatni oson bron qiling.",
     "categories": "Kategoriyalar",
     "cafe": "Kafe",
     "restaurant": "Restoran",

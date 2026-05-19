@@ -53,8 +53,8 @@
     "title": "The best booking platform in Uzbekistan",
     "hero1": "Book any place you want",
     "hero2": "in just a few taps",
-    "subtitle": "Book cafes, restaurants, football fields, gaming clubs, and more in seconds",
-    "searchPlaceholder": "Cafe, football, gaming...",
+    "subtitle": "Book any venue or service in just a few taps",
+    "searchPlaceholder": "Venue name, category...",
     "allCategories": "All",
     "popularTitle": "Popular venues",
     "popularSub": "by",
@@ -74,7 +74,7 @@
     "featureVerified": "Verified venues",
     "featureVerifiedDesc": "Only quality venues",
     "ctaTitle": "Add your business to BronUz",
-    "ctaDesc": "List your cafe, restaurant, sports field or other venue on the platform and grow your customer base",
+    "ctaDesc": "List your venue or service on the platform and grow your customer base",
     "ctaButton": "Sign up for free"
   },
   "search": {
@@ -269,6 +269,16 @@
       "bulkCreated": "All slots created"
     }
   },
+  "telegram": {
+    "connect": "Connect Telegram",
+    "connected": "✅ Telegram connected",
+    "connectDesc": "Get instant booking notifications",
+    "instructions": "Open Telegram and send /start to @BronUzBot",
+    "linkVenue": "Link venue",
+    "disconnect": "Disconnect",
+    "notificationsOn": "Notifications enabled",
+    "noVenuesLinked": "No venues linked yet"
+  },
   "admin": {
     "dashboard": "Admin panel",
     "subtitle": "Platform management",
@@ -305,7 +315,7 @@
     "categories": "Categories"
   },
   "footer": {
-    "description": "Easily book cafes, restaurants, football fields, gaming clubs and other places in Uzbekistan.",
+    "description": "Easily book any venue or service in Uzbekistan.",
     "categories": "Categories",
     "cafe": "Cafe",
     "restaurant": "Restaurant",
