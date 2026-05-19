@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
-import { MapPin, Star } from 'lucide-react'
+import { MapPin, Star, Tag } from 'lucide-react'
 import type { Venue } from '../../types'
+import { formatPrice } from '../../lib/utils'
 import Badge from '../ui/Badge'
 
 interface VenueCardProps {
@@ -8,40 +9,62 @@ interface VenueCardProps {
 }
 
 const VenueCard = ({ venue }: VenueCardProps) => {
-  const photo = venue.photos?.[0]
+  const categoryName = venue.categories?.name_uz || 'Boshqa'
+  const photo = venue.photos?.[0] || null
+  const rating = venue.avg_rating ?? null
+  const reviewCount = venue.review_count ?? 0
 
   return (
     <Link to={`/venues/${venue.id}`} className="group block">
-      <div className="rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden transition-shadow hover:shadow-md">
-        <div className="aspect-[4/3] bg-gray-100">
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-md hover:-translate-y-0.5 transition-all duration-200">
+        <div className="relative h-48 bg-gray-100 overflow-hidden">
           {photo ? (
-            <img src={photo} alt={venue.name} className="w-full h-full object-cover" />
+            <img
+              src={photo}
+              alt={venue.name}
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+            />
           ) : (
-            <div className="w-full h-full flex items-center justify-center text-gray-400 text-sm">No photo</div>
-          )}
-        </div>
-        <div className="p-4">
-          <div className="flex items-center gap-2 mb-1">
-            {venue.categories && (
-              <Badge>{venue.categories.icon} {venue.categories.name_uz}</Badge>
-            )}
-            {venue.avg_rating && (
-              <span className="flex items-center gap-1 text-sm text-yellow-500">
-                <Star className="w-3.5 h-3.5 fill-current" /> {venue.avg_rating.toFixed(1)}
+            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-emerald-50 to-emerald-100">
+              <span className="text-5xl">
+                {venue.categories?.icon || '🏢'}
               </span>
-            )}
+            </div>
+          )}
+          <div className="absolute top-3 left-3">
+            <Badge variant="success" className="bg-white/90 text-emerald-700 backdrop-blur-sm shadow-sm">
+              {venue.categories?.icon} {categoryName}
+            </Badge>
           </div>
-          <h3 className="font-semibold text-gray-900 group-hover:text-blue-600 transition-colors">
+        </div>
+
+        <div className="p-4">
+          <h3 className="font-semibold text-gray-900 text-base leading-snug mb-1 group-hover:text-emerald-600 transition-colors line-clamp-1">
             {venue.name}
           </h3>
-          <div className="flex items-center gap-1 text-sm text-gray-500 mt-1">
-            <MapPin className="w-3.5 h-3.5" /> {venue.city}
+          <div className="flex items-center gap-1 text-gray-500 text-sm mb-3">
+            <MapPin className="w-3.5 h-3.5 flex-shrink-0" />
+            <span className="line-clamp-1">{venue.address || venue.city}</span>
           </div>
-          <div className="mt-3 flex items-center justify-between">
-            <span className="text-sm font-medium text-blue-600">
-              {venue.price_per_slot.toLocaleString()} {venue.currency}
-            </span>
-            <span className="text-xs font-medium text-blue-600 group-hover:underline">Book Now</span>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              {rating !== null ? (
+                <div className="flex items-center gap-1">
+                  <Star className="w-3.5 h-3.5 text-yellow-400 fill-yellow-400" />
+                  <span className="text-sm font-medium text-gray-700">{rating.toFixed(1)}</span>
+                  <span className="text-xs text-gray-400">({reviewCount})</span>
+                </div>
+              ) : (
+                <span className="text-xs text-gray-400">Hali baho yo'q</span>
+              )}
+            </div>
+            <div className="flex items-center gap-1 text-emerald-600">
+              <Tag className="w-3.5 h-3.5" />
+              <span className="text-sm font-semibold">
+                {formatPrice(venue.price_per_slot, venue.currency)}
+              </span>
+              <span className="text-xs text-gray-400">/soat</span>
+            </div>
           </div>
         </div>
       </div>

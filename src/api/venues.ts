@@ -24,10 +24,15 @@ export const getVenues = async (filters: VenueFilters = {}): Promise<Venue[]> =>
 
   const { data, error } = await query.order('created_at', { ascending: false })
   if (error) throw error
+
+  if (filters.category && data) {
+    return data.filter(v => v.categories?.slug === filters.category)
+  }
+
   return data
 }
 
-export const getVenueById = async (id: string): Promise<Venue> => {
+export const getVenueById = async (id: string): Promise<Venue & { avg_rating?: number; review_count?: number }> => {
   const { data, error } = await supabase
     .from('venues')
     .select('*, categories(id, slug, name_uz, name_ru, icon)')

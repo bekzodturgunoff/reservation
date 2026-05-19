@@ -1,13 +1,91 @@
+import L from 'leaflet'
+import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet'
+import { Link } from 'react-router-dom'
+import 'leaflet/dist/leaflet.css'
 import type { Venue } from '../../types'
+import { formatPrice } from '../../lib/utils'
+
+delete (L.Icon.Default.prototype as any)._getIconUrl
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
+  iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
+  shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+})
+
+const createCustomIcon = (emoji: string) =>
+  L.divIcon({
+    html: `<div style="
+      background: white;
+      border: 2px solid #059669;
+      border-radius: 50% 50% 50% 0;
+      transform: rotate(-45deg);
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    ">
+      <span style="transform: rotate(45deg); font-size: 16px;">${emoji}</span>
+    </div>`,
+    className: '',
+    iconSize: [36, 36],
+    iconAnchor: [18, 36],
+    popupAnchor: [0, -40],
+  })
 
 interface VenueMapProps {
   venues: Venue[]
 }
 
 const VenueMap = ({ venues }: VenueMapProps) => {
+  const center: [number, number] = [41.2995, 69.2401]
+
+  const venuesWithCoords = venues.filter(v => v.lat && v.lng)
+
   return (
-    <div className="rounded-xl border border-gray-200 bg-gray-50 h-[500px] flex items-center justify-center text-gray-400">
-      <p className="text-sm">Map view (Leaflet will be integrated here)</p>
+    <div className="w-full h-[600px] rounded-2xl overflow-hidden border border-gray-200 shadow-sm">
+      <MapContainer
+        center={center}
+        zoom={12}
+        style={{ height: '100%', width: '100%' }}
+        scrollWheelZoom={true}
+      >
+        <TileLayer
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        />
+        {venuesWithCoords.map(venue => (
+          <Marker
+            key={venue.id}
+            position={[venue.lat!, venue.lng!]}
+            icon={createCustomIcon(venue.categories?.icon || '🏢')}
+          >
+            <Popup maxWidth={240} className="venue-popup">
+              <div className="p-1">
+                {venue.photos?.[0] && (
+                  <img
+                    src={venue.photos[0]}
+                    alt={venue.name}
+                    className="w-full h-28 object-cover rounded-lg mb-2"
+                  />
+                )}
+                <h3 className="font-semibold text-gray-900 text-sm mb-0.5">{venue.name}</h3>
+                <p className="text-xs text-gray-500 mb-1">{venue.address}</p>
+                <p className="text-xs font-semibold text-emerald-600 mb-2">
+                  {formatPrice(venue.price_per_slot, venue.currency)}/soat
+                </p>
+                <Link
+                  to={`/venues/${venue.id}`}
+                  className="block w-full text-center bg-emerald-600 text-white text-xs font-medium py-1.5 rounded-lg hover:bg-emerald-700 transition-colors"
+                >
+                  Ko'rish →
+                </Link>
+              </div>
+            </Popup>
+          </Marker>
+        ))}
+      </MapContainer>
     </div>
   )
 }

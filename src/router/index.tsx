@@ -1,4 +1,4 @@
-import { createBrowserRouter, Navigate } from 'react-router-dom'
+import { createBrowserRouter, Navigate, useLocation } from 'react-router-dom'
 import { useAuthStore } from '../store/authStore'
 
 import Home from '../pages/Home'
@@ -22,8 +22,17 @@ import PageWrapper from '../components/layout/PageWrapper'
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, loading } = useAuthStore()
-  if (loading) return <div className="flex items-center justify-center min-h-screen"><span className="text-gray-400">Loading...</span></div>
-  if (!user) return <Navigate to="/login" replace />
+  const location = useLocation()
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <span className="text-gray-400">Loading...</span>
+      </div>
+    )
+  }
+
+  if (!user) return <Navigate to="/login" state={{ from: location }} replace />
   return <>{children}</>
 }
 
