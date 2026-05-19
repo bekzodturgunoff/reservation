@@ -46,17 +46,17 @@ const Home = () => {
 
   return (
     <div className="-mx-4 sm:-mx-6 lg:-mx-8">
-      <div className="bg-gradient-to-br from-emerald-600 via-emerald-700 to-teal-800 px-4 sm:px-6 lg:px-8 pt-14 pb-20 text-white">
+      <div className="bg-gradient-to-br from-emerald-600 via-emerald-700 to-teal-800 px-4 sm:px-6 lg:px-8 pt-12 sm:pt-14 pb-16 sm:pb-20 text-white">
         <div className="max-w-3xl mx-auto text-center">
-          <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm rounded-full px-4 py-1.5 text-sm mb-6">
+          <div className="inline-flex items-center gap-1.5 bg-white/10 backdrop-blur-sm rounded-full px-3 sm:px-4 py-1 sm:py-1.5 text-xs sm:text-sm mb-4 sm:mb-6">
             <span>🇺🇿</span>
-            <span>{t('home.title')}</span>
+            <span className="truncate">{t('home.title')}</span>
           </div>
-          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4 leading-tight">
+          <h1 className="text-2xl sm:text-4xl lg:text-5xl font-bold mb-3 sm:mb-4 leading-tight px-1">
             {t('home.hero1')}<br />
             <span className="text-emerald-200">{t('home.hero2')}</span>
           </h1>
-          <p className="text-emerald-100 text-base sm:text-lg mb-10 max-w-xl mx-auto">
+          <p className="text-emerald-100 text-sm sm:text-lg mb-6 sm:mb-10 max-w-xl mx-auto px-2">
             {t('home.subtitle')}
           </p>
 
