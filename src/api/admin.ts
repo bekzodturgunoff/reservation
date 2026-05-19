@@ -15,7 +15,7 @@ export interface PendingVenue extends Venue {
 export const getPendingVenues = async (): Promise<PendingVenue[]> => {
   const { data, error } = await supabase
     .from('venues')
-    .select('*, categories(id, slug, name_uz, name_ru, icon), profiles!owner_id(full_name, phone)')
+    .select('*, profiles!owner_id(full_name, phone)')
     .eq('status', 'pending')
     .order('created_at', { ascending: false })
   if (error) throw error

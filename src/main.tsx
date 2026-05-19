@@ -5,7 +5,15 @@ import './index.css'
 import 'leaflet/dist/leaflet.css'
 import App from './App'
 
-const queryClient = new QueryClient()
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 2,
+      retryDelay: 1000,
+      refetchOnWindowFocus: false,
+    },
+  },
+})
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
