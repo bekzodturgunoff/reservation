@@ -11,6 +11,16 @@ export const getReviewsByVenue = async (venueId: string): Promise<Review[]> => {
   return data
 }
 
+export const getReviewsByUser = async (userId: string): Promise<Review[]> => {
+  const { data, error } = await supabase
+    .from('reviews')
+    .select('*, venues(name)')
+    .eq('user_id', userId)
+    .order('created_at', { ascending: false })
+  if (error) throw error
+  return data
+}
+
 export const createReview = async (review: Partial<Review>): Promise<Review> => {
   const { data, error } = await supabase
     .from('reviews')

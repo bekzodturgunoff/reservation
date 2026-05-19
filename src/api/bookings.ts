@@ -48,3 +48,17 @@ export const cancelBooking = async (bookingId: string): Promise<void> => {
     .eq('id', bookingId)
   if (error) throw error
 }
+
+export const cancelBookingWithSlot = async (bookingId: string, slotId: string): Promise<void> => {
+  const { error: bookingError } = await supabase
+    .from('bookings')
+    .update({ status: 'cancelled' })
+    .eq('id', bookingId)
+  if (bookingError) throw bookingError
+
+  const { error: slotError } = await supabase
+    .from('slots')
+    .update({ is_available: true })
+    .eq('id', slotId)
+  if (slotError) throw slotError
+}
