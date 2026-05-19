@@ -5,10 +5,12 @@ import { getBookingById } from '../api/bookings'
 import { useTitle } from '../hooks/useTitle'
 import { formatPrice, formatDate } from '../lib/utils'
 import Button from '../components/ui/Button'
+import { useTranslation } from 'react-i18next'
 
 const Confirmation = () => {
   const { bookingId } = useParams<{ bookingId: string }>()
-  useTitle('Bron tasdiqlandi')
+  const { t } = useTranslation()
+  useTitle(t('confirmation.title'))
 
   const { data: booking, isLoading } = useQuery({
     queryKey: ['booking', bookingId],
@@ -30,9 +32,9 @@ const Confirmation = () => {
     return (
       <div className="flex flex-col items-center justify-center py-20 text-center">
         <span className="text-5xl mb-4">⚠️</span>
-        <h2 className="text-xl font-semibold text-gray-900 mb-2">Bron topilmadi</h2>
-        <p className="text-gray-500 mb-6">Bu bron mavjud emas</p>
-        <Link to="/"><Button>Bosh sahifaga qaytish</Button></Link>
+        <h2 className="text-xl font-semibold text-gray-900 mb-2">{t('confirmation.notFound')}</h2>
+        <p className="text-gray-500 mb-6">{t('confirmation.notFoundDesc')}</p>
+        <Link to="/"><Button>{t('confirmation.backHome')}</Button></Link>
       </div>
     )
   }
@@ -50,14 +52,14 @@ const Confirmation = () => {
         </div>
       </div>
 
-      <h1 className="text-2xl font-bold text-gray-900 mb-2">Bron tasdiqlandi!</h1>
+      <h1 className="text-2xl font-bold text-gray-900 mb-2">{t('confirmation.successTitle')}</h1>
       <p className="text-gray-500 text-sm mb-8">
-        Bron raqami: <span className="font-mono text-gray-700 font-medium">{booking.id.slice(0, 8)}</span>
+        {t('confirmation.bookingNumber')} <span className="font-mono text-gray-700 font-medium">{booking.id.slice(0, 8)}</span>
       </p>
 
       {/* Booking details card */}
       <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm text-left mb-6">
-        <h3 className="font-semibold text-gray-900 mb-4">Bron ma'lumotlari</h3>
+        <h3 className="font-semibold text-gray-900 mb-4">{t('confirmation.details')}</h3>
 
         {venue && (
           <div className="flex items-start gap-3 mb-4 pb-4 border-b border-gray-100">
@@ -97,7 +99,7 @@ const Confirmation = () => {
           </div>
           {booking.note && (
             <div className="mt-3 pt-3 border-t border-gray-100">
-              <p className="text-xs text-gray-400 mb-1">Izoh:</p>
+              <p className="text-xs text-gray-400 mb-1">{t('confirmation.note')}</p>
               <p className="text-gray-600">{booking.note}</p>
             </div>
           )}
@@ -107,8 +109,7 @@ const Confirmation = () => {
       {/* Telegram reminder */}
       <div className="p-4 bg-blue-50 rounded-xl border border-blue-100 mb-6 text-left">
         <p className="text-sm text-blue-800">
-          📱 Telegram orqali tasdiq xabari olasiz. 
-          Agar bildirishnoma kelmagan bo'lsa, admin bilan bog'laning.
+          {t('confirmation.telegramNote')}
         </p>
       </div>
 
@@ -116,12 +117,12 @@ const Confirmation = () => {
       <div className="space-y-3">
         <Link to="/profile?tab=bookings">
           <Button variant="secondary" className="w-full">
-            <User className="w-4 h-4" /> Mening bronlarim
+            <User className="w-4 h-4" /> {t('confirmation.myBookings')}
           </Button>
         </Link>
         <Link to="/">
           <Button className="w-full">
-            <Home className="w-4 h-4" /> Bosh sahifaga qaytish
+            <Home className="w-4 h-4" /> {t('confirmation.backHome')}
           </Button>
         </Link>
       </div>

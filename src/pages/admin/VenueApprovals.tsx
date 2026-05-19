@@ -7,9 +7,11 @@ import Button from '../../components/ui/Button'
 import Badge from '../../components/ui/Badge'
 import Skeleton from '../../components/ui/Skeleton'
 import { useToastStore } from '../../store/toastStore'
+import { useTranslation } from 'react-i18next'
 
 const VenueApprovals = () => {
-  useTitle('Venuelarni tasdiqlash')
+  const { t } = useTranslation()
+  useTitle(t('admin.approvalsPage.title'))
   const queryClient = useQueryClient()
   const { addToast } = useToastStore()
 
@@ -23,18 +25,18 @@ const VenueApprovals = () => {
     mutationFn: approveVenue,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin'] })
-      addToast({ type: 'success', message: 'Venue tasdiqlandi' })
+      addToast({ type: 'success', message: t('admin.venueApproved') })
     },
-    onError: () => addToast({ type: 'error', message: 'Xatolik yuz berdi' }),
+    onError: () => addToast({ type: 'error', message: t('common.error') }),
   })
 
   const rejectMutation = useMutation({
     mutationFn: rejectVenue,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin'] })
-      addToast({ type: 'success', message: 'Venue rad etildi' })
+      addToast({ type: 'success', message: t('admin.venueRejected') })
     },
-    onError: () => addToast({ type: 'error', message: 'Xatolik yuz berdi' }),
+    onError: () => addToast({ type: 'error', message: t('common.error') }),
   })
 
   const isMutating = (id: string) =>
@@ -44,9 +46,9 @@ const VenueApprovals = () => {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Venuelarni tasdiqlash</h1>
+        <h1 className="text-2xl font-bold text-gray-900">{t('admin.approvalsPage.title')}</h1>
         <p className="text-sm text-gray-500 mt-1">
-          {venues.length} ta venue tasdiqlanishi kutilmoqda
+          {venues.length} {t('admin.approvalsPage.waiting')}
         </p>
       </div>
 
@@ -57,8 +59,8 @@ const VenueApprovals = () => {
       ) : venues.length === 0 ? (
         <div className="text-center py-16 bg-gray-50 rounded-2xl">
           <span className="text-5xl">✅</span>
-          <p className="text-gray-500 mt-4 text-lg">Barcha venuelar ko'rib chiqilgan</p>
-          <p className="text-gray-400 text-sm mt-1">Yangi venue qo'shilganda sizga xabar keladi</p>
+          <p className="text-gray-500 mt-4 text-lg">{t('admin.approvalsPage.allDone')}</p>
+          <p className="text-gray-400 text-sm mt-1">{t('admin.approvalsPage.allDoneDesc')}</p>
         </div>
       ) : (
         <div className="space-y-4">
@@ -73,11 +75,11 @@ const VenueApprovals = () => {
                     <div className="min-w-0">
                       <h3 className="text-lg font-semibold text-gray-900">{v.name}</h3>
                       <div className="flex items-center gap-2 mt-1 flex-wrap">
-                        <span className="text-sm text-gray-500">{v.categories?.name_uz || 'Boshqa'}</span>
+                        <span className="text-sm text-gray-500">{v.categories?.name_uz || t('common.other')}</span>
                         <span className="text-gray-300">·</span>
                         <span className="text-sm text-gray-500">{v.city}</span>
                         <span className="text-gray-300">·</span>
-                        <Badge variant="warning">Kutilmoqda</Badge>
+                        <Badge variant="warning">{t('common.pending')}</Badge>
                       </div>
                     </div>
                   </div>
@@ -88,20 +90,20 @@ const VenueApprovals = () => {
                       loading={approveMutation.isPending && approveMutation.variables === v.id}
                       disabled={isMutating(v.id)}
                     >
-                      <Check className="w-4 h-4" /> Tasdiqlash
+                      <Check className="w-4 h-4" /> {t('admin.approve')}
                     </Button>
                     <Button
                       size="sm"
                       variant="secondary"
                       onClick={() => {
-                        if (window.confirm(`${v.name} ni rad etishni xohlaysizmi?`)) {
+                        if (window.confirm(v.name + ' ' + t('admin.approvalsPage.rejectConfirm'))) {
                           rejectMutation.mutate(v.id)
                         }
                       }}
                       loading={rejectMutation.isPending && rejectMutation.variables === v.id}
                       disabled={isMutating(v.id)}
                     >
-                      <X className="w-4 h-4" /> Rad etish
+                      <X className="w-4 h-4" /> {t('admin.reject')}
                     </Button>
                   </div>
                 </div>
@@ -126,7 +128,7 @@ const VenueApprovals = () => {
 
                 {v.price_per_slot > 0 && (
                   <div className="mt-3">
-                    <Badge variant="info">{formatPrice(v.price_per_slot)} / slot</Badge>
+                    <Badge variant="info">{formatPrice(v.price_per_slot)} {t('admin.approvalsPage.perSlot')}</Badge>
                   </div>
                 )}
 

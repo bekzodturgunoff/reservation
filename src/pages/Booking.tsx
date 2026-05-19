@@ -10,17 +10,19 @@ import { useToastStore } from '../store/toastStore'
 import { useTitle } from '../hooks/useTitle'
 import { formatPrice, formatDate } from '../lib/utils'
 import Button from '../components/ui/Button'
+import { useTranslation } from 'react-i18next'
 
 const Booking = () => {
   const { venueId, slotId } = useParams<{ venueId: string; slotId: string }>()
   const navigate = useNavigate()
   const user = useAuthStore(state => state.user)
   const { addToast } = useToastStore()
+  const { t } = useTranslation()
 
   const [note, setNote] = useState('')
   const [confirming, setConfirming] = useState(false)
 
-  useTitle('Bron qilish')
+  useTitle(t('booking.title'))
 
   const { data: venue, isLoading: venueLoading } = useQuery({
     queryKey: ['venue', venueId],
@@ -52,10 +54,10 @@ const Booking = () => {
 
       await updateSlotAvailability(slot.id, false)
 
-      addToast({ type: 'success', message: 'Bron qilindi! Tasdiqlash sahifasiga o\'tish...' })
+      addToast({ type: 'success', message: t('booking.success') })
       navigate(`/confirmation/${booking.id}`)
     } catch (err) {
-      addToast({ type: 'error', message: 'Bron qilishda xatolik yuz berdi' })
+      addToast({ type: 'error', message: t('booking.error') })
       setConfirming(false)
     }
   }
@@ -74,9 +76,9 @@ const Booking = () => {
     return (
       <div className="flex flex-col items-center justify-center py-20 text-center">
         <span className="text-5xl mb-4">⚠️</span>
-        <h2 className="text-xl font-semibold text-gray-900 mb-2">Ma'lumot topilmadi</h2>
-        <p className="text-gray-500 mb-6">Bron ma'lumotlarini yuklab bo'lmadi</p>
-        <Button onClick={() => navigate('/')}>Bosh sahifaga qaytish</Button>
+        <h2 className="text-xl font-semibold text-gray-900 mb-2">{t('booking.notFound')}</h2>
+        <p className="text-gray-500 mb-6">{t('booking.notFoundDesc')}</p>
+        <Button onClick={() => navigate('/')}>{t('booking.backHome')}</Button>
       </div>
     )
   }
@@ -87,10 +89,10 @@ const Booking = () => {
         onClick={() => navigate(-1)}
         className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-emerald-600 mb-6 transition-colors"
       >
-        <ArrowLeft className="w-4 h-4" /> Orqaga
+        <ArrowLeft className="w-4 h-4" /> {t('common.back')}
       </button>
 
-      <h1 className="text-2xl font-bold text-gray-900 mb-6">Bronni tasdiqlash</h1>
+      <h1 className="text-2xl font-bold text-gray-900 mb-6">{t('booking.confirmBooking')}</h1>
 
       <div className="space-y-6">
 
@@ -107,7 +109,7 @@ const Booking = () => {
               </p>
               <div className="flex items-center gap-3 mt-2">
                 <span className="text-xs bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded-full font-medium">
-                  {venue.categories?.icon} {venue.categories?.name_uz || 'Boshqa'}
+                  {venue.categories?.icon} {venue.categories?.name_uz || t('common.other')}
                 </span>
               </div>
             </div>
@@ -116,7 +118,7 @@ const Booking = () => {
 
         {/* Booking details */}
         <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
-          <h3 className="font-semibold text-gray-900 mb-4">Bron ma'lumotlari</h3>
+          <h3 className="font-semibold text-gray-900 mb-4">{t('booking.details')}</h3>
           <div className="space-y-3">
             <div className="flex items-center gap-3 text-sm">
               <CalendarDays className="w-4 h-4 text-gray-400" />
@@ -138,14 +140,14 @@ const Booking = () => {
         {/* Note field */}
         <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
           <label htmlFor="note" className="font-semibold text-gray-900 block mb-2">
-            Izoh (ixtiyoriy)
+            {t('booking.note')}
           </label>
           <textarea
             id="note"
             rows={3}
             value={note}
             onChange={e => setNote(e.target.value)}
-            placeholder="Masalan: maxsus talablar, qo'shimcha xizmatlar..."
+            placeholder={t('booking.notePlaceholder')}
             className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent resize-none"
           />
         </div>
@@ -154,13 +156,12 @@ const Booking = () => {
         <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
           <div className="flex items-center gap-2 mb-4">
             <CreditCard className="w-5 h-5 text-emerald-600" />
-            <h3 className="font-semibold text-gray-900">To'lov</h3>
+            <h3 className="font-semibold text-gray-900">{t('booking.payment')}</h3>
           </div>
 
           <div className="p-4 bg-yellow-50 rounded-xl border border-yellow-100 mb-4">
             <p className="text-xs text-yellow-800 leading-relaxed">
-              🏦 Payme/Click orqali to'lov tizimi hozircha qo'shilmoqda. 
-              Hozirda siz joyning o'zida naqd yoki terminal orqali to'lashingiz mumkin.
+              {t('booking.paymentDesc')}
             </p>
           </div>
 
@@ -170,8 +171,8 @@ const Booking = () => {
                 <CreditCard className="w-4 h-4 text-green-600" />
               </div>
               <div>
-                <p className="text-sm font-medium text-green-800">Joyida to'lash</p>
-                <p className="text-xs text-green-600">Naqd yoki terminal orqali</p>
+                <p className="text-sm font-medium text-green-800">{t('booking.payOnArrival')}</p>
+                <p className="text-xs text-green-600">{t('booking.payOnArrivalDesc')}</p>
               </div>
             </div>
             <div className="w-5 h-5 rounded-full border-2 border-green-500 flex items-center justify-center">
@@ -183,10 +184,10 @@ const Booking = () => {
         {/* Total + Confirm */}
         <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
           <div className="flex items-center justify-between mb-4">
-            <span className="text-gray-600">Jami to'lov</span>
+            <span className="text-gray-600">{t('booking.total')}</span>
             <div className="text-right">
               <p className="text-2xl font-bold text-gray-900">{formatPrice(venue.price_per_slot, venue.currency)}</p>
-              <p className="text-xs text-gray-400">1 soat uchun</p>
+              <p className="text-xs text-gray-400">{t('booking.perHour')}</p>
             </div>
           </div>
 
@@ -196,11 +197,11 @@ const Booking = () => {
             loading={confirming}
             onClick={handleConfirm}
           >
-            Bronni tasdiqlash
+            {t('booking.confirmBooking')}
           </Button>
 
           <p className="text-xs text-gray-400 text-center mt-3">
-            Bronni tasdiqlash orqali siz xizmat ko'rsatish shartlariga rozilik bildirasiz
+            {t('booking.terms')}
           </p>
         </div>
       </div>

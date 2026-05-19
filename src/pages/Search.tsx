@@ -17,8 +17,8 @@ type ViewMode = 'grid' | 'map'
 const CITIES = ["Tashkent", "Samarkand", "Buxoro", "Namangan", "Andijon", "Farg'ona"]
 
 const Search = () => {
-  useTitle('Qidirish')
-  const { i18n } = useTranslation()
+  const { t, i18n } = useTranslation()
+  useTitle(t('common.search'))
   const [searchParams, setSearchParams] = useSearchParams()
 
   const [viewMode, setViewMode] = useState<ViewMode>('grid')
@@ -88,7 +88,7 @@ const Search = () => {
             <SearchIcon className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
             <input
               type="text"
-              placeholder="Joy nomi, manzil..."
+              placeholder={t('search.placeholder')}
               value={search}
               onChange={e => setSearch(e.target.value)}
               className="w-full pl-10 pr-4 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent bg-gray-50"
@@ -122,7 +122,7 @@ const Search = () => {
             }`}
           >
             <SlidersHorizontal className="w-4 h-4" />
-            Filtrlar
+            {t('search.filters')}
             {hasActiveFilters && (
               <span className="w-5 h-5 bg-emerald-600 text-white rounded-full text-xs flex items-center justify-center font-medium">
                 {[search, category, minPrice, maxPrice].filter(Boolean).length}
@@ -139,7 +139,7 @@ const Search = () => {
               }`}
             >
               <Grid3X3 className="w-4 h-4" />
-              <span className="hidden sm:inline">Grid</span>
+              <span className="hidden sm:inline">{t('search.grid')}</span>
             </button>
             <button
               onClick={() => setViewMode('map')}
@@ -148,7 +148,7 @@ const Search = () => {
               }`}
             >
               <Map className="w-4 h-4" />
-              <span className="hidden sm:inline">Xarita</span>
+              <span className="hidden sm:inline">{t('search.map')}</span>
             </button>
           </div>
         </div>
@@ -157,13 +157,13 @@ const Search = () => {
           <div className="max-w-7xl mx-auto mt-4 p-4 bg-gray-50 rounded-2xl border border-gray-100">
             <div className="flex flex-wrap gap-4 items-end">
               <div className="flex-1 min-w-[160px]">
-                <label className="block text-xs font-medium text-gray-600 mb-1.5">Kategoriya</label>
+                <label className="block text-xs font-medium text-gray-600 mb-1.5">{t('common.category')}</label>
                 <select
                   value={category}
                   onChange={e => setCategory(e.target.value)}
                   className="w-full px-3 py-2 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white"
                 >
-                  <option value="">Hammasi</option>
+                  <option value="">{t('search.allCategories')}</option>
                   {categories.map(cat => (
                     <option key={cat.id} value={cat.slug}>
                       {cat.icon} {getLangName(cat.name_uz, cat.name_ru)}
@@ -172,7 +172,7 @@ const Search = () => {
                 </select>
               </div>
               <div className="flex-1 min-w-[120px]">
-                <label className="block text-xs font-medium text-gray-600 mb-1.5">Min narx (so'm)</label>
+                <label className="block text-xs font-medium text-gray-600 mb-1.5">{t('search.minPrice')}</label>
                 <input
                   type="number"
                   placeholder="0"
@@ -182,7 +182,7 @@ const Search = () => {
                 />
               </div>
               <div className="flex-1 min-w-[120px]">
-                <label className="block text-xs font-medium text-gray-600 mb-1.5">Max narx (so'm)</label>
+                <label className="block text-xs font-medium text-gray-600 mb-1.5">{t('search.maxPrice')}</label>
                 <input
                   type="number"
                   placeholder="500000"
@@ -196,7 +196,7 @@ const Search = () => {
                   onClick={clearFilters}
                   className="flex items-center gap-1.5 px-4 py-2 text-sm text-red-600 hover:bg-red-50 rounded-xl transition-colors border border-red-200"
                 >
-                  <X className="w-4 h-4" /> Tozalash
+                  <X className="w-4 h-4" /> {t('search.clear')}
                 </button>
               )}
             </div>
@@ -213,7 +213,7 @@ const Search = () => {
               : 'bg-white text-gray-600 border-gray-200 hover:border-emerald-300'
           }`}
         >
-          Hammasi
+          {t('search.allCategories')}
         </button>
         {categories.map(cat => (
           <button
@@ -234,10 +234,10 @@ const Search = () => {
         <div>
           <p className="text-sm text-gray-600">
             {isLoading ? (
-              <span className="animate-pulse">Qidirilmoqda...</span>
+              <span className="animate-pulse">{t('search.searching')}</span>
             ) : (
               <>
-                <span className="font-semibold text-gray-900">{venues.length}</span> ta joy topildi
+                <span className="font-semibold text-gray-900">{venues.length}</span> {t('search.results')}
                 {activeCategory && (
                   <span className="ml-1 text-gray-500">
                     — {activeCategory.icon} {getLangName(activeCategory.name_uz, activeCategory.name_ru)}
@@ -254,7 +254,7 @@ const Search = () => {
         <VenueGrid
           venues={venues}
           loading={isLoading}
-          emptyMessage="Hech narsa topilmadi — filtrlarni o'zgartiring"
+          emptyMessage={t('search.empty')}
         />
       ) : (
         <div className="space-y-4">

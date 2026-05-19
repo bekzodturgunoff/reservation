@@ -14,11 +14,13 @@ import Badge from '../components/ui/Badge'
 import Button from '../components/ui/Button'
 import SlotPicker from '../components/venue/SlotPicker'
 import type { Slot } from '../types'
+import { useTranslation } from 'react-i18next'
 
 const VenueDetail = () => {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const user = useAuthStore(state => state.user)
+  const { t } = useTranslation()
 
   const [selectedSlot, setSelectedSlot] = useState<Slot | null>(null)
   const [photoIndex, setPhotoIndex] = useState(0)
@@ -35,7 +37,7 @@ const VenueDetail = () => {
     enabled: !!id,
   })
 
-  useTitle(venue?.name || 'Joy haqida')
+  useTitle(venue?.name || t('venue.about'))
 
   if (isLoading) {
     return (
@@ -52,15 +54,15 @@ const VenueDetail = () => {
     return (
       <div className="flex flex-col items-center justify-center py-20 text-center">
         <span className="text-5xl mb-4">🔍</span>
-        <h2 className="text-xl font-semibold text-gray-900 mb-2">Joy topilmadi</h2>
-        <p className="text-gray-500 mb-6">Bu venue mavjud emas yoki o'chirilgan</p>
-        <Button onClick={() => navigate('/search')}>Qidirishga qaytish</Button>
+        <h2 className="text-xl font-semibold text-gray-900 mb-2">{t('venue.notFound')}</h2>
+        <p className="text-gray-500 mb-6">{t('venue.notFoundDesc')}</p>
+        <Button onClick={() => navigate('/search')}>{t('venue.backToSearch')}</Button>
       </div>
     )
   }
 
   const photos = venue.photos?.length ? venue.photos : []
-  const categoryName = venue.categories?.name_uz || 'Boshqa'
+  const categoryName = venue.categories?.name_uz || t('common.other')
 
   const avgRating = reviews.length
     ? (reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length).toFixed(1)
@@ -82,7 +84,7 @@ const VenueDetail = () => {
         onClick={() => navigate(-1)}
         className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-emerald-600 mb-4 transition-colors"
       >
-        <ArrowLeft className="w-4 h-4" /> Orqaga
+        <ArrowLeft className="w-4 h-4" /> {t('common.back')}
       </button>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -143,7 +145,7 @@ const VenueDetail = () => {
                     {venue.categories?.icon} {categoryName}
                   </Badge>
                   <Badge variant={venue.status === 'active' ? 'success' : 'default'}>
-                    {venue.status === 'active' ? 'Faol' : venue.status}
+                    {venue.status === 'active' ? t('common.active') : venue.status}
                   </Badge>
                 </div>
                 <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">{venue.name}</h1>
@@ -151,7 +153,7 @@ const VenueDetail = () => {
               <div className="flex items-center gap-1.5 text-lg font-semibold text-emerald-600">
                 <Tag className="w-5 h-5" />
                 {formatPrice(venue.price_per_slot, venue.currency)}
-                <span className="text-sm text-gray-400 font-normal">/soat</span>
+                <span className="text-sm text-gray-400 font-normal">{t('venue.perHour')}</span>
               </div>
             </div>
 
@@ -160,7 +162,7 @@ const VenueDetail = () => {
                 <div className="flex items-center gap-1">
                   <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
                   <span className="text-gray-700 font-medium">{avgRating}</span>
-                  <span>({reviews.length} ta izoh)</span>
+                  <span>({reviews.length} {t('venue.reviews')})</span>
                 </div>
               )}
               <div className="flex items-center gap-1">
@@ -182,7 +184,7 @@ const VenueDetail = () => {
           <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
             <div className="flex items-center gap-2 mb-4">
               <CalendarDays className="w-5 h-5 text-emerald-600" />
-              <h2 className="text-lg font-semibold text-gray-900">Vaqtni tanlang</h2>
+              <h2 className="text-lg font-semibold text-gray-900">{t('venue.selectTime')}</h2>
             </div>
             <SlotPicker
               venueId={venue.id}
@@ -196,15 +198,15 @@ const VenueDetail = () => {
             <div className="flex items-center gap-2 mb-5">
               <MessageSquare className="w-5 h-5 text-emerald-600" />
               <h2 className="text-lg font-semibold text-gray-900">
-                Izohlar ({reviews.length})
+                {t('venue.reviewsTitle')} ({reviews.length})
               </h2>
             </div>
 
             {reviews.length === 0 ? (
               <div className="text-center py-10 bg-gray-50 rounded-2xl">
                 <span className="text-4xl">💬</span>
-                <p className="text-gray-500 mt-2">Hali izohlar yo'q</p>
-                <p className="text-sm text-gray-400">Birinchi bo'lib fikr bildiring</p>
+                <p className="text-gray-500 mt-2">{t('venue.noReviews')}</p>
+                <p className="text-sm text-gray-400">{t('venue.beFirst')}</p>
               </div>
             ) : (
               <div className="space-y-4">
@@ -217,7 +219,7 @@ const VenueDetail = () => {
                         </div>
                         <div>
                           <p className="font-medium text-gray-900 text-sm">
-                            {review.profiles?.full_name || 'Foydalanuvchi'}
+                            {review.profiles?.full_name || t('venue.user')}
                           </p>
                           <p className="text-xs text-gray-400">
                             {fmtDate(review.created_at)}
@@ -246,7 +248,7 @@ const VenueDetail = () => {
         {/* Booking sidebar */}
         <div className="lg:col-span-1">
           <div className="sticky top-24 bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
-            <h3 className="font-semibold text-gray-900 mb-1">Bron qilish</h3>
+            <h3 className="font-semibold text-gray-900 mb-1">{t('common.book')}</h3>
             <p className="text-sm text-gray-500 mb-4">{venue.name}</p>
 
             <div className="space-y-3 text-sm">
@@ -257,7 +259,7 @@ const VenueDetail = () => {
               <div className="flex items-center gap-2 text-gray-600">
                 <Tag className="w-4 h-4 text-gray-400" />
                 <span className="font-medium text-emerald-600">{formatPrice(venue.price_per_slot, venue.currency)}</span>
-                <span className="text-gray-400">/ soat</span>
+                <span className="text-gray-400">{t('venue.perHour')}</span>
               </div>
               {selectedSlot && (
                 <div className="flex items-center gap-2 text-gray-600">
@@ -269,7 +271,7 @@ const VenueDetail = () => {
 
             <div className="border-t border-gray-100 my-4 pt-4">
               <div className="flex items-center justify-between mb-4">
-                <span className="text-sm text-gray-600">Jami:</span>
+                <span className="text-sm text-gray-600">{t('venue.total')}:</span>
                 <span className="text-xl font-bold text-gray-900">
                   {selectedSlot ? formatPrice(venue.price_per_slot, venue.currency) : '—'}
                 </span>
@@ -281,19 +283,19 @@ const VenueDetail = () => {
                 disabled={!selectedSlot}
                 onClick={handleBook}
               >
-                {user ? (selectedSlot ? 'Bron qilish' : 'Vaqt tanlang') : 'Kirish kerak'}
+                {user ? (selectedSlot ? t('common.book') : t('venue.selectTime')) : t('venue.loginToBook')}
               </Button>
 
               {!user && (
                 <p className="text-xs text-gray-400 text-center mt-3">
-                  Bron qilish uchun avval kiring
+                  {t('venue.loginToBookDesc')}
                 </p>
               )}
             </div>
 
             <div className="mt-4 p-3 bg-yellow-50 rounded-xl border border-yellow-100">
               <p className="text-xs text-yellow-700 text-center">
-                💳 To'lov tizimi keyinroq qo'shiladi. Hozirda joyida to'lash mumkin.
+                {t('venue.paymentNote')}
               </p>
             </div>
           </div>

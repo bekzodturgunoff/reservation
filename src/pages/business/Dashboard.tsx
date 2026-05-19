@@ -10,6 +10,7 @@ import { formatPrice, formatDate, formatTime } from '../../lib/utils'
 import Badge, { type BadgeVariant } from '../../components/ui/Badge'
 import Button from '../../components/ui/Button'
 import type { Booking } from '../../types'
+import { useTranslation } from 'react-i18next'
 
 const statusVariant: Record<string, BadgeVariant> = {
   confirmed: 'success',
@@ -17,18 +18,13 @@ const statusVariant: Record<string, BadgeVariant> = {
   cancelled: 'danger',
 }
 
-const statusLabel: Record<string, string> = {
-  confirmed: 'Tasdiqlangan',
-  completed: 'Yakunlangan',
-  cancelled: 'Bekor qilingan',
-}
-
 interface BookingWithProfile extends Booking {
   profiles?: { full_name: string; phone?: string }
 }
 
 const BusinessDashboard = () => {
-  useTitle('Biznes panel')
+  const { t } = useTranslation()
+  useTitle(t('business.dashboard'))
   const profile = useAuthStore(state => state.profile)
 
   const { data: venues = [] } = useQuery({
@@ -48,6 +44,12 @@ const BusinessDashboard = () => {
   const now = new Date()
   const thisMonth = now.getMonth()
   const thisYear = now.getFullYear()
+
+  const statusLabel: Record<string, string> = {
+    confirmed: t('common.confirmed'),
+    completed: t('common.completed'),
+    cancelled: t('common.cancelled'),
+  }
 
   const stats = useMemo(() => {
     const monthBookings = (bookings || []).filter(b => {
@@ -71,19 +73,19 @@ const BusinessDashboard = () => {
     <div className="space-y-8">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Biznes panel</h1>
-          <p className="text-sm text-gray-500 mt-1">{profile?.full_name} uchun xush kelibsiz</p>
+          <h1 className="text-2xl font-bold text-gray-900">{t('business.dashboard')}</h1>
+          <p className="text-sm text-gray-500 mt-1">{profile?.full_name} {t('business.welcome')}</p>
         </div>
         <Link to="/business/venue/new">
-          <Button><PlusCircle className="w-4 h-4" /> Yangi venue</Button>
+          <Button><PlusCircle className="w-4 h-4" /> {t('business.addVenue')}</Button>
         </Link>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {[
-          { icon: <CalendarDays className="w-5 h-5 text-emerald-600" />, label: 'Bu oy bronlar', value: stats.monthBookingsCount.toString(), bg: 'bg-emerald-50' },
-          { icon: <Currency className="w-5 h-5 text-blue-600" />, label: 'Daromad (bu oy)', value: formatPrice(stats.revenue), bg: 'bg-blue-50' },
-          { icon: <Star className="w-5 h-5 text-yellow-500" />, label: "O'rtacha reyting", value: stats.avgRating ? stats.avgRating.toFixed(1) : '—', bg: 'bg-yellow-50' },
+          { icon: <CalendarDays className="w-5 h-5 text-emerald-600" />, label: t('business.statsBookings'), value: stats.monthBookingsCount.toString(), bg: 'bg-emerald-50' },
+          { icon: <Currency className="w-5 h-5 text-blue-600" />, label: t('business.statsRevenue'), value: formatPrice(stats.revenue), bg: 'bg-blue-50' },
+          { icon: <Star className="w-5 h-5 text-yellow-500" />, label: t('business.statsRating'), value: stats.avgRating ? stats.avgRating.toFixed(1) : '—', bg: 'bg-yellow-50' },
         ].map(card => (
           <div key={card.label} className={`${card.bg} rounded-2xl p-5 border border-gray-100`}>
             <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-sm mb-3">{card.icon}</div>
@@ -95,22 +97,22 @@ const BusinessDashboard = () => {
 
       <div className="flex gap-3 flex-wrap">
         <Link to="/business/venue/new" className="flex items-center gap-2 px-4 py-2.5 bg-white rounded-xl border border-gray-200 text-sm font-medium text-gray-700 hover:border-emerald-300 transition-colors">
-          <PlusCircle className="w-4 h-4 text-emerald-600" /> Yangi venue qo'shish
+          <PlusCircle className="w-4 h-4 text-emerald-600" /> {t('business.addVenueLink')}
         </Link>
         {venues.length > 0 && (
           <Link to={`/business/venue/${venues[0].id}/availability`} className="flex items-center gap-2 px-4 py-2.5 bg-white rounded-xl border border-gray-200 text-sm font-medium text-gray-700 hover:border-emerald-300 transition-colors">
-            <Settings className="w-4 h-4 text-emerald-600" /> Vaqtlarni boshqarish
+            <Settings className="w-4 h-4 text-emerald-600" /> {t('business.manageSlots')}
           </Link>
         )}
       </div>
 
       <div>
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">Venue larim ({venues.length})</h2>
+        <h2 className="text-lg font-semibold text-gray-900 mb-4">{t('business.myVenues')} ({venues.length})</h2>
         {venues.length === 0 ? (
           <div className="text-center py-10 bg-gray-50 rounded-2xl">
             <span className="text-4xl">🏢</span>
-            <p className="text-gray-500 mt-2">Hali venue qo'shilmagan</p>
-            <Link to="/business/venue/new" className="text-sm text-emerald-600 hover:underline mt-1 inline-block">Birinchi venue ni qo'shish</Link>
+            <p className="text-gray-500 mt-2">{t('business.emptyVenues')}</p>
+            <Link to="/business/venue/new" className="text-sm text-emerald-600 hover:underline mt-1 inline-block">{t('business.addFirstVenue')}</Link>
           </div>
         ) : (
           <div className="grid gap-3">
@@ -120,11 +122,11 @@ const BusinessDashboard = () => {
                   <div className="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center text-lg">{v.categories?.icon || '🏢'}</div>
                   <div>
                     <p className="font-medium text-gray-900 text-sm">{v.name}</p>
-                    <p className="text-xs text-gray-500">{v.city} · {v.categories?.name_uz || 'Boshqa'} · {formatPrice(v.price_per_slot)}/soat</p>
+                    <p className="text-xs text-gray-500">{v.city} · {v.categories?.name_uz || t('common.other')} · {formatPrice(v.price_per_slot)}{t('common.perHour')}</p>
                   </div>
                 </div>
                 <Badge variant={v.status === 'active' ? 'success' : v.status === 'pending' ? 'warning' : 'danger'}>
-                  {v.status === 'active' ? 'Faol' : v.status === 'pending' ? 'Kutilmoqda' : 'Rad etilgan'}
+                  {v.status === 'active' ? t('common.active') : v.status === 'pending' ? t('common.pending') : t('common.rejected')}
                 </Badge>
               </Link>
             ))}
@@ -133,11 +135,11 @@ const BusinessDashboard = () => {
       </div>
 
       <div>
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">Kelgusi bronlar ({upcomingBookings.length})</h2>
+        <h2 className="text-lg font-semibold text-gray-900 mb-4">{t('business.upcomingBookings')} ({upcomingBookings.length})</h2>
         {upcomingBookings.length === 0 ? (
           <div className="text-center py-10 bg-gray-50 rounded-2xl">
             <span className="text-4xl">📅</span>
-            <p className="text-gray-500 mt-2">Hali bronlar yo'q</p>
+            <p className="text-gray-500 mt-2">{t('business.emptyBookings')}</p>
           </div>
         ) : (
           <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
@@ -145,11 +147,11 @@ const BusinessDashboard = () => {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-gray-100 text-gray-500 text-xs">
-                    <th className="text-left py-3 px-4 font-medium">Foydalanuvchi</th>
-                    <th className="text-left py-3 px-4 font-medium">Venue</th>
-                    <th className="text-left py-3 px-4 font-medium">Sana</th>
-                    <th className="text-left py-3 px-4 font-medium">Vaqt</th>
-                    <th className="text-left py-3 px-4 font-medium">Holat</th>
+                    <th className="text-left py-3 px-4 font-medium">{t('business.user')}</th>
+                    <th className="text-left py-3 px-4 font-medium">{t('business.venue')}</th>
+                    <th className="text-left py-3 px-4 font-medium">{t('common.date')}</th>
+                    <th className="text-left py-3 px-4 font-medium">{t('common.time')}</th>
+                    <th className="text-left py-3 px-4 font-medium">{t('common.status')}</th>
                   </tr>
                 </thead>
                 <tbody>

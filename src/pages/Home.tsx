@@ -9,8 +9,8 @@ import { useTitle } from '../hooks/useTitle'
 import { useTranslation } from 'react-i18next'
 
 const Home = () => {
-  useTitle('Bosh sahifa')
-  const { i18n } = useTranslation()
+  const { t, i18n } = useTranslation()
+  useTitle(t('common.home'))
   const navigate = useNavigate()
 
   const [searchQuery, setSearchQuery] = useState('')
@@ -50,14 +50,14 @@ const Home = () => {
         <div className="max-w-3xl mx-auto text-center">
           <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm rounded-full px-4 py-1.5 text-sm mb-6">
             <span>🇺🇿</span>
-            <span>O'zbekistondagi eng yaxshi bron platformasi</span>
+            <span>{t('home.title')}</span>
           </div>
           <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4 leading-tight">
-            Xohlagan joyingizni<br />
-            <span className="text-emerald-200">osongina bron qiling</span>
+            {t('home.hero1')}<br />
+            <span className="text-emerald-200">{t('home.hero2')}</span>
           </h1>
           <p className="text-emerald-100 text-base sm:text-lg mb-10 max-w-xl mx-auto">
-            Kafe, restoran, futbol maydonlari, gaming klublar va boshqa joylarni bir necha soniyada bron qiling
+            {t('home.subtitle')}
           </p>
 
           <div className="bg-white rounded-2xl p-2 shadow-2xl flex flex-col sm:flex-row gap-2 max-w-2xl mx-auto">
@@ -65,7 +65,7 @@ const Home = () => {
               <Search className="w-5 h-5 text-gray-400 flex-shrink-0" />
               <input
                 type="text"
-                placeholder="Kafe, futbol, gaming..."
+                placeholder={t('home.searchPlaceholder')}
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
                 onKeyDown={handleKeyDown}
@@ -89,7 +89,7 @@ const Home = () => {
               className="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-3 rounded-xl font-medium text-sm transition-colors flex items-center justify-center gap-2 sm:flex-shrink-0"
             >
               <Search className="w-4 h-4" />
-              Qidirish
+              {t('common.search')}
             </button>
           </div>
         </div>
@@ -111,7 +111,7 @@ const Home = () => {
                 }`}
               >
                 <span className="text-2xl">🏠</span>
-                <span>Hammasi</span>
+                <span>{t('home.allCategories')}</span>
               </button>
 
               {categories.map(cat => (
@@ -138,47 +138,47 @@ const Home = () => {
         <section className="mb-14">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h2 className="text-xl font-bold text-gray-900">Mashhur joylar</h2>
-              <p className="text-sm text-gray-500 mt-0.5">{selectedCity} bo'yicha</p>
+              <h2 className="text-xl font-bold text-gray-900">{t('home.popularTitle')}</h2>
+              <p className="text-sm text-gray-500 mt-0.5">{selectedCity} {t('home.popularSub')}</p>
             </div>
             <button
               onClick={() => navigate('/search')}
               className="flex items-center gap-1 text-sm text-emerald-600 font-medium hover:underline"
             >
-              Barchasini ko'rish <ChevronRight className="w-4 h-4" />
+              {t('common.viewAll')} <ChevronRight className="w-4 h-4" />
             </button>
           </div>
           <VenueGrid
             venues={featuredVenues.slice(0, 6)}
             loading={isLoading}
-            emptyMessage="Hali joylar qo'shilmagan"
+            emptyMessage={t('home.empty')}
           />
         </section>
 
         <section className="mb-14">
           <div className="text-center mb-8">
-            <h2 className="text-xl font-bold text-gray-900">Qanday ishlaydi?</h2>
-            <p className="text-sm text-gray-500 mt-1">3 ta oddiy qadam</p>
+            <h2 className="text-xl font-bold text-gray-900">{t('home.howItWorks')}</h2>
+            <p className="text-sm text-gray-500 mt-1">{t('home.howItWorksSub')}</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {[
               {
                 icon: <Search className="w-6 h-6 text-emerald-600" />,
                 step: '01',
-                title: 'Qidiring',
-                desc: "Shahar va kategoriya bo'yicha o'zingizga mos joyni toping",
+                title: t('home.step1Title'),
+                desc: t('home.step1Desc'),
               },
               {
                 icon: <CalendarDays className="w-6 h-6 text-emerald-600" />,
                 step: '02',
-                title: 'Bron qiling',
-                desc: 'Qulay vaqtni tanlang va bir necha soniyada bron qiling',
+                title: t('home.step2Title'),
+                desc: t('home.step2Desc'),
               },
               {
                 icon: <Star className="w-6 h-6 text-emerald-600" />,
                 step: '03',
-                title: 'Bahoning bering',
-                desc: "Tashrif buyurgandan so'ng boshqalar uchun izoh qoldiring",
+                title: t('home.step3Title'),
+                desc: t('home.step3Desc'),
               },
             ].map(item => (
               <div key={item.step} className="relative bg-white rounded-2xl border border-gray-100 p-6 text-center shadow-sm">
@@ -199,9 +199,9 @@ const Home = () => {
           <div className="bg-gradient-to-r from-emerald-50 to-teal-50 rounded-2xl border border-emerald-100 p-8">
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 text-center">
               {[
-                { icon: <Shield className="w-6 h-6 text-emerald-600" />, label: "Xavfsiz to'lov", desc: 'Payme va Click orqali' },
-                { icon: <Zap className="w-6 h-6 text-emerald-600" />, label: 'Tezkor bron', desc: '30 soniyadan kam vaqtda' },
-                { icon: <Star className="w-6 h-6 text-emerald-600" />, label: 'Tekshirilgan joylar', desc: 'Faqat sifatli venues' },
+                { icon: <Shield className="w-6 h-6 text-emerald-600" />, label: t('home.featureSecure'), desc: t('home.featureSecureDesc') },
+                { icon: <Zap className="w-6 h-6 text-emerald-600" />, label: t('home.featureFast'), desc: t('home.featureFastDesc') },
+                { icon: <Star className="w-6 h-6 text-emerald-600" />, label: t('home.featureVerified'), desc: t('home.featureVerifiedDesc') },
               ].map(item => (
                 <div key={item.label} className="flex flex-col items-center gap-2">
                   <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-sm">
@@ -217,15 +217,15 @@ const Home = () => {
 
         <section className="mb-14">
           <div className="bg-gray-900 rounded-2xl p-8 sm:p-10 text-center text-white">
-            <h2 className="text-xl sm:text-2xl font-bold mb-2">Biznesingizni BronUz ga qo'shing</h2>
+            <h2 className="text-xl sm:text-2xl font-bold mb-2">{t('home.ctaTitle')}</h2>
             <p className="text-gray-400 text-sm mb-6 max-w-md mx-auto">
-              Kafe, restoran, sport maydoni yoki boshqa joyingizni platformaga qo'shing va mijozlar soni oshirish
+              {t('home.ctaDesc')}
             </p>
             <button
               onClick={() => navigate('/register')}
               className="bg-emerald-600 hover:bg-emerald-700 text-white px-8 py-3 rounded-xl font-medium text-sm transition-colors inline-flex items-center gap-2"
             >
-              Bepul ro'yxatdan o'ting <ChevronRight className="w-4 h-4" />
+              {t('home.ctaButton')} <ChevronRight className="w-4 h-4" />
             </button>
           </div>
         </section>

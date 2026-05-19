@@ -1,9 +1,10 @@
-import { useState, useRef } from 'react'
+import { useState, useMemo, useRef } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { Camera, CalendarDays, Clock, MapPin, XCircle, Star } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { useAuthStore } from '../store/authStore'
 import { useToastStore } from '../store/toastStore'
 import { useTitle } from '../hooks/useTitle'
@@ -16,13 +17,6 @@ import Input from '../components/ui/Input'
 import Badge from '../components/ui/Badge'
 import type { Booking } from '../types'
 
-const schema = z.object({
-  full_name: z.string().min(2, 'Ism kamida 2 ta belgi'),
-  phone: z.string().min(9, 'Telefon raqam kiriting'),
-})
-
-type FormData = z.infer<typeof schema>
-
 type Tab = 'upcoming' | 'past' | 'reviews'
 
 const statusVariant: Record<string, 'success' | 'warning' | 'danger' | 'default' | 'info'> = {
@@ -31,20 +25,22 @@ const statusVariant: Record<string, 'success' | 'warning' | 'danger' | 'default'
   cancelled: 'danger',
 }
 
-const statusLabel: Record<string, string> = {
-  confirmed: 'Tasdiqlangan',
-  completed: 'Yakunlangan',
-  cancelled: 'Bekor qilingan',
-}
-
 const Profile = () => {
-  useTitle('Mening profilim')
+  const { t } = useTranslation()
+  useTitle(t('profile.title'))
   const { user, profile, setProfile } = useAuthStore()
   const { addToast } = useToastStore()
   const queryClient = useQueryClient()
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [activeTab, setActiveTab] = useState<Tab>('upcoming')
   const [avatarUploading, setAvatarUploading] = useState(false)
+
+  const schema = useMemo(() => z.object({
+    full_name: z.string().min(2, t('profile.fullName')),
+    phone: z.string().min(9, t('profile.phoneRequired')),
+  }), [t])
+
+  type FormData = z.infer<typeof schema>
 
   const { register, handleSubmit, formState: { errors } } = useForm<FormData>({
     resolver: zodResolver(schema),
@@ -70,9 +66,9 @@ const Profile = () => {
     mutationFn: (data: FormData) => updateProfile(user!.id, data),
     onSuccess: (data) => {
       setProfile(data)
-      addToast({ type: 'success', message: 'Profil yangilandi' })
+      addToast({ type: 'success', message: t('profile.updated') })
     },
-    onError: () => addToast({ type: 'error', message: 'Xatolik yuz berdi' }),
+    onError: () => addToast({ type: 'error', message: t('common.error') }),
   })
 
   const cancelMutation = useMutation({
@@ -80,9 +76,9 @@ const Profile = () => {
       cancelBookingWithSlot(bookingId, slotId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['bookings'] })
-      addToast({ type: 'success', message: 'Bron bekor qilindi' })
+      addToast({ type: 'success', message: t('profile.bookingCancelled') })
     },
-    onError: () => addToast({ type: 'error', message: 'Bekor qilishda xatolik' }),
+    onError: () => addToast({ type: 'error', message: t('profile.bookingCancelError') }),
   })
 
   const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -94,11 +90,20 @@ const Profile = () => {
       const url = await uploadAvatar(user.id, file)
       const updated = await updateProfile(user.id, { avatar_url: url })
       setProfile(updated)
-      addToast({ type: 'success', message: 'Rasm yangilandi' })
+      addToast({ type: 'success', message: t('profile.avatarUpdated') })
     } catch {
-      addToast({ type: 'error', message: 'Rasm yuklashda xatolik' })
+      addToast({ type: 'error', message: t('profile.avatarError') })
     }
     setAvatarUploading(false)
+  }
+
+  const statusLabel = (status: string) => {
+    const labels: Record<string, string> = {
+      confirmed: t('common.confirmed'),
+      completed: t('common.completed'),
+      cancelled: t('common.cancelled'),
+    }
+    return labels[status] || status
   }
 
   const BookingCard = ({ booking }: { booking: Booking }) => (
@@ -109,7 +114,7 @@ const Profile = () => {
             🏢
           </div>
           <div className="min-w-0">
-            <p className="font-medium text-gray-900 text-sm">{booking.venues?.name || 'Venue'}</p>
+            <p className="font-medium text-gray-900 text-sm">{booking.venues?.name || t('profile.venue')}</p>
             <div className="flex flex-wrap items-center gap-2 mt-1 text-xs text-gray-500">
               <span className="flex items-center gap-1">
                 <CalendarDays className="w-3 h-3" /> {formatDate(booking.slots?.date || '')}
@@ -127,7 +132,7 @@ const Profile = () => {
         </div>
         <div className="flex items-center gap-2 flex-shrink-0">
           <Badge variant={statusVariant[booking.status] || 'default'}>
-            {statusLabel[booking.status] || booking.status}
+            {statusLabel(booking.status)}
           </Badge>
         </div>
       </div>
@@ -139,7 +144,7 @@ const Profile = () => {
             loading={cancelMutation.isPending}
             onClick={() => cancelMutation.mutate({ bookingId: booking.id, slotId: booking.slot_id })}
           >
-            <XCircle className="w-3.5 h-3.5" /> Bekor qilish
+            <XCircle className="w-3.5 h-3.5" /> {t('profile.cancel')}
           </Button>
         </div>
       )}
@@ -150,7 +155,7 @@ const Profile = () => {
     <div className="bg-white rounded-2xl border border-gray-100 p-4 shadow-sm">
       <div className="flex items-start justify-between mb-2">
         <div>
-          <p className="font-medium text-gray-900 text-sm">{review.venues?.name || 'Venue'}</p>
+          <p className="font-medium text-gray-900 text-sm">{review.venues?.name || t('profile.venue')}</p>
           <p className="text-xs text-gray-400 mt-0.5">{formatDate(review.created_at)}</p>
         </div>
         <div className="flex items-center gap-0.5">
@@ -165,7 +170,7 @@ const Profile = () => {
 
   return (
     <div className="max-w-3xl mx-auto space-y-8">
-      <h1 className="text-2xl font-bold text-gray-900">Mening profilim</h1>
+      <h1 className="text-2xl font-bold text-gray-900">{t('profile.title')}</h1>
 
       {/* Profile edit card */}
       <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
@@ -201,13 +206,13 @@ const Profile = () => {
             className="flex-1 space-y-4 w-full"
           >
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <Input label="To'liq ism" error={errors.full_name?.message} {...register('full_name')} />
-              <Input label="Telefon" error={errors.phone?.message} {...register('phone')} />
+              <Input label={t('common.fullName')} error={errors.full_name?.message} {...register('full_name')} />
+              <Input label={t('common.phone')} error={errors.phone?.message} {...register('phone')} />
             </div>
             <div className="flex items-center justify-between">
-              <p className="text-xs text-gray-400">Email: {user?.email}</p>
+              <p className="text-xs text-gray-400">{t('profile.email')} {user?.email}</p>
               <Button type="submit" size="sm" loading={profileMutation.isPending}>
-                Saqlash
+                {t('common.save')}
               </Button>
             </div>
           </form>
@@ -217,9 +222,9 @@ const Profile = () => {
       {/* Tabs */}
       <div className="flex gap-1 bg-gray-100 rounded-xl p-1">
         {([
-          { key: 'upcoming', label: `Kelgusi (${upcomingBookings.length})` },
-          { key: 'past', label: `O'tgan (${pastBookings.length})` },
-          { key: 'reviews', label: `Izohlar (${reviews.length})` },
+          { key: 'upcoming', label: `${t('profile.tabs.upcoming')} (${upcomingBookings.length})` },
+          { key: 'past', label: `${t('profile.tabs.past')} (${pastBookings.length})` },
+          { key: 'reviews', label: `${t('profile.tabs.reviews')} (${reviews.length})` },
         ] as { key: Tab; label: string }[]).map(tab => (
           <button
             key={tab.key}
@@ -237,19 +242,19 @@ const Profile = () => {
       <div className="space-y-3">
         {activeTab === 'upcoming' && (
           upcomingBookings.length === 0
-            ? <EmptyState text="Kelgusi bronlar yo'q" sub="Yangi bron qilish uchun qidirishni boshlang" />
+            ? <EmptyState text={t('profile.emptyUpcoming')} sub={t('profile.emptyUpcomingDesc')} />
             : upcomingBookings.map(b => <BookingCard key={b.id} booking={b} />)
         )}
 
         {activeTab === 'past' && (
           pastBookings.length === 0
-            ? <EmptyState text="O'tgan bronlar yo'q" sub="Bron qilishni boshlang va tarix bu yerda ko'rsatiladi" />
+            ? <EmptyState text={t('profile.emptyPast')} sub={t('profile.emptyPastDesc')} />
             : pastBookings.map(b => <BookingCard key={b.id} booking={b} />)
         )}
 
         {activeTab === 'reviews' && (
           reviews.length === 0
-            ? <EmptyState text="Izohlar yo'q" sub="Tashrif buyurganingizdan so'ng izoh qoldirishingiz mumkin" />
+            ? <EmptyState text={t('profile.emptyReviews')} sub={t('profile.emptyReviewsDesc')} />
             : reviews.map(r => <ReviewCard key={r.id} review={r} />)
         )}
       </div>

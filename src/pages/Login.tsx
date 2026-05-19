@@ -1,28 +1,30 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { Mail, Lock, CalendarDays } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { supabase } from '../lib/supabase'
 import { useToastStore } from '../store/toastStore'
 import { useTitle } from '../hooks/useTitle'
 import Input from '../components/ui/Input'
 import Button from '../components/ui/Button'
 
-const schema = z.object({
-  email: z.string().email('Yaroqli email kiriting'),
-  password: z.string().min(6, "Parol kamida 6 ta belgi bo'lishi kerak"),
-})
-
-type FormData = z.infer<typeof schema>
-
 const Login = () => {
-  useTitle('Kirish')
+  const { t } = useTranslation()
+  useTitle(t('common.login'))
   const navigate = useNavigate()
   const location = useLocation()
   const { addToast } = useToastStore()
   const [loading, setLoading] = useState(false)
+
+  const schema = useMemo(() => z.object({
+    email: z.string().email(t('auth.validEmail')),
+    password: z.string().min(6, t('auth.passwordMin')),
+  }), [t])
+
+  type FormData = z.infer<typeof schema>
 
   const from = (location.state as any)?.from?.pathname || '/'
 
@@ -45,7 +47,7 @@ const Login = () => {
       return
     }
 
-    addToast({ type: 'success', message: "Xush kelibsiz!" })
+    addToast({ type: 'success', message: t('auth.welcome') })
     navigate(from, { replace: true })
   }
 
@@ -58,37 +60,37 @@ const Login = () => {
               <CalendarDays className="w-7 h-7 text-white" />
             </div>
           </div>
-          <h1 className="text-2xl font-bold text-gray-900">BronUz ga xush kelibsiz</h1>
-          <p className="text-gray-500 mt-1 text-sm">Hisobingizga kiring</p>
+          <h1 className="text-2xl font-bold text-gray-900">{t('auth.loginTitle')}</h1>
+          <p className="text-gray-500 mt-1 text-sm">{t('auth.loginSubtitle')}</p>
         </div>
 
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8">
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
             <Input
-              label="Email"
+              label={t('common.email')}
               type="email"
-              placeholder="email@example.com"
+              placeholder={t('auth.emailPlaceholder')}
               leftIcon={<Mail className="w-4 h-4" />}
               error={errors.email?.message}
               {...register('email')}
             />
             <Input
-              label="Parol"
+              label={t('common.password')}
               type="password"
-              placeholder="••••••••"
+              placeholder={t('auth.passwordPlaceholder')}
               leftIcon={<Lock className="w-4 h-4" />}
               error={errors.password?.message}
               {...register('password')}
             />
             <Button type="submit" loading={loading} className="w-full" size="lg">
-              Kirish
+              {t('common.login')}
             </Button>
           </form>
           <div className="mt-6 text-center">
             <p className="text-sm text-gray-500">
-              Hisobingiz yo'qmi?{' '}
+              {t('auth.noAccount')}{' '}
               <Link to="/register" className="text-emerald-600 font-medium hover:underline">
-                Ro'yxatdan o'ting
+                {t('auth.registerLink')}
               </Link>
             </p>
           </div>
@@ -96,7 +98,7 @@ const Login = () => {
 
         <div className="mt-4 p-4 bg-blue-50 rounded-xl border border-blue-100">
           <p className="text-xs text-blue-700 text-center">
-            💡 Test uchun: avval ro'yxatdan o'ting, keyin kiring
+            {t('auth.testHint')}
           </p>
         </div>
       </div>

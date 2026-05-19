@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { MapPin, Star, Tag } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import type { Venue } from '../../types'
 import { formatPrice } from '../../lib/utils'
 import Badge from '../ui/Badge'
@@ -9,7 +10,8 @@ interface VenueCardProps {
 }
 
 const VenueCard = ({ venue }: VenueCardProps) => {
-  const categoryName = venue.categories?.name_uz || 'Boshqa'
+  const { t } = useTranslation()
+  const categoryName = venue.categories?.name_uz || t('common.other')
   const photo = venue.photos?.[0] || null
   const rating = venue.avg_rating ?? null
   const reviewCount = venue.review_count ?? 0
@@ -55,7 +57,7 @@ const VenueCard = ({ venue }: VenueCardProps) => {
                   <span className="text-xs text-gray-400">({reviewCount})</span>
                 </div>
               ) : (
-                <span className="text-xs text-gray-400">Hali baho yo'q</span>
+                <span className="text-xs text-gray-400">{t('venue.noRating')}</span>
               )}
             </div>
             <div className="flex items-center gap-1 text-emerald-600">
@@ -63,7 +65,7 @@ const VenueCard = ({ venue }: VenueCardProps) => {
               <span className="text-sm font-semibold">
                 {formatPrice(venue.price_per_slot, venue.currency)}
               </span>
-              <span className="text-xs text-gray-400">/soat</span>
+              <span className="text-xs text-gray-400">{t('venue.perHour')}</span>
             </div>
           </div>
         </div>

@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
+import { useTranslation } from 'react-i18next'
 import { getSlotsByVenueAndDate } from '../../api/slots'
 import type { Slot } from '../../types'
 
@@ -10,6 +11,7 @@ interface SlotPickerProps {
 }
 
 const SlotPicker = ({ venueId, selectedSlot, onSelect }: SlotPickerProps) => {
+  const { t } = useTranslation()
   const today = new Date()
   const [selectedDate, setSelectedDate] = useState(today.toISOString().split('T')[0])
 
@@ -26,7 +28,7 @@ const SlotPicker = ({ venueId, selectedSlot, onSelect }: SlotPickerProps) => {
     dates.push(d.toISOString().split('T')[0])
   }
 
-  const dayNames = ['Yak', 'Du', 'Se', 'Chor', 'Pay', 'Ju', 'Shan']
+  const dayNames = t('common.days.short', { returnObjects: true }) as string[]
 
   const formatDisplay = (dateStr: string) => {
     const d = new Date(dateStr + 'T00:00:00')
@@ -69,7 +71,7 @@ const SlotPicker = ({ venueId, selectedSlot, onSelect }: SlotPickerProps) => {
         </div>
       ) : slots.length === 0 ? (
         <p className="text-sm text-gray-400 text-center py-6">
-          Bu sana uchun vaqtlar mavjud emas
+          {t('venue.noSlotsForDate')}
         </p>
       ) : (
         <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">

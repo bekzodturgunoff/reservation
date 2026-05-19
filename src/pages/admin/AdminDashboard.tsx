@@ -8,9 +8,11 @@ import { formatDate } from '../../lib/utils'
 import Button from '../../components/ui/Button'
 import Skeleton from '../../components/ui/Skeleton'
 import { useToastStore } from '../../store/toastStore'
+import { useTranslation } from 'react-i18next'
 
 const AdminDashboard = () => {
-  useTitle('Admin panel')
+  const { t } = useTranslation()
+  useTitle(t('admin.dashboard'))
   const queryClient = useQueryClient()
   const { addToast } = useToastStore()
 
@@ -31,36 +33,36 @@ const AdminDashboard = () => {
     mutationFn: approveVenue,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin'] })
-      addToast({ type: 'success', message: 'Venue tasdiqlandi' })
+      addToast({ type: 'success', message: t('admin.venueApproved') })
     },
-    onError: () => addToast({ type: 'error', message: 'Xatolik yuz berdi' }),
+    onError: () => addToast({ type: 'error', message: t('common.error') }),
   })
 
   const rejectMutation = useMutation({
     mutationFn: rejectVenue,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin'] })
-      addToast({ type: 'success', message: 'Venue rad etildi' })
+      addToast({ type: 'success', message: t('admin.venueRejected') })
     },
-    onError: () => addToast({ type: 'error', message: 'Xatolik yuz berdi' }),
+    onError: () => addToast({ type: 'error', message: t('common.error') }),
   })
 
   const statCards = [
-    { icon: <Building2 className="w-5 h-5 text-emerald-600" />, label: "Jami venuelar", value: stats?.totalVenues ?? '—', bg: 'bg-emerald-50' },
-    { icon: <Users className="w-5 h-5 text-blue-600" />, label: 'Foydalanuvchilar', value: stats?.totalUsers ?? '—', bg: 'bg-blue-50' },
-    { icon: <CalendarCheck className="w-5 h-5 text-purple-600" />, label: 'Bronlar', value: stats?.totalBookings ?? '—', bg: 'bg-purple-50' },
-    { icon: <Clock className="w-5 h-5 text-yellow-600" />, label: 'Kutilayotgan venuelar', value: stats?.pendingVenues ?? '—', bg: 'bg-yellow-50' },
+    { icon: <Building2 className="w-5 h-5 text-emerald-600" />, label: t('admin.statsVenues'), value: stats?.totalVenues ?? '—', bg: 'bg-emerald-50' },
+    { icon: <Users className="w-5 h-5 text-blue-600" />, label: t('admin.statsUsers'), value: stats?.totalUsers ?? '—', bg: 'bg-blue-50' },
+    { icon: <CalendarCheck className="w-5 h-5 text-purple-600" />, label: t('admin.statsBookings'), value: stats?.totalBookings ?? '—', bg: 'bg-purple-50' },
+    { icon: <Clock className="w-5 h-5 text-yellow-600" />, label: t('admin.statsPending'), value: stats?.pendingVenues ?? '—', bg: 'bg-yellow-50' },
   ]
 
   return (
     <div className="space-y-8">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Admin panel</h1>
-          <p className="text-sm text-gray-500 mt-1">Platforma boshqaruvi</p>
+          <h1 className="text-2xl font-bold text-gray-900">{t('admin.dashboard')}</h1>
+          <p className="text-sm text-gray-500 mt-1">{t('admin.subtitle')}</p>
         </div>
         <Link to="/admin/approvals">
-          <Button><ShieldAlert className="w-4 h-4" /> Tasdiqlashlar</Button>
+          <Button><ShieldAlert className="w-4 h-4" /> {t('admin.approvals')}</Button>
         </Link>
       </div>
 
@@ -81,10 +83,10 @@ const AdminDashboard = () => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div>
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-gray-900">So'nggi kutilayotgan venuelar</h2>
+            <h2 className="text-lg font-semibold text-gray-900">{t('admin.recentPending')}</h2>
             {pendingVenues.length > 5 && (
               <Link to="/admin/approvals" className="text-sm text-emerald-600 hover:underline flex items-center gap-1">
-                Barchasi <ArrowRight className="w-3 h-3" />
+                {t('common.viewAll')} <ArrowRight className="w-3 h-3" />
               </Link>
             )}
           </div>
@@ -95,7 +97,7 @@ const AdminDashboard = () => {
           ) : recentPending.length === 0 ? (
             <div className="text-center py-10 bg-gray-50 rounded-2xl">
               <span className="text-4xl">✅</span>
-              <p className="text-gray-500 mt-2">Barcha venuelar ko'rib chiqilgan</p>
+              <p className="text-gray-500 mt-2">{t('admin.allPendingReviewed')}</p>
             </div>
           ) : (
             <div className="space-y-3">
@@ -109,7 +111,7 @@ const AdminDashboard = () => {
                       <div className="min-w-0">
                         <p className="font-medium text-gray-900 text-sm truncate">{v.name}</p>
                         <p className="text-xs text-gray-500 truncate">
-                          {v.profiles?.full_name || 'Noma\'lum'} · {v.city} · {formatDate(v.created_at)}
+                          {v.profiles?.full_name || t('admin.unknown')} · {v.city} · {formatDate(v.created_at)}
                         </p>
                       </div>
                     </div>
@@ -118,7 +120,7 @@ const AdminDashboard = () => {
                         onClick={() => approveMutation.mutate(v.id)}
                         disabled={approveMutation.isPending}
                         className="p-2 rounded-lg bg-emerald-50 text-emerald-600 hover:bg-emerald-100 disabled:opacity-50 transition-colors"
-                        title="Tasdiqlash"
+                        title={t('admin.approve')}
                       >
                         <Check className="w-4 h-4" />
                       </button>
@@ -126,7 +128,7 @@ const AdminDashboard = () => {
                         onClick={() => rejectMutation.mutate(v.id)}
                         disabled={rejectMutation.isPending}
                         className="p-2 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 disabled:opacity-50 transition-colors"
-                        title="Rad etish"
+                        title={t('admin.reject')}
                       >
                         <X className="w-4 h-4" />
                       </button>
@@ -139,7 +141,7 @@ const AdminDashboard = () => {
         </div>
 
         <div>
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Tezkor amallar</h2>
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">{t('admin.quickActions')}</h2>
           <div className="space-y-3">
             <Link to="/admin/approvals" className="flex items-center justify-between bg-white rounded-2xl border border-gray-100 p-4 hover:shadow-sm transition-shadow">
               <div className="flex items-center gap-3">
@@ -147,9 +149,9 @@ const AdminDashboard = () => {
                   <ShieldAlert className="w-5 h-5 text-yellow-600" />
                 </div>
                 <div>
-                  <p className="font-medium text-gray-900 text-sm">Venuelarni tasdiqlash</p>
+                  <p className="font-medium text-gray-900 text-sm">{t('admin.approvalsLink')}</p>
                   <p className="text-xs text-gray-500">
-                    {pendingVenues.length} ta kutilayotgan venue
+                    {pendingVenues.length} {t('admin.pendingCount')}
                   </p>
                 </div>
               </div>
@@ -161,9 +163,9 @@ const AdminDashboard = () => {
                   <Building2 className="w-5 h-5 text-emerald-600" />
                 </div>
                 <div>
-                  <p className="font-medium text-gray-900 text-sm">Barcha venuelar</p>
+                  <p className="font-medium text-gray-900 text-sm">{t('admin.allVenues')}</p>
                   <p className="text-xs text-gray-500">
-                    {stats?.totalVenues ?? '—'} ta venue
+                    {stats?.totalVenues ?? '—'} {t('admin.venueCount')}
                   </p>
                 </div>
               </div>

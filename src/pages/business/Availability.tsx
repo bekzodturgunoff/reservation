@@ -11,17 +11,16 @@ import { formatDate } from '../../lib/utils'
 import { generateTimeSlots } from '../../lib/utils'
 import Button from '../../components/ui/Button'
 import type { Slot } from '../../types'
-
-const WEEKDAYS = ['Yak', 'Du', 'Se', 'Chor', 'Pay', 'Ju', 'Shan']
-const MONTHS = ['Yan', 'Fev', 'Mar', 'Apr', 'May', 'Iyun', 'Iyul', 'Avg', 'Sen', 'Okt', 'Noy', 'Dek']
+import { useTranslation } from 'react-i18next'
 
 const Availability = () => {
+  const { t } = useTranslation()
   const { id } = useParams<{ id: string }>()
   const profile = useAuthStore(state => state.profile)
   const { addToast } = useToastStore()
   const queryClient = useQueryClient()
 
-  useTitle('Vaqtlarni boshqarish')
+  useTitle(t('business.availability.title'))
 
   const [currentMonth, setCurrentMonth] = useState(() => {
     const d = new Date()
@@ -34,6 +33,9 @@ const Availability = () => {
   const [duration, setDuration] = useState(60)
   const [rangeStart, setRangeStart] = useState('')
   const [rangeEnd, setRangeEnd] = useState('')
+
+  const WEEKDAYS = t('common.days.short', { returnObjects: true }) as string[]
+  const MONTHS = t('common.months.short', { returnObjects: true }) as string[]
 
   const { data: venues = [] } = useQuery({
     queryKey: ['venues', 'owner', profile?.id],
@@ -67,9 +69,9 @@ const Availability = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['slots'] })
-      addToast({ type: 'success', message: 'Vaqtlar yaratildi' })
+      addToast({ type: 'success', message: t('business.availability.created') })
     },
-    onError: () => addToast({ type: 'error', message: 'Xatolik yuz berdi' }),
+    onError: () => addToast({ type: 'error', message: t('common.error') }),
   })
 
   const toggleSlotMutation = useMutation({
@@ -104,9 +106,9 @@ const Availability = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['slots'] })
-      addToast({ type: 'success', message: 'Barcha vaqtlar yaratildi' })
+      addToast({ type: 'success', message: t('business.availability.bulkCreated') })
     },
-    onError: () => addToast({ type: 'error', message: 'Xatolik yuz berdi' }),
+    onError: () => addToast({ type: 'error', message: t('common.error') }),
   })
 
   const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate()
@@ -138,8 +140,8 @@ const Availability = () => {
     return (
       <div className="text-center py-16">
         <span className="text-4xl">🏢</span>
-        <p className="text-gray-500 mt-3 mb-4">Venue topilmadi</p>
-        <Link to="/business/dashboard"><Button>Panelga qaytish</Button></Link>
+        <p className="text-gray-500 mt-3 mb-4">{t('business.availability.notFound')}</p>
+        <Link to="/business/dashboard"><Button>{t('business.availability.backToPanel')}</Button></Link>
       </div>
     )
   }
@@ -151,7 +153,7 @@ const Availability = () => {
   return (
     <div className="max-w-4xl mx-auto space-y-8">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Vaqtlarni boshqarish</h1>
+        <h1 className="text-2xl font-bold text-gray-900">{t('business.availability.title')}</h1>
         <p className="text-sm text-gray-500 mt-1">{venue.name}</p>
       </div>
 
@@ -199,24 +201,24 @@ const Availability = () => {
 
               <div className="space-y-2 mb-4">
                 <div className="flex items-center gap-2">
-                  <label className="text-xs text-gray-500 w-12">Boshlash:</label>
+                  <label className="text-xs text-gray-500 w-12">{t('business.availability.start')}</label>
                   <select value={startHour} onChange={e => setStartHour(Number(e.target.value))} className="flex-1 border border-gray-200 rounded-lg px-2 py-1.5 text-sm">
                     {Array.from({ length: 24 }, (_, i) => <option key={i} value={i}>{String(i).padStart(2, '0')}:00</option>)}
                   </select>
                 </div>
                 <div className="flex items-center gap-2">
-                  <label className="text-xs text-gray-500 w-12">Tugash:</label>
+                  <label className="text-xs text-gray-500 w-12">{t('business.availability.end')}</label>
                   <select value={endHour} onChange={e => setEndHour(Number(e.target.value))} className="flex-1 border border-gray-200 rounded-lg px-2 py-1.5 text-sm">
                     {Array.from({ length: 24 }, (_, i) => <option key={i} value={i}>{String(i).padStart(2, '0')}:00</option>)}
                   </select>
                 </div>
                 <div className="flex items-center gap-2">
-                  <label className="text-xs text-gray-500 w-12">Davom:</label>
+                  <label className="text-xs text-gray-500 w-12">{t('business.availability.duration')}</label>
                   <select value={duration} onChange={e => setDuration(Number(e.target.value))} className="flex-1 border border-gray-200 rounded-lg px-2 py-1.5 text-sm">
-                    <option value={30}>30 daqiqa</option>
-                    <option value={60}>1 soat</option>
-                    <option value={90}>1.5 soat</option>
-                    <option value={120}>2 soat</option>
+                    <option value={30}>{t('business.availability.duration30')}</option>
+                    <option value={60}>{t('business.availability.duration1h')}</option>
+                    <option value={90}>{t('business.availability.duration1_5h')}</option>
+                    <option value={120}>{t('business.availability.duration2h')}</option>
                   </select>
                 </div>
               </div>
@@ -228,7 +230,7 @@ const Availability = () => {
                 loading={createSlotsMutation.isPending}
                 disabled={hasSlots}
               >
-                <Plus className="w-4 h-4" /> {hasSlots ? 'Vaqtlar mavjud' : 'Vaqtlarni yaratish'}
+                <Plus className="w-4 h-4" /> {hasSlots ? `${t('business.availability.timesAvailable')}` : t('business.availability.generate')}
               </Button>
             </div>
           )}
@@ -237,12 +239,12 @@ const Availability = () => {
         {/* Slots for selected date */}
         <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
           <h3 className="font-semibold text-gray-900 mb-4">
-            {selectedDate ? formatDate(selectedDate) : 'Sana tanlang'}
+            {selectedDate ? formatDate(selectedDate) : t('business.availability.selectDate')}
           </h3>
 
           {!selectedDate ? (
             <p className="text-sm text-gray-400 text-center py-8">
-              Kalendardan sanani tanlang
+              {t('business.availability.selectDateHint')}
             </p>
           ) : slotsLoading ? (
             <div className="grid grid-cols-3 gap-2">
@@ -253,13 +255,13 @@ const Availability = () => {
           ) : slots.length === 0 ? (
             <div className="text-center py-8">
               <Clock className="w-8 h-8 text-gray-300 mx-auto mb-2" />
-              <p className="text-sm text-gray-400">Vaqtlar yaratilmagan</p>
-              <p className="text-xs text-gray-300 mt-1">Yuqoridagi forma orqali yarating</p>
+              <p className="text-sm text-gray-400">{t('business.availability.noSlots')}</p>
+              <p className="text-xs text-gray-300 mt-1">{t('business.availability.noSlotsHint')}</p>
             </div>
           ) : (
             <div className="space-y-4">
               <div>
-                <p className="text-xs font-medium text-green-600 mb-2">Bo'sh ({availableSlots.length})</p>
+                <p className="text-xs font-medium text-green-600 mb-2">{t('business.availability.free')} ({availableSlots.length})</p>
                 <div className="grid grid-cols-3 gap-2">
                   {availableSlots.map(s => (
                     <button
@@ -274,7 +276,7 @@ const Availability = () => {
               </div>
               {takenSlots.length > 0 && (
                 <div>
-                  <p className="text-xs font-medium text-red-600 mb-2">Band ({takenSlots.length})</p>
+                  <p className="text-xs font-medium text-red-600 mb-2">{t('business.availability.busy')} ({takenSlots.length})</p>
                   <div className="grid grid-cols-3 gap-2">
                     {takenSlots.map(s => (
                       <button
@@ -295,18 +297,18 @@ const Availability = () => {
 
       {/* Bulk creation */}
       <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
-        <h3 className="font-semibold text-gray-900 mb-4">Ommaviy yaratish</h3>
+        <h3 className="font-semibold text-gray-900 mb-4">{t('business.availability.bulkCreate')}</h3>
         <p className="text-xs text-gray-500 mb-4">
-          Bir necha kun uchun bir xil vaqtlarni yaratish
+          {t('business.availability.bulkCreateHint')}
         </p>
         <div className="flex flex-wrap items-end gap-3">
           <div>
-            <label className="block text-xs text-gray-500 mb-1">Boshlanish</label>
+            <label className="block text-xs text-gray-500 mb-1">{t('business.availability.bulkStart')}</label>
             <input type="date" value={rangeStart} onChange={e => setRangeStart(e.target.value)}
               className="border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500" />
           </div>
           <div>
-            <label className="block text-xs text-gray-500 mb-1">Tugash</label>
+            <label className="block text-xs text-gray-500 mb-1">{t('business.availability.bulkEnd')}</label>
             <input type="date" value={rangeEnd} onChange={e => setRangeEnd(e.target.value)}
               className="border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500" />
           </div>
@@ -316,7 +318,7 @@ const Availability = () => {
             loading={generateRangeMutation.isPending}
             disabled={!rangeStart || !rangeEnd}
           >
-            <Plus className="w-4 h-4" /> Yarating
+            <Plus className="w-4 h-4" /> {t('business.availability.bulkCreateBtn')}
           </Button>
         </div>
       </div>
