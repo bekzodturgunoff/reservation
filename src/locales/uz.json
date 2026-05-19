@@ -1,0 +1,11 @@
+{
+  "common": {
+    "search": "Qidirish",
+    "book": "Bron qilish",
+    "cancel": "Bekor qilish",
+    "login": "Kirish",
+    "register": "Ro'yxatdan o'tish",
+    "logout": "Chiqish",
+    "loading": "Yuklanmoqda..."
+  }
+}
