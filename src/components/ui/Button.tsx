@@ -1,6 +1,6 @@
 import { forwardRef } from 'react'
 import type { ButtonHTMLAttributes } from 'react'
-import { Loader2 } from 'lucide-react'
+import { ArrowPathIcon } from '@heroicons/react/24/outline'
 import { cn } from '../../lib/utils'
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
@@ -36,7 +36,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         )}
         {...props}
       >
-        {loading && <Loader2 className="w-4 h-4 animate-spin" />}
+        {loading && <ArrowPathIcon className="w-4 h-4 animate-spin" />}
         {children}
       </button>
     )

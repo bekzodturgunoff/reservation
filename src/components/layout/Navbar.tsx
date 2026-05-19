@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Menu, X, Globe, ChevronDown, User, CalendarDays, LogOut, LayoutDashboard, LogIn, UserPlus } from 'lucide-react'
+import { Bars3Icon, XMarkIcon, GlobeAltIcon, ChevronDownIcon, UserIcon, CalendarDaysIcon, ArrowRightStartOnRectangleIcon, RectangleGroupIcon, ArrowRightEndOnRectangleIcon, UserPlusIcon } from '@heroicons/react/24/outline'
 import { useTranslation } from 'react-i18next'
 import { useAuthStore } from '../../store/authStore'
 import { useToastStore } from '../../store/toastStore'
@@ -63,7 +63,7 @@ const Navbar = () => {
 
           <Link to="/" className="flex items-center gap-2 shrink-0" onClick={closeMobile}>
             <div className="w-7 h-7 sm:w-8 sm:h-8 bg-emerald-600 rounded-lg flex items-center justify-center">
-              <CalendarDays className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+              <CalendarDaysIcon className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
             </div>
             <span className="text-lg sm:text-xl font-bold text-gray-900">BronUz</span>
           </Link>
@@ -86,7 +86,7 @@ const Navbar = () => {
               onClick={toggleLang}
               className="flex items-center gap-1 text-xs sm:text-sm text-gray-600 hover:text-emerald-600 transition-colors px-1.5 sm:px-2 py-1 rounded-md hover:bg-gray-100"
             >
-              <Globe className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              <GlobeAltIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               <span className="uppercase font-medium text-xs sm:text-sm">{i18n.language}</span>
             </button>
 
@@ -100,7 +100,7 @@ const Navbar = () => {
                     {profile.full_name?.charAt(0)?.toUpperCase() || 'U'}
                   </div>
                   <span className="hidden sm:block max-w-[120px] truncate">{profile.full_name}</span>
-                  <ChevronDown className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                  <ChevronDownIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                 </button>
 
                 {userMenuOpen && (
@@ -110,7 +110,7 @@ const Navbar = () => {
                       onClick={() => { setUserMenuOpen(false); closeMobile() }}
                       className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50"
                     >
-                      <User className="w-4 h-4" /> My Profile
+                      <UserIcon className="w-4 h-4" /> {t('nav.profile')}
                     </Link>
                     {(profile.role === 'business' || profile.role === 'admin') && (
                       <Link
@@ -118,7 +118,7 @@ const Navbar = () => {
                         onClick={() => { setUserMenuOpen(false); closeMobile() }}
                         className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50"
                       >
-                        <LayoutDashboard className="w-4 h-4" /> Business Panel
+                        <RectangleGroupIcon className="w-4 h-4" /> {t('nav.businessPanel')}
                       </Link>
                     )}
                     {profile.role === 'admin' && (
@@ -127,7 +127,7 @@ const Navbar = () => {
                         onClick={() => { setUserMenuOpen(false); closeMobile() }}
                         className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50"
                       >
-                        <LayoutDashboard className="w-4 h-4" /> Admin Panel
+                        <RectangleGroupIcon className="w-4 h-4" /> {t('nav.adminPanel')}
                       </Link>
                     )}
                     <hr className="my-1 border-gray-100" />
@@ -135,7 +135,7 @@ const Navbar = () => {
                       onClick={handleLogout}
                       className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50"
                     >
-                      <LogOut className="w-4 h-4" /> {t('common.logout')}
+                      <ArrowRightStartOnRectangleIcon className="w-4 h-4" /> {t('common.logout')}
                     </button>
                   </div>
                 )}
@@ -153,7 +153,7 @@ const Navbar = () => {
                   className="sm:hidden p-2 rounded-lg hover:bg-gray-100 text-gray-700"
                   title={t('common.login')}
                 >
-                  <LogIn className="w-4 h-4" />
+                  <ArrowRightEndOnRectangleIcon className="w-4 h-4" />
                 </Link>
                 <Link
                   to="/register"
@@ -166,7 +166,7 @@ const Navbar = () => {
                   className="sm:hidden p-2 rounded-lg bg-emerald-600 text-white"
                   title={t('common.register')}
                 >
-                  <UserPlus className="w-4 h-4" />
+                  <UserPlusIcon className="w-4 h-4" />
                 </Link>
               </>
             )}
@@ -176,7 +176,7 @@ const Navbar = () => {
               onClick={() => setMobileOpen(!mobileOpen)}
               aria-label="Toggle menu"
             >
-              {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+              {mobileOpen ? <XMarkIcon className="w-5 h-5" /> : <Bars3Icon className="w-5 h-5" />}
             </button>
           </div>
         </div>
@@ -187,7 +187,7 @@ const Navbar = () => {
           <div className="absolute inset-0 bg-black/30" onClick={closeMobile} />
           <div className="relative bg-white h-full overflow-y-auto shadow-xl pb-8">
             <div className="px-4 py-4 space-y-1">
-              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider px-3 mb-2">Kategoriyalar</p>
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider px-3 mb-2">{t('nav.categories')}</p>
               {categories.map(cat => (
                 <Link
                   key={cat.slug}
@@ -219,7 +219,7 @@ const Navbar = () => {
                   onClick={closeMobile}
                   className="flex items-center gap-3 px-3 py-3 text-sm text-gray-700 hover:bg-emerald-50 rounded-xl"
                 >
-                  <User className="w-4 h-4 text-gray-400" /> My Profile
+                  <UserIcon className="w-4 h-4 text-gray-400" /> {t('nav.profile')}
                 </Link>
                 {(profile.role === 'business' || profile.role === 'admin') && (
                   <Link
@@ -227,7 +227,7 @@ const Navbar = () => {
                     onClick={closeMobile}
                     className="flex items-center gap-3 px-3 py-3 text-sm text-gray-700 hover:bg-emerald-50 rounded-xl"
                   >
-                    <LayoutDashboard className="w-4 h-4 text-gray-400" /> Business Panel
+                    <RectangleGroupIcon className="w-4 h-4 text-gray-400" /> {t('nav.businessPanel')}
                   </Link>
                 )}
                 {profile.role === 'admin' && (
@@ -236,14 +236,14 @@ const Navbar = () => {
                     onClick={closeMobile}
                     className="flex items-center gap-3 px-3 py-3 text-sm text-gray-700 hover:bg-emerald-50 rounded-xl"
                   >
-                    <LayoutDashboard className="w-4 h-4 text-gray-400" /> Admin Panel
-                  </Link>
-                )}
-                <button
+<RectangleGroupIcon className="w-4 h-4 text-gray-400" /> {t('nav.adminPanel')}
+                    </Link>
+                    )}
+                    <button
                   onClick={handleLogout}
                   className="w-full flex items-center gap-3 px-3 py-3 text-sm text-red-600 hover:bg-red-50 rounded-xl"
                 >
-                  <LogOut className="w-4 h-4" /> {t('common.logout')}
+                  <ArrowRightStartOnRectangleIcon className="w-4 h-4" /> {t('common.logout')}
                 </button>
               </div>
             ) : (
@@ -253,14 +253,14 @@ const Navbar = () => {
                   onClick={closeMobile}
                   className="flex items-center justify-center gap-2 w-full px-4 py-3 text-sm font-medium text-gray-700 border border-gray-300 rounded-xl hover:bg-gray-50"
                 >
-                  <LogIn className="w-4 h-4" /> {t('common.login')}
+                  <ArrowRightEndOnRectangleIcon className="w-4 h-4" /> {t('common.login')}
                 </Link>
                 <Link
                   to="/register"
                   onClick={closeMobile}
                   className="flex items-center justify-center gap-2 w-full px-4 py-3 text-sm font-medium text-white bg-emerald-600 rounded-xl hover:bg-emerald-700"
                 >
-                  <UserPlus className="w-4 h-4" /> {t('common.register')}
+                  <UserPlusIcon className="w-4 h-4" /> {t('common.register')}
                 </Link>
               </div>
             )}
@@ -272,7 +272,7 @@ const Navbar = () => {
                 onClick={() => { toggleLang(); closeMobile() }}
                 className="flex items-center gap-2 px-3 py-3 text-sm text-gray-700 hover:bg-gray-50 rounded-xl w-full"
               >
-                <Globe className="w-4 h-4" />
+                <GlobeAltIcon className="w-4 h-4" />
                 {i18n.language === 'uz' ? 'Switch to Russian' : "O'zbek tiliga o'tish"}
               </button>
             </div>

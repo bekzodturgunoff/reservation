@@ -6,7 +6,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet'
 import L from 'leaflet'
-import { Camera } from 'lucide-react'
+import { CameraIcon } from '@heroicons/react/24/outline'
 import { getCategories } from '../../api/categories'
 import { createVenue, updateVenue, getVenueById } from '../../api/venues'
 import { useAuthStore } from '../../store/authStore'
@@ -17,7 +17,7 @@ import Input from '../../components/ui/Input'
 import { supabase } from '../../lib/supabase'
 import { useTranslation } from 'react-i18next'
 
-delete (L.Icon.Default.prototype as any)._getIconUrl
+delete (L.Icon.Default.prototype as unknown as Record<string, unknown>)._getIconUrl
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
   iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
@@ -40,7 +40,8 @@ const VenueSetup = () => {
   const user = useAuthStore(state => state.user)
   const { addToast } = useToastStore()
 
-  const [position, setPosition] = useState<[number, number]>([41.2995, 69.2401])
+  const [userPosition, setUserPosition] = useState<[number, number] | null>(null)
+  const setPosition = (pos: [number, number]) => setUserPosition(pos)
   const [photos, setPhotos] = useState<string[]>([])
   const [uploading, setUploading] = useState(false)
   const [submitting, setSubmitting] = useState(false)
@@ -53,6 +54,12 @@ const VenueSetup = () => {
     queryFn: () => getVenueById(id!),
     enabled: isEdit,
   })
+
+  const position: [number, number] = userPosition ?? (
+    existingVenue?.lat && existingVenue?.lng
+      ? [existingVenue.lat, existingVenue.lng]
+      : [41.2995, 69.2401]
+  )
 
   const schema = z.object({
     name: z.string().min(2, t('business.setup.nameMin')),
@@ -81,7 +88,6 @@ const VenueSetup = () => {
         phone: existingVenue.phone || '',
         price_per_slot: existingVenue.price_per_slot.toString(),
       })
-      if (existingVenue.lat && existingVenue.lng) setPosition([existingVenue.lat, existingVenue.lng])
       if (existingVenue.photos?.length) setPhotos(existingVenue.photos)
     }
   }, [existingVenue])
@@ -185,7 +191,7 @@ const VenueSetup = () => {
               </div>
             ))}
             <button type="button" onClick={() => fileRef.current?.click()} disabled={uploading} className="w-24 h-24 rounded-xl border-2 border-dashed border-gray-200 flex flex-col items-center justify-center text-gray-400 hover:border-emerald-300 hover:text-emerald-600 transition-colors disabled:opacity-50">
-              <Camera className="w-5 h-5" />
+              <CameraIcon className="w-5 h-5" />
               <span className="text-xs mt-1">{uploading ? '...' : t('business.setup.upload')}</span>
             </button>
             <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handlePhotoUpload} />

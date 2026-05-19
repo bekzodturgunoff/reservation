@@ -67,6 +67,7 @@ export interface Review {
   comment: string
   created_at: string
   profiles?: Profile
+  venues?: Venue
 }
 
 export interface ToastMessage {

@@ -4,8 +4,9 @@ import { Link } from 'react-router-dom'
 import 'leaflet/dist/leaflet.css'
 import type { Venue } from '../../types'
 import { formatPrice } from '../../lib/utils'
+import { useTranslation } from 'react-i18next'
 
-delete (L.Icon.Default.prototype as any)._getIconUrl
+delete (L.Icon.Default.prototype as unknown as Record<string, unknown>)._getIconUrl
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
   iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
@@ -39,6 +40,7 @@ interface VenueMapProps {
 }
 
 const VenueMap = ({ venues }: VenueMapProps) => {
+  const { t } = useTranslation()
   const center: [number, number] = [41.2995, 69.2401]
 
   const venuesWithCoords = venues.filter(v => v.lat && v.lng)
@@ -73,13 +75,13 @@ const VenueMap = ({ venues }: VenueMapProps) => {
                 <h3 className="font-semibold text-gray-900 text-sm mb-0.5">{venue.name}</h3>
                 <p className="text-xs text-gray-500 mb-1">{venue.address}</p>
                 <p className="text-xs font-semibold text-emerald-600 mb-2">
-                  {formatPrice(venue.price_per_slot, venue.currency)}/soat
+                  {formatPrice(venue.price_per_slot, venue.currency)}{t('common.perHour')}
                 </p>
                 <Link
                   to={`/venues/${venue.id}`}
                   className="block w-full text-center bg-emerald-600 text-white text-xs font-medium py-1.5 rounded-lg hover:bg-emerald-700 transition-colors"
                 >
-                  Ko'rish →
+                  {t('venue.viewDetails')}
                 </Link>
               </div>
             </Popup>

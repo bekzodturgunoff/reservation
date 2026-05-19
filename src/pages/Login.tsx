@@ -3,7 +3,7 @@ import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { Mail, Lock, CalendarDays } from 'lucide-react'
+import { EnvelopeIcon, LockClosedIcon, CalendarDaysIcon } from '@heroicons/react/24/outline'
 import { useTranslation } from 'react-i18next'
 import { supabase } from '../lib/supabase'
 import { useToastStore } from '../store/toastStore'
@@ -26,7 +26,8 @@ const Login = () => {
 
   type FormData = z.infer<typeof schema>
 
-  const from = (location.state as any)?.from?.pathname || '/'
+  interface LocationState { from?: { pathname?: string } }
+  const from = (location.state as LocationState)?.from?.pathname || '/'
 
   const {
     register,
@@ -57,7 +58,7 @@ const Login = () => {
         <div className="text-center mb-8">
           <div className="flex justify-center mb-4">
             <div className="w-12 h-12 bg-emerald-600 rounded-2xl flex items-center justify-center">
-              <CalendarDays className="w-7 h-7 text-white" />
+              <CalendarDaysIcon className="w-7 h-7 text-white" />
             </div>
           </div>
           <h1 className="text-2xl font-bold text-gray-900">{t('auth.loginTitle')}</h1>
@@ -70,7 +71,7 @@ const Login = () => {
               label={t('common.email')}
               type="email"
               placeholder={t('auth.emailPlaceholder')}
-              leftIcon={<Mail className="w-4 h-4" />}
+              leftIcon={<EnvelopeIcon className="w-4 h-4" />}
               error={errors.email?.message}
               {...register('email')}
             />
@@ -78,7 +79,7 @@ const Login = () => {
               label={t('common.password')}
               type="password"
               placeholder={t('auth.passwordPlaceholder')}
-              leftIcon={<Lock className="w-4 h-4" />}
+              leftIcon={<LockClosedIcon className="w-4 h-4" />}
               error={errors.password?.message}
               {...register('password')}
             />

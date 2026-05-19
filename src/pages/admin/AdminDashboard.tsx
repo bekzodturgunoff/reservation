@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Building2, Users, CalendarCheck, Clock, Check, X, ArrowRight, ShieldAlert } from 'lucide-react'
+import { BuildingOffice2Icon, UsersIcon, CalendarDaysIcon, ClockIcon, CheckIcon, XMarkIcon, ArrowRightIcon, ShieldExclamationIcon } from '@heroicons/react/24/outline'
 import { useTitle } from '../../hooks/useTitle'
 import { getAdminStats, getPendingVenues, approveVenue, rejectVenue } from '../../api/admin'
 import { formatDate } from '../../lib/utils'
@@ -48,10 +48,10 @@ const AdminDashboard = () => {
   })
 
   const statCards = [
-    { icon: <Building2 className="w-5 h-5 text-emerald-600" />, label: t('admin.statsVenues'), value: stats?.totalVenues ?? '—', bg: 'bg-emerald-50' },
-    { icon: <Users className="w-5 h-5 text-blue-600" />, label: t('admin.statsUsers'), value: stats?.totalUsers ?? '—', bg: 'bg-blue-50' },
-    { icon: <CalendarCheck className="w-5 h-5 text-purple-600" />, label: t('admin.statsBookings'), value: stats?.totalBookings ?? '—', bg: 'bg-purple-50' },
-    { icon: <Clock className="w-5 h-5 text-yellow-600" />, label: t('admin.statsPending'), value: stats?.pendingVenues ?? '—', bg: 'bg-yellow-50' },
+    { icon: <BuildingOffice2Icon className="w-5 h-5 text-emerald-600" />, label: t('admin.statsVenues'), value: stats?.totalVenues ?? '—', bg: 'bg-emerald-50' },
+    { icon: <UsersIcon className="w-5 h-5 text-blue-600" />, label: t('admin.statsUsers'), value: stats?.totalUsers ?? '—', bg: 'bg-blue-50' },
+    { icon: <CalendarDaysIcon className="w-5 h-5 text-purple-600" />, label: t('admin.statsBookings'), value: stats?.totalBookings ?? '—', bg: 'bg-purple-50' },
+    { icon: <ClockIcon className="w-5 h-5 text-yellow-600" />, label: t('admin.statsPending'), value: stats?.pendingVenues ?? '—', bg: 'bg-yellow-50' },
   ]
 
   return (
@@ -62,7 +62,7 @@ const AdminDashboard = () => {
           <p className="text-sm text-gray-500 mt-1">{t('admin.subtitle')}</p>
         </div>
         <Link to="/admin/approvals">
-          <Button><ShieldAlert className="w-4 h-4" /> {t('admin.approvals')}</Button>
+          <Button><ShieldExclamationIcon className="w-4 h-4" /> {t('admin.approvals')}</Button>
         </Link>
       </div>
 
@@ -86,7 +86,7 @@ const AdminDashboard = () => {
             <h2 className="text-lg font-semibold text-gray-900">{t('admin.recentPending')}</h2>
             {pendingVenues.length > 5 && (
               <Link to="/admin/approvals" className="text-sm text-emerald-600 hover:underline flex items-center gap-1">
-                {t('common.viewAll')} <ArrowRight className="w-3 h-3" />
+                {t('common.viewAll')} <ArrowRightIcon className="w-3 h-3" />
               </Link>
             )}
           </div>
@@ -122,7 +122,7 @@ const AdminDashboard = () => {
                         className="p-2 rounded-lg bg-emerald-50 text-emerald-600 hover:bg-emerald-100 disabled:opacity-50 transition-colors"
                         title={t('admin.approve')}
                       >
-                        <Check className="w-4 h-4" />
+                        <CheckIcon className="w-4 h-4" />
                       </button>
                       <button
                         onClick={() => rejectMutation.mutate(v.id)}
@@ -130,7 +130,7 @@ const AdminDashboard = () => {
                         className="p-2 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 disabled:opacity-50 transition-colors"
                         title={t('admin.reject')}
                       >
-                        <X className="w-4 h-4" />
+                        <XMarkIcon className="w-4 h-4" />
                       </button>
                     </div>
                   </div>
@@ -146,7 +146,7 @@ const AdminDashboard = () => {
             <Link to="/admin/approvals" className="flex items-center justify-between bg-white rounded-2xl border border-gray-100 p-4 hover:shadow-sm transition-shadow">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-yellow-50 flex items-center justify-center">
-                  <ShieldAlert className="w-5 h-5 text-yellow-600" />
+                  <ShieldExclamationIcon className="w-5 h-5 text-yellow-600" />
                 </div>
                 <div>
                   <p className="font-medium text-gray-900 text-sm">{t('admin.approvalsLink')}</p>
@@ -155,12 +155,12 @@ const AdminDashboard = () => {
                   </p>
                 </div>
               </div>
-              <ArrowRight className="w-5 h-5 text-gray-400" />
+              <ArrowRightIcon className="w-5 h-5 text-gray-400" />
             </Link>
             <Link to="/business/dashboard" className="flex items-center justify-between bg-white rounded-2xl border border-gray-100 p-4 hover:shadow-sm transition-shadow">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center">
-                  <Building2 className="w-5 h-5 text-emerald-600" />
+                  <BuildingOffice2Icon className="w-5 h-5 text-emerald-600" />
                 </div>
                 <div>
                   <p className="font-medium text-gray-900 text-sm">{t('admin.allVenues')}</p>
@@ -169,7 +169,7 @@ const AdminDashboard = () => {
                   </p>
                 </div>
               </div>
-              <ArrowRight className="w-5 h-5 text-gray-400" />
+              <ArrowRightIcon className="w-5 h-5 text-gray-400" />
             </Link>
           </div>
         </div>

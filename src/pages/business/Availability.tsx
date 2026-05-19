@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { ChevronLeft, ChevronRight, Clock, Plus } from 'lucide-react'
+import { ChevronLeftIcon, ChevronRightIcon, ClockIcon, PlusIcon } from '@heroicons/react/24/outline'
 import { getVenuesByOwner } from '../../api/venues'
 import { getSlotsByVenueAndDate, createSlots, updateSlotAvailability } from '../../api/slots'
 import { useAuthStore } from '../../store/authStore'
@@ -119,7 +119,7 @@ const Availability = () => {
     for (let i = 0; i < firstDayOfWeek; i++) days.push(null)
     for (let i = 1; i <= daysInMonth; i++) days.push(i)
     return days
-  }, [currentMonth, currentYear, daysInMonth, firstDayOfWeek])
+  }, [daysInMonth, firstDayOfWeek])
 
   const isToday = (day: number) => {
     const d = new Date()
@@ -162,11 +162,11 @@ const Availability = () => {
         <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
           <div className="flex items-center justify-between mb-4">
             <button onClick={() => { if (currentMonth === 0) { setCurrentMonth(11); setCurrentYear(y => y - 1) } else setCurrentMonth(m => m - 1) }} className="p-1 hover:bg-gray-100 rounded-lg">
-              <ChevronLeft className="w-5 h-5" />
+              <ChevronLeftIcon className="w-5 h-5" />
             </button>
             <span className="font-semibold text-gray-900">{MONTHS[currentMonth]} {currentYear}</span>
             <button onClick={() => { if (currentMonth === 11) { setCurrentMonth(0); setCurrentYear(y => y + 1) } else setCurrentMonth(m => m + 1) }} className="p-1 hover:bg-gray-100 rounded-lg">
-              <ChevronRight className="w-5 h-5" />
+              <ChevronRightIcon className="w-5 h-5" />
             </button>
           </div>
 
@@ -230,7 +230,7 @@ const Availability = () => {
                 loading={createSlotsMutation.isPending}
                 disabled={hasSlots}
               >
-                <Plus className="w-4 h-4" /> {hasSlots ? `${t('business.availability.timesAvailable')}` : t('business.availability.generate')}
+                <PlusIcon className="w-4 h-4" /> {hasSlots ? `${t('business.availability.timesAvailable')}` : t('business.availability.generate')}
               </Button>
             </div>
           )}
@@ -254,7 +254,7 @@ const Availability = () => {
             </div>
           ) : slots.length === 0 ? (
             <div className="text-center py-8">
-              <Clock className="w-8 h-8 text-gray-300 mx-auto mb-2" />
+              <ClockIcon className="w-8 h-8 text-gray-300 mx-auto mb-2" />
               <p className="text-sm text-gray-400">{t('business.availability.noSlots')}</p>
               <p className="text-xs text-gray-300 mt-1">{t('business.availability.noSlotsHint')}</p>
             </div>
@@ -318,7 +318,7 @@ const Availability = () => {
             loading={generateRangeMutation.isPending}
             disabled={!rangeStart || !rangeEnd}
           >
-            <Plus className="w-4 h-4" /> {t('business.availability.bulkCreateBtn')}
+            <PlusIcon className="w-4 h-4" /> {t('business.availability.bulkCreateBtn')}
           </Button>
         </div>
       </div>

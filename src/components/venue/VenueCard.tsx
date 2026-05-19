@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { MapPin, Star, Tag } from 'lucide-react'
+import { MapPinIcon, StarIcon, TagIcon } from '@heroicons/react/24/outline'
 import { useTranslation } from 'react-i18next'
 import type { Venue } from '../../types'
 import { formatPrice } from '../../lib/utils'
@@ -45,14 +45,14 @@ const VenueCard = ({ venue }: VenueCardProps) => {
             {venue.name}
           </h3>
           <div className="flex items-center gap-1 text-gray-500 text-sm mb-3">
-            <MapPin className="w-3.5 h-3.5 flex-shrink-0" />
+            <MapPinIcon className="w-3.5 h-3.5 flex-shrink-0" />
             <span className="line-clamp-1">{venue.address || venue.city}</span>
           </div>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               {rating !== null ? (
                 <div className="flex items-center gap-1">
-                  <Star className="w-3.5 h-3.5 text-yellow-400 fill-yellow-400" />
+                  <StarIcon className="w-3.5 h-3.5 text-yellow-400" />
                   <span className="text-sm font-medium text-gray-700">{rating.toFixed(1)}</span>
                   <span className="text-xs text-gray-400">({reviewCount})</span>
                 </div>
@@ -61,7 +61,7 @@ const VenueCard = ({ venue }: VenueCardProps) => {
               )}
             </div>
             <div className="flex items-center gap-1 text-emerald-600">
-              <Tag className="w-3.5 h-3.5" />
+              <TagIcon className="w-3.5 h-3.5" />
               <span className="text-sm font-semibold">
                 {formatPrice(venue.price_per_slot, venue.currency)}
               </span>

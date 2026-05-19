@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { X } from 'lucide-react'
+import { XMarkIcon } from '@heroicons/react/24/outline'
 
 interface ModalProps {
   isOpen: boolean
@@ -24,7 +24,7 @@ const Modal = ({ isOpen, onClose, title, children }: ModalProps) => {
         <div className="flex items-center justify-between mb-4">
           {title && <h2 className="text-lg font-semibold">{title}</h2>}
           <button onClick={onClose} className="p-1 hover:bg-gray-100 rounded-lg">
-            <X className="w-5 h-5" />
+            <XMarkIcon className="w-5 h-5" />
           </button>
         </div>
         {children}

@@ -3,6 +3,7 @@ import Navbar from './Navbar'
 import Footer from './Footer'
 import Toast from '../ui/Toast'
 import ErrorBoundary from '../ui/ErrorBoundary'
+import InstallPrompt from '../ui/InstallPrompt'
 
 const PageWrapper = () => {
   return (
@@ -15,6 +16,7 @@ const PageWrapper = () => {
       </main>
       <Footer />
       <Toast />
+      <InstallPrompt />
     </div>
   )
 }

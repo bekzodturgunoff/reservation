@@ -1,6 +1,6 @@
 import { useParams, Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
-import { CalendarDays, Clock, MapPin, Tag, CheckCircle, Home, User } from 'lucide-react'
+import { CalendarDaysIcon, ClockIcon, MapPinIcon, TagIcon, CheckCircleIcon, HomeIcon, UserIcon } from '@heroicons/react/24/outline'
 import { getBookingById } from '../api/bookings'
 import { useTitle } from '../hooks/useTitle'
 import { formatPrice, formatDate } from '../lib/utils'
@@ -48,7 +48,7 @@ const Confirmation = () => {
       {/* Success animation */}
       <div className="mb-6">
         <div className="w-20 h-20 bg-emerald-100 rounded-full flex items-center justify-center mx-auto animate-bounce">
-          <CheckCircle className="w-10 h-10 text-emerald-600" />
+          <CheckCircleIcon className="w-10 h-10 text-emerald-600" />
         </div>
       </div>
 
@@ -69,7 +69,7 @@ const Confirmation = () => {
             <div>
               <p className="font-medium text-gray-900">{venue.name}</p>
               <p className="text-sm text-gray-500 flex items-center gap-1 mt-0.5">
-                <MapPin className="w-3 h-3" /> {venue.address}
+                <MapPinIcon className="w-3 h-3" /> {venue.address}
               </p>
               {venue.phone && (
                 <a href={`tel:${venue.phone}`} className="text-sm text-emerald-600 hover:underline mt-0.5 block">
@@ -84,17 +84,17 @@ const Confirmation = () => {
           {slot && (
             <>
               <div className="flex items-center gap-3">
-                <CalendarDays className="w-4 h-4 text-gray-400" />
+                <CalendarDaysIcon className="w-4 h-4 text-gray-400" />
                 <span className="text-gray-700">{formatDate(slot.date)}</span>
               </div>
               <div className="flex items-center gap-3">
-                <Clock className="w-4 h-4 text-gray-400" />
+                <ClockIcon className="w-4 h-4 text-gray-400" />
                 <span className="text-gray-700">{slot.start_time?.slice(0, 5)} — {slot.end_time?.slice(0, 5)}</span>
               </div>
             </>
           )}
           <div className="flex items-center gap-3">
-            <Tag className="w-4 h-4 text-gray-400" />
+            <TagIcon className="w-4 h-4 text-gray-400" />
             <span className="font-semibold text-emerald-600">{formatPrice(booking.total_price)}</span>
           </div>
           {booking.note && (
@@ -117,12 +117,12 @@ const Confirmation = () => {
       <div className="space-y-3">
         <Link to="/profile?tab=bookings">
           <Button variant="secondary" className="w-full">
-            <User className="w-4 h-4" /> {t('confirmation.myBookings')}
+            <UserIcon className="w-4 h-4" /> {t('confirmation.myBookings')}
           </Button>
         </Link>
         <Link to="/">
           <Button className="w-full">
-            <Home className="w-4 h-4" /> {t('confirmation.backHome')}
+            <HomeIcon className="w-4 h-4" /> {t('confirmation.backHome')}
           </Button>
         </Link>
       </div>

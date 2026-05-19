@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Check, X, MapPin, Phone, Clock } from 'lucide-react'
+import { CheckIcon, XMarkIcon, MapPinIcon, PhoneIcon, ClockIcon } from '@heroicons/react/24/outline'
 import { useTitle } from '../../hooks/useTitle'
 import { getPendingVenues, approveVenue, rejectVenue } from '../../api/admin'
 import { formatPrice, formatDate } from '../../lib/utils'
@@ -90,7 +90,7 @@ const VenueApprovals = () => {
                       loading={approveMutation.isPending && approveMutation.variables === v.id}
                       disabled={isMutating(v.id)}
                     >
-                      <Check className="w-4 h-4" /> {t('admin.approve')}
+                      <CheckIcon className="w-4 h-4" /> {t('admin.approve')}
                     </Button>
                     <Button
                       size="sm"
@@ -103,7 +103,7 @@ const VenueApprovals = () => {
                       loading={rejectMutation.isPending && rejectMutation.variables === v.id}
                       disabled={isMutating(v.id)}
                     >
-                      <X className="w-4 h-4" /> {t('admin.reject')}
+                      <XMarkIcon className="w-4 h-4" /> {t('admin.reject')}
                     </Button>
                   </div>
                 </div>
@@ -114,15 +114,15 @@ const VenueApprovals = () => {
 
                 <div className="flex items-center gap-4 mt-4 text-sm text-gray-500 flex-wrap">
                   <div className="flex items-center gap-1">
-                    <MapPin className="w-4 h-4" /> {v.address}
+                    <MapPinIcon className="w-4 h-4" /> {v.address}
                   </div>
                   {v.phone && (
                     <div className="flex items-center gap-1">
-                      <Phone className="w-4 h-4" /> {v.phone}
+                      <PhoneIcon className="w-4 h-4" /> {v.phone}
                     </div>
                   )}
                   <div className="flex items-center gap-1">
-                    <Clock className="w-4 h-4" /> {formatDate(v.created_at)}
+                    <ClockIcon className="w-4 h-4" /> {formatDate(v.created_at)}
                   </div>
                 </div>
 

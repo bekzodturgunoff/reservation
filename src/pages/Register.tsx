@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { Mail, Lock, User, Phone, CalendarDays, Briefcase } from 'lucide-react'
+import { EnvelopeIcon, LockClosedIcon, UserIcon, PhoneIcon, CalendarDaysIcon, BriefcaseIcon } from '@heroicons/react/24/outline'
 import { useTranslation } from 'react-i18next'
 import { supabase } from '../lib/supabase'
 import { useToastStore } from '../store/toastStore'
@@ -79,7 +79,7 @@ const Register = () => {
         <div className="text-center mb-8">
           <div className="flex justify-center mb-4">
             <div className="w-12 h-12 bg-emerald-600 rounded-2xl flex items-center justify-center">
-              <CalendarDays className="w-7 h-7 text-white" />
+              <CalendarDaysIcon className="w-7 h-7 text-white" />
             </div>
           </div>
           <h1 className="text-2xl font-bold text-gray-900">{t('auth.registerTitle')}</h1>
@@ -102,7 +102,7 @@ const Register = () => {
                       : 'border-gray-200 text-gray-600 hover:border-gray-300'
                   }`}
                 >
-                  <User className="w-4 h-4" />
+                  <UserIcon className="w-4 h-4" />
                   {t('auth.user')}
                 </button>
                 <button
@@ -114,7 +114,7 @@ const Register = () => {
                       : 'border-gray-200 text-gray-600 hover:border-gray-300'
                   }`}
                 >
-                  <Briefcase className="w-4 h-4" />
+                  <BriefcaseIcon className="w-4 h-4" />
                   {t('auth.business')}
                 </button>
               </div>
@@ -123,14 +123,14 @@ const Register = () => {
             <Input
               label={t('common.fullName')}
               placeholder={t('auth.namePlaceholder')}
-              leftIcon={<User className="w-4 h-4" />}
+              leftIcon={<UserIcon className="w-4 h-4" />}
               error={errors.full_name?.message}
               {...register('full_name')}
             />
             <Input
               label={t('common.phone')}
               placeholder={t('auth.phonePlaceholder')}
-              leftIcon={<Phone className="w-4 h-4" />}
+              leftIcon={<PhoneIcon className="w-4 h-4" />}
               error={errors.phone?.message}
               {...register('phone')}
             />
@@ -138,7 +138,7 @@ const Register = () => {
               label={t('common.email')}
               type="email"
               placeholder={t('auth.emailPlaceholder')}
-              leftIcon={<Mail className="w-4 h-4" />}
+              leftIcon={<EnvelopeIcon className="w-4 h-4" />}
               error={errors.email?.message}
               {...register('email')}
             />
@@ -146,15 +146,15 @@ const Register = () => {
               label={t('common.password')}
               type="password"
               placeholder={t('auth.passwordPlaceholder')}
-              leftIcon={<Lock className="w-4 h-4" />}
-              error={errors.password?.message}
-              {...register('password')}
+leftIcon={<LockClosedIcon className="w-4 h-4" />}
+               error={errors.password?.message}
+               {...register('password')}
             />
             <Input
-              label={t('common.confirmPassword')}
-              type="password"
-              placeholder={t('auth.passwordPlaceholder')}
-              leftIcon={<Lock className="w-4 h-4" />}
+               label={t('common.confirmPassword')}
+               type="password"
+               placeholder={t('auth.passwordPlaceholder')}
+               leftIcon={<LockClosedIcon className="w-4 h-4" />}
               error={errors.confirm_password?.message}
               {...register('confirm_password')}
             />

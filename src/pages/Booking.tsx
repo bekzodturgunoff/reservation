@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
-import { CalendarDays, Clock, MapPin, Tag, CreditCard, ArrowLeft } from 'lucide-react'
+import { CalendarDaysIcon, ClockIcon, MapPinIcon, TagIcon, CreditCardIcon, ArrowLeftIcon } from '@heroicons/react/24/outline'
 import { getVenueById } from '../api/venues'
 import { getSlotById, updateSlotAvailability } from '../api/slots'
 import { createBooking } from '../api/bookings'
@@ -56,7 +56,7 @@ const Booking = () => {
 
       addToast({ type: 'success', message: t('booking.success') })
       navigate(`/confirmation/${booking.id}`)
-    } catch (err) {
+    } catch {
       addToast({ type: 'error', message: t('booking.error') })
       setConfirming(false)
     }
@@ -89,7 +89,7 @@ const Booking = () => {
         onClick={() => navigate(-1)}
         className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-emerald-600 mb-6 transition-colors"
       >
-        <ArrowLeft className="w-4 h-4" /> {t('common.back')}
+        <ArrowLeftIcon className="w-4 h-4" /> {t('common.back')}
       </button>
 
       <h1 className="text-2xl font-bold text-gray-900 mb-6">{t('booking.confirmBooking')}</h1>
@@ -105,7 +105,7 @@ const Booking = () => {
             <div className="flex-1 min-w-0">
               <h2 className="font-semibold text-gray-900 text-lg">{venue.name}</h2>
               <p className="text-sm text-gray-500 flex items-center gap-1 mt-0.5">
-                <MapPin className="w-3.5 h-3.5" /> {venue.address || venue.city}
+                <MapPinIcon className="w-3.5 h-3.5" /> {venue.address || venue.city}
               </p>
               <div className="flex items-center gap-3 mt-2">
                 <span className="text-xs bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded-full font-medium">
@@ -121,17 +121,17 @@ const Booking = () => {
           <h3 className="font-semibold text-gray-900 mb-4">{t('booking.details')}</h3>
           <div className="space-y-3">
             <div className="flex items-center gap-3 text-sm">
-              <CalendarDays className="w-4 h-4 text-gray-400" />
+              <CalendarDaysIcon className="w-4 h-4 text-gray-400" />
               <span className="text-gray-700">{formatDate(slot.date)}</span>
             </div>
             <div className="flex items-center gap-3 text-sm">
-              <Clock className="w-4 h-4 text-gray-400" />
+              <ClockIcon className="w-4 h-4 text-gray-400" />
               <span className="text-gray-700">
                 {slot.start_time.slice(0, 5)} — {slot.end_time.slice(0, 5)}
               </span>
             </div>
             <div className="flex items-center gap-3 text-sm">
-              <Tag className="w-4 h-4 text-gray-400" />
+              <TagIcon className="w-4 h-4 text-gray-400" />
               <span className="font-semibold text-emerald-600">{formatPrice(venue.price_per_slot, venue.currency)}</span>
             </div>
           </div>
@@ -155,7 +155,7 @@ const Booking = () => {
         {/* Payment section */}
         <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
           <div className="flex items-center gap-2 mb-4">
-            <CreditCard className="w-5 h-5 text-emerald-600" />
+            <CreditCardIcon className="w-5 h-5 text-emerald-600" />
             <h3 className="font-semibold text-gray-900">{t('booking.payment')}</h3>
           </div>
 
@@ -168,7 +168,7 @@ const Booking = () => {
           <div className="p-4 bg-green-50 rounded-xl border border-green-100 flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center">
-                <CreditCard className="w-4 h-4 text-green-600" />
+                <CreditCardIcon className="w-4 h-4 text-green-600" />
               </div>
               <div>
                 <p className="text-sm font-medium text-green-800">{t('booking.payOnArrival')}</p>

@@ -1,5 +1,4 @@
-import { createBrowserRouter, Navigate, useLocation } from 'react-router-dom'
-import { useAuthStore } from '../store/authStore'
+import { createBrowserRouter } from 'react-router-dom'
 
 import Home from '../pages/Home'
 import Search from '../pages/Search'
@@ -19,36 +18,9 @@ import AdminDashboard from '../pages/admin/AdminDashboard'
 import VenueApprovals from '../pages/admin/VenueApprovals'
 
 import PageWrapper from '../components/layout/PageWrapper'
-
-const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-  const { user, loading } = useAuthStore()
-  const location = useLocation()
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <span className="text-gray-400">Loading...</span>
-      </div>
-    )
-  }
-
-  if (!user) return <Navigate to="/login" state={{ from: location }} replace />
-  return <>{children}</>
-}
-
-const BusinessRoute = ({ children }: { children: React.ReactNode }) => {
-  const { profile, loading } = useAuthStore()
-  if (loading) return <div className="flex items-center justify-center min-h-screen"><span className="text-gray-400">Loading...</span></div>
-  if (!profile || (profile.role !== 'business' && profile.role !== 'admin')) return <Navigate to="/" replace />
-  return <>{children}</>
-}
-
-const AdminRoute = ({ children }: { children: React.ReactNode }) => {
-  const { profile, loading } = useAuthStore()
-  if (loading) return <div className="flex items-center justify-center min-h-screen"><span className="text-gray-400">Loading...</span></div>
-  if (!profile || profile.role !== 'admin') return <Navigate to="/" replace />
-  return <>{children}</>
-}
+import ProtectedRoute from './ProtectedRoute'
+import BusinessRoute from './BusinessRoute'
+import AdminRoute from './AdminRoute'
 
 export const router = createBrowserRouter([
   {

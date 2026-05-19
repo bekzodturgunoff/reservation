@@ -48,7 +48,7 @@ const SlotPicker = ({ venueId, selectedSlot, onSelect }: SlotPickerProps) => {
             <button
               key={dateStr}
               onClick={() => setSelectedDate(dateStr)}
-              className={`flex-shrink-0 flex flex-col items-center px-4 py-2.5 rounded-xl text-sm font-medium transition-all border ${
+              className={`flex-shrink-0 flex flex-col items-center px-4 py-3 rounded-xl text-sm font-medium transition-all border ${
                 isSelected
                   ? 'bg-emerald-600 text-white border-emerald-600'
                   : isToday
@@ -80,7 +80,7 @@ const SlotPicker = ({ venueId, selectedSlot, onSelect }: SlotPickerProps) => {
               key={slot.id}
               onClick={() => slot.is_available && onSelect(slot)}
               disabled={!slot.is_available}
-              className={`rounded-xl border px-3 py-2.5 text-sm font-medium transition-all ${
+              className={`rounded-xl border px-3 py-3 text-sm font-medium transition-all ${
                 selectedSlot === slot.id
                   ? 'border-emerald-600 bg-emerald-50 text-emerald-700 ring-1 ring-emerald-500'
                   : slot.is_available

@@ -2,9 +2,9 @@ import { useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import {
-  MapPin, Phone, Star, ChevronLeft, ChevronRight,
-  Clock, Tag, ArrowLeft, CalendarDays, MessageSquare,
-} from 'lucide-react'
+  MapPinIcon, PhoneIcon, StarIcon, ChevronLeftIcon, ChevronRightIcon,
+  ClockIcon, TagIcon, ArrowLeftIcon, CalendarDaysIcon, ChatBubbleLeftRightIcon,
+} from '@heroicons/react/24/outline'
 import { getVenueById } from '../api/venues'
 import { getReviewsByVenue } from '../api/reviews'
 import { useAuthStore } from '../store/authStore'
@@ -84,7 +84,7 @@ const VenueDetail = () => {
         onClick={() => navigate(-1)}
         className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-emerald-600 mb-4 transition-colors"
       >
-        <ArrowLeft className="w-4 h-4" /> {t('common.back')}
+        <ArrowLeftIcon className="w-4 h-4" /> {t('common.back')}
       </button>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -105,15 +105,15 @@ const VenueDetail = () => {
                   <>
                     <button
                       onClick={() => setPhotoIndex(i => (i - 1 + photos.length) % photos.length)}
-                      className="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 bg-white/90 rounded-full flex items-center justify-center shadow hover:bg-white transition-colors"
+                      className="absolute left-3 top-1/2 -translate-y-1/2 w-11 h-11 bg-white/90 rounded-full flex items-center justify-center shadow hover:bg-white transition-colors"
                     >
-                      <ChevronLeft className="w-5 h-5" />
+                      <ChevronLeftIcon className="w-5 h-5" />
                     </button>
                     <button
                       onClick={() => setPhotoIndex(i => (i + 1) % photos.length)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 bg-white/90 rounded-full flex items-center justify-center shadow hover:bg-white transition-colors"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 w-11 h-11 bg-white/90 rounded-full flex items-center justify-center shadow hover:bg-white transition-colors"
                     >
-                      <ChevronRight className="w-5 h-5" />
+                      <ChevronRightIcon className="w-5 h-5" />
                     </button>
                     <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5">
                       {photos.map((_, i) => (
@@ -151,7 +151,7 @@ const VenueDetail = () => {
                 <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">{venue.name}</h1>
               </div>
               <div className="flex items-center gap-1.5 text-lg font-semibold text-emerald-600">
-                <Tag className="w-5 h-5" />
+                <TagIcon className="w-5 h-5" />
                 {formatPrice(venue.price_per_slot, venue.currency)}
                 <span className="text-sm text-gray-400 font-normal">{t('venue.perHour')}</span>
               </div>
@@ -160,17 +160,17 @@ const VenueDetail = () => {
             <div className="flex flex-wrap items-center gap-4 mt-3 text-sm text-gray-500">
               {avgRating && (
                 <div className="flex items-center gap-1">
-                  <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
+                  <StarIcon className="w-4 h-4 text-yellow-400" />
                   <span className="text-gray-700 font-medium">{avgRating}</span>
                   <span>({reviews.length} {t('venue.reviews')})</span>
                 </div>
               )}
               <div className="flex items-center gap-1">
-                <MapPin className="w-4 h-4" /> {venue.address || venue.city}
+                <MapPinIcon className="w-4 h-4" /> {venue.address || venue.city}
               </div>
               {venue.phone && (
                 <a href={`tel:${venue.phone}`} className="flex items-center gap-1 hover:text-emerald-600">
-                  <Phone className="w-4 h-4" /> {venue.phone}
+                  <PhoneIcon className="w-4 h-4" /> {venue.phone}
                 </a>
               )}
             </div>
@@ -183,7 +183,7 @@ const VenueDetail = () => {
           {/* Slot picker */}
           <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
             <div className="flex items-center gap-2 mb-4">
-              <CalendarDays className="w-5 h-5 text-emerald-600" />
+              <CalendarDaysIcon className="w-5 h-5 text-emerald-600" />
               <h2 className="text-lg font-semibold text-gray-900">{t('venue.selectTime')}</h2>
             </div>
             <SlotPicker
@@ -196,7 +196,7 @@ const VenueDetail = () => {
           {/* Reviews */}
           <div>
             <div className="flex items-center gap-2 mb-5">
-              <MessageSquare className="w-5 h-5 text-emerald-600" />
+              <ChatBubbleLeftRightIcon className="w-5 h-5 text-emerald-600" />
               <h2 className="text-lg font-semibold text-gray-900">
                 {t('venue.reviewsTitle')} ({reviews.length})
               </h2>
@@ -228,9 +228,9 @@ const VenueDetail = () => {
                       </div>
                       <div className="flex items-center gap-0.5">
                         {Array.from({ length: 5 }).map((_, i) => (
-                          <Star
+                          <StarIcon
                             key={i}
-                            className={`w-3.5 h-3.5 ${i < review.rating ? 'text-yellow-400 fill-yellow-400' : 'text-gray-200'}`}
+                            className={`w-3.5 h-3.5 ${i < review.rating ? 'text-yellow-400' : 'text-gray-200'}`}
                           />
                         ))}
                       </div>
@@ -253,17 +253,17 @@ const VenueDetail = () => {
 
             <div className="space-y-3 text-sm">
               <div className="flex items-center gap-2 text-gray-600">
-                <MapPin className="w-4 h-4 text-gray-400" />
+                <MapPinIcon className="w-4 h-4 text-gray-400" />
                 {venue.city}
               </div>
               <div className="flex items-center gap-2 text-gray-600">
-                <Tag className="w-4 h-4 text-gray-400" />
+                <TagIcon className="w-4 h-4 text-gray-400" />
                 <span className="font-medium text-emerald-600">{formatPrice(venue.price_per_slot, venue.currency)}</span>
                 <span className="text-gray-400">{t('venue.perHour')}</span>
               </div>
               {selectedSlot && (
                 <div className="flex items-center gap-2 text-gray-600">
-                  <Clock className="w-4 h-4 text-gray-400" />
+                  <ClockIcon className="w-4 h-4 text-gray-400" />
                   {selectedSlot.start_time.slice(0, 5)} — {selectedSlot.end_time.slice(0, 5)}
                 </div>
               )}

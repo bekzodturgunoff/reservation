@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { Camera, CalendarDays, Clock, MapPin, XCircle, Star } from 'lucide-react'
+import { CameraIcon, CalendarDaysIcon, ClockIcon, MapPinIcon, XCircleIcon, StarIcon } from '@heroicons/react/24/outline'
 import { useTranslation } from 'react-i18next'
 import { useAuthStore } from '../store/authStore'
 import { useToastStore } from '../store/toastStore'
@@ -15,7 +15,7 @@ import { formatDate, formatTime } from '../lib/utils'
 import Button from '../components/ui/Button'
 import Input from '../components/ui/Input'
 import Badge from '../components/ui/Badge'
-import type { Booking } from '../types'
+import type { Booking, Review } from '../types'
 
 type Tab = 'upcoming' | 'past' | 'reviews'
 
@@ -117,14 +117,14 @@ const Profile = () => {
             <p className="font-medium text-gray-900 text-sm">{booking.venues?.name || t('profile.venue')}</p>
             <div className="flex flex-wrap items-center gap-2 mt-1 text-xs text-gray-500">
               <span className="flex items-center gap-1">
-                <CalendarDays className="w-3 h-3" /> {formatDate(booking.slots?.date || '')}
+                <CalendarDaysIcon className="w-3 h-3" /> {formatDate(booking.slots?.date || '')}
               </span>
               <span className="flex items-center gap-1">
-                <Clock className="w-3 h-3" /> {formatTime(booking.slots?.start_time || '')}
+                <ClockIcon className="w-3 h-3" /> {formatTime(booking.slots?.start_time || '')}
               </span>
               {booking.venues?.address && (
                 <span className="flex items-center gap-1">
-                  <MapPin className="w-3 h-3" /> {booking.venues.address}
+                  <MapPinIcon className="w-3 h-3" /> {booking.venues.address}
                 </span>
               )}
             </div>
@@ -144,14 +144,14 @@ const Profile = () => {
             loading={cancelMutation.isPending}
             onClick={() => cancelMutation.mutate({ bookingId: booking.id, slotId: booking.slot_id })}
           >
-            <XCircle className="w-3.5 h-3.5" /> {t('profile.cancel')}
+            <XCircleIcon className="w-3.5 h-3.5" /> {t('profile.cancel')}
           </Button>
         </div>
       )}
     </div>
   )
 
-  const ReviewCard = ({ review }: { review: any }) => (
+  const ReviewCard = ({ review }: { review: Review }) => (
     <div className="bg-white rounded-2xl border border-gray-100 p-4 shadow-sm">
       <div className="flex items-start justify-between mb-2">
         <div>
@@ -160,7 +160,7 @@ const Profile = () => {
         </div>
         <div className="flex items-center gap-0.5">
           {Array.from({ length: 5 }).map((_, i) => (
-            <Star key={i} className={`w-3.5 h-3.5 ${i < review.rating ? 'text-yellow-400 fill-yellow-400' : 'text-gray-200'}`} />
+            <StarIcon key={i} className={`w-3.5 h-3.5 ${i < review.rating ? 'text-yellow-400' : 'text-gray-200'}`} />
           ))}
         </div>
       </div>
@@ -190,7 +190,7 @@ const Profile = () => {
               disabled={avatarUploading}
               className="absolute -bottom-1 -right-1 w-7 h-7 bg-emerald-600 rounded-full flex items-center justify-center text-white shadow hover:bg-emerald-700 transition-colors disabled:opacity-50"
             >
-              <Camera className="w-3.5 h-3.5" />
+              <CameraIcon className="w-3.5 h-3.5" />
             </button>
             <input
               ref={fileInputRef}

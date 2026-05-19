@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { Home } from 'lucide-react'
+import { HomeIcon } from '@heroicons/react/24/outline'
 import { useTranslation } from 'react-i18next'
 import { useTitle } from '../hooks/useTitle'
 
@@ -15,7 +15,7 @@ const NotFound = () => {
         to="/"
         className="flex items-center gap-2 bg-emerald-600 text-white px-6 py-3 rounded-xl hover:bg-emerald-700 transition-colors font-medium"
       >
-        <Home className="w-4 h-4" /> {t('notFound.backHome')}
+        <HomeIcon className="w-4 h-4" /> {t('notFound.backHome')}
       </Link>
     </div>
   )

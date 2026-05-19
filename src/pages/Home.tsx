@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
-import { Search, MapPin, CalendarDays, ChevronRight, Star, Shield, Zap } from 'lucide-react'
+import { MagnifyingGlassIcon, MapPinIcon, CalendarDaysIcon, ChevronRightIcon, StarIcon, ShieldCheckIcon, BoltIcon } from '@heroicons/react/24/outline'
 import { getVenues } from '../api/venues'
 import { getCategories } from '../api/categories'
 import VenueGrid from '../components/venue/VenueGrid'
@@ -45,7 +45,7 @@ const Home = () => {
     i18n.language === 'uz' ? uz : ru
 
   return (
-    <div className="-mx-4 sm:-mx-6 lg:-mx-8">
+    <div className="-mx-4 sm:-mx-6 lg:-mx-8 overflow-hidden">
       <div className="bg-gradient-to-br from-emerald-600 via-emerald-700 to-teal-800 px-4 sm:px-6 lg:px-8 pt-12 sm:pt-14 pb-16 sm:pb-20 text-white">
         <div className="max-w-3xl mx-auto text-center">
           <div className="inline-flex items-center gap-1.5 bg-white/10 backdrop-blur-sm rounded-full px-3 sm:px-4 py-1 sm:py-1.5 text-xs sm:text-sm mb-4 sm:mb-6">
@@ -62,7 +62,7 @@ const Home = () => {
 
           <div className="bg-white rounded-2xl p-2 shadow-2xl flex flex-col sm:flex-row gap-2 max-w-2xl mx-auto">
             <div className="flex items-center gap-2 flex-1 px-3">
-              <Search className="w-5 h-5 text-gray-400 flex-shrink-0" />
+              <MagnifyingGlassIcon className="w-5 h-5 text-gray-400 flex-shrink-0" />
               <input
                 type="text"
                 placeholder={t('home.searchPlaceholder')}
@@ -73,7 +73,7 @@ const Home = () => {
               />
             </div>
             <div className="flex items-center gap-2 px-3 sm:border-l border-gray-200">
-              <MapPin className="w-4 h-4 text-gray-400 flex-shrink-0" />
+              <MapPinIcon className="w-4 h-4 text-gray-400 flex-shrink-0" />
               <select
                 value={selectedCity}
                 onChange={e => setSelectedCity(e.target.value)}
@@ -88,7 +88,7 @@ const Home = () => {
               onClick={handleSearch}
               className="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-3 rounded-xl font-medium text-sm transition-colors flex items-center justify-center gap-2 sm:flex-shrink-0"
             >
-              <Search className="w-4 h-4" />
+              <MagnifyingGlassIcon className="w-4 h-4" />
               {t('common.search')}
             </button>
           </div>
@@ -145,7 +145,7 @@ const Home = () => {
               onClick={() => navigate('/search')}
               className="flex items-center gap-1 text-sm text-emerald-600 font-medium hover:underline"
             >
-              {t('common.viewAll')} <ChevronRight className="w-4 h-4" />
+              {t('common.viewAll')} <ChevronRightIcon className="w-4 h-4" />
             </button>
           </div>
           <VenueGrid
@@ -163,19 +163,19 @@ const Home = () => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {[
               {
-                icon: <Search className="w-6 h-6 text-emerald-600" />,
+                icon: <MagnifyingGlassIcon className="w-6 h-6 text-emerald-600" />,
                 step: '01',
                 title: t('home.step1Title'),
                 desc: t('home.step1Desc'),
               },
               {
-                icon: <CalendarDays className="w-6 h-6 text-emerald-600" />,
+                icon: <CalendarDaysIcon className="w-6 h-6 text-emerald-600" />,
                 step: '02',
                 title: t('home.step2Title'),
                 desc: t('home.step2Desc'),
               },
               {
-                icon: <Star className="w-6 h-6 text-emerald-600" />,
+                icon: <StarIcon className="w-6 h-6 text-emerald-600" />,
                 step: '03',
                 title: t('home.step3Title'),
                 desc: t('home.step3Desc'),
@@ -199,9 +199,9 @@ const Home = () => {
           <div className="bg-gradient-to-r from-emerald-50 to-teal-50 rounded-2xl border border-emerald-100 p-8">
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 text-center">
               {[
-                { icon: <Shield className="w-6 h-6 text-emerald-600" />, label: t('home.featureSecure'), desc: t('home.featureSecureDesc') },
-                { icon: <Zap className="w-6 h-6 text-emerald-600" />, label: t('home.featureFast'), desc: t('home.featureFastDesc') },
-                { icon: <Star className="w-6 h-6 text-emerald-600" />, label: t('home.featureVerified'), desc: t('home.featureVerifiedDesc') },
+                { icon: <ShieldCheckIcon className="w-6 h-6 text-emerald-600" />, label: t('home.featureSecure'), desc: t('home.featureSecureDesc') },
+                { icon: <BoltIcon className="w-6 h-6 text-emerald-600" />, label: t('home.featureFast'), desc: t('home.featureFastDesc') },
+                { icon: <StarIcon className="w-6 h-6 text-emerald-600" />, label: t('home.featureVerified'), desc: t('home.featureVerifiedDesc') },
               ].map(item => (
                 <div key={item.label} className="flex flex-col items-center gap-2">
                   <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-sm">
@@ -225,7 +225,7 @@ const Home = () => {
               onClick={() => navigate('/register')}
               className="bg-emerald-600 hover:bg-emerald-700 text-white px-8 py-3 rounded-xl font-medium text-sm transition-colors inline-flex items-center gap-2"
             >
-              {t('home.ctaButton')} <ChevronRight className="w-4 h-4" />
+              {t('home.ctaButton')} <ChevronRightIcon className="w-4 h-4" />
             </button>
           </div>
         </section>

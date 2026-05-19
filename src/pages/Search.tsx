@@ -2,9 +2,9 @@ import { useState, useEffect, useCallback } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import {
-  Search as SearchIcon, SlidersHorizontal, Map, Grid3X3,
-  X, ChevronDown, ChevronUp,
-} from 'lucide-react'
+  MagnifyingGlassIcon as SearchIcon, AdjustmentsHorizontalIcon as SlidersHorizontalIcon, MapIcon, Squares2X2Icon,
+  XMarkIcon, ChevronDownIcon, ChevronUpIcon,
+} from '@heroicons/react/24/outline'
 import { getVenues, type VenueFilters } from '../api/venues'
 import { getCategories } from '../api/categories'
 import VenueGrid from '../components/venue/VenueGrid'
@@ -60,7 +60,7 @@ const Search = () => {
     if (minPrice) params.minPrice = minPrice
     if (maxPrice) params.maxPrice = maxPrice
     setSearchParams(params, { replace: true })
-  }, [search, city, category, minPrice, maxPrice])
+  }, [search, city, category, minPrice, maxPrice, setSearchParams])
 
   useEffect(() => {
     const timeout = setTimeout(syncToUrl, 400)
@@ -81,7 +81,7 @@ const Search = () => {
 
   return (
     <div className="min-h-screen">
-      <div className="bg-white border-b border-gray-100 sticky top-16 z-30 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 py-4 shadow-sm">
+      <div className="bg-white border-b border-gray-100 sticky top-16 z-30 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 py-4 shadow-sm overflow-hidden">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row gap-3">
 
           <div className="relative flex-1">
@@ -98,7 +98,7 @@ const Search = () => {
                 onClick={() => setSearch('')}
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
               >
-                <X className="w-4 h-4" />
+                <XMarkIcon className="w-4 h-4" />
               </button>
             )}
           </div>
@@ -121,14 +121,14 @@ const Search = () => {
                 : 'border-gray-200 text-gray-700 hover:bg-gray-50'
             }`}
           >
-            <SlidersHorizontal className="w-4 h-4" />
+            <SlidersHorizontalIcon className="w-4 h-4" />
             {t('search.filters')}
             {hasActiveFilters && (
               <span className="w-5 h-5 bg-emerald-600 text-white rounded-full text-xs flex items-center justify-center font-medium">
                 {[search, category, minPrice, maxPrice].filter(Boolean).length}
               </span>
             )}
-            {filtersOpen ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+            {filtersOpen ? <ChevronUpIcon className="w-3.5 h-3.5" /> : <ChevronDownIcon className="w-3.5 h-3.5" />}
           </button>
 
           <div className="flex items-center bg-gray-100 rounded-xl p-1 gap-1">
@@ -138,7 +138,7 @@ const Search = () => {
                 viewMode === 'grid' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'
               }`}
             >
-              <Grid3X3 className="w-4 h-4" />
+              <Squares2X2Icon className="w-4 h-4" />
               <span className="hidden sm:inline">{t('search.grid')}</span>
             </button>
             <button
@@ -147,7 +147,7 @@ const Search = () => {
                 viewMode === 'map' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'
               }`}
             >
-              <Map className="w-4 h-4" />
+              <MapIcon className="w-4 h-4" />
               <span className="hidden sm:inline">{t('search.map')}</span>
             </button>
           </div>
@@ -196,7 +196,7 @@ const Search = () => {
                   onClick={clearFilters}
                   className="flex items-center gap-1.5 px-4 py-2 text-sm text-red-600 hover:bg-red-50 rounded-xl transition-colors border border-red-200"
                 >
-                  <X className="w-4 h-4" /> {t('search.clear')}
+                  <XMarkIcon className="w-4 h-4" /> {t('search.clear')}
                 </button>
               )}
             </div>

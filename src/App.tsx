@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import { RouterProvider } from 'react-router-dom'
-import { CalendarDays } from 'lucide-react'
+import { CalendarDaysIcon } from '@heroicons/react/24/outline'
+import { useTranslation } from 'react-i18next'
 import { router } from './router'
 import { supabase } from './lib/supabase'
 import { useAuthStore } from './store/authStore'
@@ -8,6 +9,7 @@ import { getProfile } from './api/profiles'
 import './lib/i18n'
 
 const App = () => {
+  const { t } = useTranslation()
   const { setUser, setProfile, setLoading, logout } = useAuthStore()
   const loading = useAuthStore(state => state.loading)
 
@@ -48,16 +50,16 @@ const App = () => {
     )
 
     return () => subscription.unsubscribe()
-  }, [])
+  }, [logout, setLoading, setProfile, setUser])
 
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="flex flex-col items-center gap-3">
           <div className="w-10 h-10 bg-emerald-600 rounded-xl flex items-center justify-center">
-            <CalendarDays className="w-6 h-6 text-white" />
+            <CalendarDaysIcon className="w-6 h-6 text-white" />
           </div>
-          <p className="text-sm text-gray-400 animate-pulse">Yuklanmoqda...</p>
+          <p className="text-sm text-gray-400 animate-pulse">{t('common.loading')}</p>
         </div>
       </div>
     )

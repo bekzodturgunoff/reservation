@@ -93,6 +93,7 @@
   },
   "venue": {
     "about": "Joy haqida",
+    "viewDetails": "Ko'rish →",
     "notFound": "Joy topilmadi",
     "notFoundDesc": "Bu venue mavjud emas yoki o'chirilgan",
     "backToSearch": "Qidirishga qaytish",
@@ -297,10 +298,43 @@
       "perSlot": "/ slot"
     }
   },
+  "nav": {
+    "profile": "Mening profilim",
+    "businessPanel": "Biznes panel",
+    "adminPanel": "Admin panel",
+    "categories": "Kategoriyalar"
+  },
+  "footer": {
+    "description": "O'zbekistondagi kafe, restoran, futbol maydonlari, gaming klublar va boshqa joylarni oson bron qiling.",
+    "categories": "Kategoriyalar",
+    "cafe": "Kafe",
+    "restaurant": "Restoran",
+    "football": "Futbol maydoni",
+    "gaming": "Gaming klub",
+    "gym": "Sport zal",
+    "site": "Sayt",
+    "search": "Qidirish",
+    "register": "Ro'yxatdan o'tish",
+    "login": "Kirish",
+    "forBusiness": "Biznes uchun",
+    "copyright": "© {{year}} BronUz. Barcha huquqlar himoyalangan.",
+    "location": "Toshkent, O'zbekiston"
+  },
+  "errorBoundary": {
+    "title": "Xatolik yuz berdi",
+    "message": "Sahifa yuklanmadi. Iltimos, qayta urinib ko'ring.",
+    "retry": "Qayta urinish",
+    "goHome": "Bosh sahifa"
+  },
   "notFound": {
     "title": "404",
     "heading": "Sahifa topilmadi",
     "message": "Bu sahifa mavjud emas yoki o'chirilgan.",
     "backHome": "Bosh sahifaga qaytish"
+  },
+  "pwa": {
+    "installTitle": "BronUz ni o'rnating",
+    "installDesc": "Ilovani qurilmangizga o'rnating — tezroq va qulay",
+    "install": "O'rnatish"
   }
 }

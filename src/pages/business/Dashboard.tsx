@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
-import { CalendarDays, Currency, Star, Settings, PlusCircle } from 'lucide-react'
+import { CalendarDaysIcon, CurrencyDollarIcon, StarIcon, Cog6ToothIcon, PlusCircleIcon } from '@heroicons/react/24/outline'
 import { useAuthStore } from '../../store/authStore'
 import { useTitle } from '../../hooks/useTitle'
 import { getVenuesByOwner } from '../../api/venues'
@@ -77,15 +77,15 @@ const BusinessDashboard = () => {
           <p className="text-sm text-gray-500 mt-1">{profile?.full_name} {t('business.welcome')}</p>
         </div>
         <Link to="/business/venue/new">
-          <Button><PlusCircle className="w-4 h-4" /> {t('business.addVenue')}</Button>
+          <Button><PlusCircleIcon className="w-4 h-4" /> {t('business.addVenue')}</Button>
         </Link>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {[
-          { icon: <CalendarDays className="w-5 h-5 text-emerald-600" />, label: t('business.statsBookings'), value: stats.monthBookingsCount.toString(), bg: 'bg-emerald-50' },
-          { icon: <Currency className="w-5 h-5 text-blue-600" />, label: t('business.statsRevenue'), value: formatPrice(stats.revenue), bg: 'bg-blue-50' },
-          { icon: <Star className="w-5 h-5 text-yellow-500" />, label: t('business.statsRating'), value: stats.avgRating ? stats.avgRating.toFixed(1) : '—', bg: 'bg-yellow-50' },
+          { icon: <CalendarDaysIcon className="w-5 h-5 text-emerald-600" />, label: t('business.statsBookings'), value: stats.monthBookingsCount.toString(), bg: 'bg-emerald-50' },
+          { icon: <CurrencyDollarIcon className="w-5 h-5 text-blue-600" />, label: t('business.statsRevenue'), value: formatPrice(stats.revenue), bg: 'bg-blue-50' },
+          { icon: <StarIcon className="w-5 h-5 text-yellow-500" />, label: t('business.statsRating'), value: stats.avgRating ? stats.avgRating.toFixed(1) : '—', bg: 'bg-yellow-50' },
         ].map(card => (
           <div key={card.label} className={`${card.bg} rounded-2xl p-5 border border-gray-100`}>
             <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-sm mb-3">{card.icon}</div>
@@ -97,11 +97,11 @@ const BusinessDashboard = () => {
 
       <div className="flex gap-3 flex-wrap">
         <Link to="/business/venue/new" className="flex items-center gap-2 px-4 py-2.5 bg-white rounded-xl border border-gray-200 text-sm font-medium text-gray-700 hover:border-emerald-300 transition-colors">
-          <PlusCircle className="w-4 h-4 text-emerald-600" /> {t('business.addVenueLink')}
+          <PlusCircleIcon className="w-4 h-4 text-emerald-600" /> {t('business.addVenueLink')}
         </Link>
         {venues.length > 0 && (
           <Link to={`/business/venue/${venues[0].id}/availability`} className="flex items-center gap-2 px-4 py-2.5 bg-white rounded-xl border border-gray-200 text-sm font-medium text-gray-700 hover:border-emerald-300 transition-colors">
-            <Settings className="w-4 h-4 text-emerald-600" /> {t('business.manageSlots')}
+            <Cog6ToothIcon className="w-4 h-4 text-emerald-600" /> {t('business.manageSlots')}
           </Link>
         )}
       </div>
