@@ -109,7 +109,11 @@
     "loginToBookDesc": "Please log in to make a booking",
     "paymentNote": "💳 Payment system coming soon. You can pay on site for now.",
     "noRating": "No rating yet",
-    "noSlotsForDate": "No time slots available for this date"
+    "noSlotsForDate": "No time slots available for this date",
+    "writeReview": "Write a review",
+    "submitReview": "Submit review",
+    "reviewPlaceholder": "Share your experience...",
+    "reviewSubmitted": "Review submitted successfully"
   },
   "booking": {
     "title": "Booking",
@@ -208,6 +212,25 @@
     "emptyBookings": "No bookings yet",
     "user": "User",
     "venue": "Venue",
+    "analytics": {
+      "title": "Analytics",
+      "revenueChart": "Revenue",
+      "bookingChart": "Bookings",
+      "statusChart": "Booking Status",
+      "venueChart": "Bookings per Venue",
+      "daily": "Daily",
+      "weekly": "Weekly",
+      "monthly": "Monthly",
+      "bookings": "Bookings",
+      "revenue": "Revenue",
+      "amount": "Amount",
+      "noData": "No data available",
+      "revenueChange": "vs last month",
+      "bookingsChange": "vs last month",
+      "confirmed": "Confirmed",
+      "cancelled": "Cancelled",
+      "completed": "Completed"
+    },
     "setup": {
       "editTitle": "Edit venue",
       "newTitle": "Add new venue",

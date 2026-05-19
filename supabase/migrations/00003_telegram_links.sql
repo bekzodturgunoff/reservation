@@ -11,14 +11,17 @@ create table if not exists telegram_links (
 -- RLS
 alter table telegram_links enable row level security;
 
+drop policy if exists "Users can view their own links" on telegram_links;
 create policy "Users can view their own links"
   on telegram_links for select
   using (auth.uid() = user_id);
 
+drop policy if exists "Users can insert their own links" on telegram_links;
 create policy "Users can insert their own links"
   on telegram_links for insert
   with check (auth.uid() = user_id);
 
+drop policy if exists "Users can delete their own links" on telegram_links;
 create policy "Users can delete their own links"
   on telegram_links for delete
   using (auth.uid() = user_id);

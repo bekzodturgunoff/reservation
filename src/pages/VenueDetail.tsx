@@ -13,6 +13,7 @@ import { formatPrice, formatDate as fmtDate } from '../lib/utils'
 import Badge from '../components/ui/Badge'
 import Button from '../components/ui/Button'
 import SlotPicker from '../components/venue/SlotPicker'
+import ReviewForm from '../components/venue/ReviewForm'
 import type { Slot } from '../types'
 import { useTranslation } from 'react-i18next'
 
@@ -201,6 +202,12 @@ const VenueDetail = () => {
                 {t('venue.reviewsTitle')} ({reviews.length})
               </h2>
             </div>
+
+            {user && (
+              <div className="mb-6">
+                <ReviewForm venueId={venue.id} />
+              </div>
+            )}
 
             {reviews.length === 0 ? (
               <div className="text-center py-10 bg-gray-50 rounded-2xl">

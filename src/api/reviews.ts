@@ -21,7 +21,14 @@ export const getReviewsByUser = async (userId: string): Promise<Review[]> => {
   return data
 }
 
-export const createReview = async (review: Partial<Review>): Promise<Review> => {
+export const createReview = async (review: {
+  user_id: string
+  venue_id: string
+  booking_id?: string
+  rating: number
+  comment: string
+  photos?: string[]
+}): Promise<Review> => {
   const { data, error } = await supabase
     .from('reviews')
     .insert(review)

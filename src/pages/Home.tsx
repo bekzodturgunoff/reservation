@@ -1,7 +1,7 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
-import { MagnifyingGlassIcon, MapPinIcon, CalendarDaysIcon, ChevronRightIcon, StarIcon, ShieldCheckIcon, BoltIcon } from '@heroicons/react/24/outline'
+import { MagnifyingGlassIcon, MapPinIcon, CalendarDaysIcon, ChevronRightIcon, StarIcon, ShieldCheckIcon, BoltIcon, BuildingStorefrontIcon } from '@heroicons/react/24/outline'
 import { getVenues } from '../api/venues'
 import { getCategories } from '../api/categories'
 import VenueGrid from '../components/venue/VenueGrid'
@@ -26,6 +26,28 @@ const Home = () => {
     queryKey: ['venues', 'featured'],
     queryFn: () => getVenues({ city: selectedCity }),
   })
+
+  const { data: allVenues } = useQuery({
+    queryKey: ['venues', 'all'],
+    queryFn: () => getVenues({}),
+  })
+
+  useEffect(() => {
+    const jsonLd = document.createElement('script')
+    jsonLd.type = 'application/ld+json'
+    jsonLd.id = 'organization-schema'
+    jsonLd.textContent = JSON.stringify({
+      '@context': 'https://schema.org',
+      '@type': 'Organization',
+      name: 'BronUz',
+      url: 'https://bronuz.uz',
+      description: "O'zbekistondagi eng yaxshi bron qilish platformasi",
+      areaServed: 'Uzbekistan',
+      knowsLanguage: ['uz', 'ru', 'en'],
+    })
+    document.head.appendChild(jsonLd)
+    return () => { const el = document.getElementById('organization-schema'); if (el) el.remove() }
+  }, [])
 
   const handleSearch = () => {
     const params = new URLSearchParams()
@@ -211,6 +233,49 @@ const Home = () => {
                   <p className="text-xs text-gray-500">{item.desc}</p>
                 </div>
               ))}
+            </div>
+          </div>
+        </section>
+
+        <section className="mb-14">
+          <div className="bg-white rounded-2xl border border-gray-100 p-7 shadow-sm">
+            <div className="flex flex-wrap items-center justify-center gap-8 sm:gap-16">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-600">
+                  <BuildingStorefrontIcon className="w-5 h-5" />
+                </div>
+                <div>
+                  <p className="text-xl font-bold text-gray-900">{allVenues?.length || '…'}+</p>
+                  <p className="text-xs text-gray-500">Venue lar</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600">
+                  <CalendarDaysIcon className="w-5 h-5" />
+                </div>
+                <div>
+                  <p className="text-xl font-bold text-gray-900">500+</p>
+                  <p className="text-xs text-gray-500">Muvaffaqiyatli bron</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-yellow-50 flex items-center justify-center text-yellow-600">
+                  <StarIcon className="w-5 h-5" />
+                </div>
+                <div>
+                  <p className="text-xl font-bold text-gray-900">4.8</p>
+                  <p className="text-xs text-gray-500">O'rtacha reyting</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-purple-50 flex items-center justify-center text-purple-600">
+                  <MapPinIcon className="w-5 h-5" />
+                </div>
+                <div>
+                  <p className="text-xl font-bold text-gray-900">10+</p>
+                  <p className="text-xs text-gray-500">Shaharlar</p>
+                </div>
+              </div>
             </div>
           </div>
         </section>

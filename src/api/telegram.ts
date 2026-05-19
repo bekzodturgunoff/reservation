@@ -34,6 +34,7 @@ interface NotifyPayload {
   start_time: string
   end_time: string
   note?: string
+  booking_id?: string
 }
 
 export const sendTelegramNotification = async (payload: NotifyPayload): Promise<void> => {

@@ -109,7 +109,11 @@
     "loginToBookDesc": "Чтобы забронировать, войдите в аккаунт",
     "paymentNote": "💳 Платёжная система будет добавлена позже. Сейчас можно оплатить на месте.",
     "noRating": "Нет оценок",
-    "noSlotsForDate": "Нет доступного времени на эту дату"
+    "noSlotsForDate": "Нет доступного времени на эту дату",
+    "writeReview": "Написать отзыв",
+    "submitReview": "Отправить отзыв",
+    "reviewPlaceholder": "Поделитесь впечатлениями...",
+    "reviewSubmitted": "Отзыв успешно отправлен"
   },
   "booking": {
     "title": "Бронирование",
@@ -208,6 +212,25 @@
     "emptyBookings": "Броней пока нет",
     "user": "Пользователь",
     "venue": "Venue",
+    "analytics": {
+      "title": "Аналитика",
+      "revenueChart": "Доход",
+      "bookingChart": "Брони",
+      "statusChart": "Статус броней",
+      "venueChart": "Брони по venues",
+      "daily": "Дневной",
+      "weekly": "Недельный",
+      "monthly": "Месячный",
+      "bookings": "Брони",
+      "revenue": "Доход",
+      "amount": "Сумма",
+      "noData": "Нет данных",
+      "revenueChange": "по сравнению с прошлым месяцем",
+      "bookingsChange": "по сравнению с прошлым месяцем",
+      "confirmed": "Подтверждён",
+      "cancelled": "Отменён",
+      "completed": "Завершён"
+    },
     "setup": {
       "editTitle": "Редактировать venue",
       "newTitle": "Добавить новый venue",

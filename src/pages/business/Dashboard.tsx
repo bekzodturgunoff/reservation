@@ -1,16 +1,21 @@
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { CalendarDaysIcon, CurrencyDollarIcon, StarIcon, Cog6ToothIcon, PlusCircleIcon, PaperAirplaneIcon, TrashIcon } from '@heroicons/react/24/outline'
+import { CalendarDaysIcon, CurrencyDollarIcon, StarIcon, Cog6ToothIcon, PlusCircleIcon, PaperAirplaneIcon, TrashIcon, ChartBarSquareIcon } from '@heroicons/react/24/outline'
 import { useAuthStore } from '../../store/authStore'
 import { useTitle } from '../../hooks/useTitle'
 import { useToastStore } from '../../store/toastStore'
 import { getVenuesByOwner } from '../../api/venues'
 import { getBookingsForVenueIds } from '../../api/bookings'
 import { getTelegramLinks, deleteTelegramLink, generateLinkCode } from '../../api/telegram'
+import { computeAnalytics } from '../../api/analytics'
 import { formatPrice, formatDate, formatTime } from '../../lib/utils'
 import Badge, { type BadgeVariant } from '../../components/ui/Badge'
 import Button from '../../components/ui/Button'
+import RevenueChart from '../../components/business/RevenueChart'
+import BookingChart from '../../components/business/BookingChart'
+import StatusPieChart from '../../components/business/StatusPieChart'
+import VenueBarChart from '../../components/business/VenueBarChart'
 import type { Booking } from '../../types'
 import { useTranslation } from 'react-i18next'
 
@@ -89,6 +94,19 @@ const BusinessDashboard = () => {
     [bookings]
   )
 
+  const venueNameMap = useMemo(() => {
+    const map: Record<string, { name: string; icon: string }> = {}
+    venues.forEach(v => {
+      map[v.id] = { name: v.name, icon: v.categories?.icon || '🏢' }
+    })
+    return map
+  }, [venues])
+
+  const analytics = useMemo(() =>
+    computeAnalytics(bookings, venueNameMap),
+    [bookings, venueNameMap]
+  )
+
   const linkedVenueIds = useMemo(() => new Set(telegramLinks.map(l => l.venue_id)), [telegramLinks])
 
   const handleCopyCode = (venueId: string) => {
@@ -125,6 +143,23 @@ const BusinessDashboard = () => {
           </div>
         ))}
       </div>
+
+      {venues.length > 0 && venueIds.length > 0 && (
+        <div>
+          <div className="flex items-center gap-2 mb-4">
+            <ChartBarSquareIcon className="w-5 h-5 text-emerald-600" />
+            <h2 className="text-lg font-semibold text-gray-900">{t('business.analytics.title')}</h2>
+          </div>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <RevenueChart data={analytics.dailyRevenue} totalRevenue={analytics.totalRevenue} change={analytics.revenueChange} />
+            <BookingChart data={analytics.dailyRevenue} totalBookings={analytics.totalBookings} change={analytics.bookingsChange} />
+          </div>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-4">
+            <StatusPieChart data={analytics.statusBreakdown} />
+            <VenueBarChart data={analytics.venueStats} />
+          </div>
+        </div>
+      )}
 
       <div className="flex gap-3 flex-wrap">
         <Link to="/business/venue/new" className="flex items-center gap-2 px-4 py-2.5 bg-white rounded-xl border border-gray-200 text-sm font-medium text-gray-700 hover:border-emerald-300 transition-colors">

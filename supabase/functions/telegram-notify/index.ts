@@ -15,13 +15,23 @@ interface NotificationPayload {
   start_time: string
   end_time: string
   note?: string
+  booking_id?: string
 }
 
-const sendMessage = async (chatId: number, text: string) => {
+const sendMessage = async (chatId: number, text: string, bookingId?: string, venueId?: string) => {
+  const body: any = { chat_id: chatId, text, parse_mode: 'HTML' }
+  if (bookingId) {
+    body.reply_markup = {
+      inline_keyboard: [[
+        { text: '📋 Bronni ko\'rish', url: `https://bronuz.uz/confirmation/${bookingId}` },
+        ...(venueId ? [{ text: '🔗 Venue sahifasi', url: `https://bronuz.uz/venues/${venueId}` }] : []),
+      ]]
+    }
+  }
   await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ chat_id: chatId, text, parse_mode: 'HTML' }),
+    body: JSON.stringify(body),
   })
 }
 
@@ -47,10 +57,10 @@ serve(async (req) => {
       `📅 <b>Sana:</b> ${payload.date}\n` +
       `⏰ <b>Vaqt:</b> ${payload.start_time} — ${payload.end_time}\n` +
       (payload.note ? `📝 <b>Izoh:</b> ${payload.note}\n` : '') +
-      `\n🔗 BronUz da ko'rish: https://bronuz.uz`
+      `\n🔗 <a href="https://bronuz.uz">BronUz</a>`
 
     for (const link of links) {
-      await sendMessage(link.chat_id, message)
+      await sendMessage(link.chat_id, message, payload.booking_id, payload.venue_id)
     }
 
     return new Response('ok', { status: 200 })

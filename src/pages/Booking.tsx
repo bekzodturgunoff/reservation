@@ -16,7 +16,7 @@ import { useTranslation } from 'react-i18next'
 const Booking = () => {
   const { venueId, slotId } = useParams<{ venueId: string; slotId: string }>()
   const navigate = useNavigate()
-  const user = useAuthStore(state => state.user)
+  const { user, profile } = useAuthStore()
   const { addToast } = useToastStore()
   const { t } = useTranslation()
 
@@ -58,12 +58,13 @@ const Booking = () => {
       sendTelegramNotification({
         venue_id: venue.id,
         venue_name: venue.name,
-        customer_name: user.user_metadata?.full_name || user.email || 'Mijoz',
-        customer_phone: venue.phone || undefined,
+        customer_name: profile?.full_name || user.user_metadata?.full_name || user.email || 'Mijoz',
+        customer_phone: profile?.phone || user.phone || undefined,
         date: slot.date,
         start_time: slot.start_time.slice(0, 5),
         end_time: slot.end_time.slice(0, 5),
         note: note || undefined,
+        booking_id: booking.id,
       })
 
       addToast({ type: 'success', message: t('booking.success') })

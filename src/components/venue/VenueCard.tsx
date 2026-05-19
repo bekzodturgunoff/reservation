@@ -1,8 +1,14 @@
+import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { MapPinIcon, StarIcon, TagIcon } from '@heroicons/react/24/outline'
+import { MapPinIcon, StarIcon, TagIcon, HeartIcon } from '@heroicons/react/24/outline'
+import { HeartIcon as HeartIconSolid } from '@heroicons/react/24/solid'
 import { useTranslation } from 'react-i18next'
+import { useQuery } from '@tanstack/react-query'
 import type { Venue } from '../../types'
 import { formatPrice } from '../../lib/utils'
+import { useAuthStore } from '../../store/authStore'
+import { isFavorited, addFavorite, removeFavorite } from '../../api/favorites'
+import { useToastStore } from '../../store/toastStore'
 import Badge from '../ui/Badge'
 
 interface VenueCardProps {
@@ -11,10 +17,30 @@ interface VenueCardProps {
 
 const VenueCard = ({ venue }: VenueCardProps) => {
   const { t } = useTranslation()
+  const user = useAuthStore(s => s.user)
+  const { addToast } = useToastStore()
   const categoryName = venue.categories?.name_uz || t('common.other')
   const photo = venue.photos?.[0] || null
   const rating = venue.avg_rating ?? null
   const reviewCount = venue.review_count ?? 0
+  const [fav, setFav] = useState(false)
+
+  const { data: favorited } = useQuery({
+    queryKey: ['favorited', user?.id, venue.id],
+    queryFn: () => isFavorited(user!.id, venue.id),
+    enabled: !!user,
+  })
+
+  useEffect(() => { if (favorited !== undefined) setFav(favorited) }, [favorited])
+
+  const toggleFav = async (e: React.MouseEvent) => {
+    e.preventDefault()
+    if (!user) { addToast({ type: 'info', message: t('auth.loginTitle') }); return }
+    try {
+      if (fav) { await removeFavorite(user.id, venue.id); setFav(false) }
+      else { await addFavorite(user.id, venue.id); setFav(true) }
+    } catch { addToast({ type: 'error', message: t('common.error') }) }
+  }
 
   return (
     <Link to={`/venues/${venue.id}`} className="group block">
@@ -28,9 +54,7 @@ const VenueCard = ({ venue }: VenueCardProps) => {
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-emerald-50 to-emerald-100">
-              <span className="text-5xl">
-                {venue.categories?.icon || '🏢'}
-              </span>
+              <span className="text-5xl">{venue.categories?.icon || '🏢'}</span>
             </div>
           )}
           <div className="absolute top-3 left-3">
@@ -38,6 +62,9 @@ const VenueCard = ({ venue }: VenueCardProps) => {
               {venue.categories?.icon} {categoryName}
             </Badge>
           </div>
+          <button onClick={toggleFav} className="absolute top-3 right-3 w-8 h-8 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center shadow-sm hover:bg-white transition-colors">
+            {fav ? <HeartIconSolid className="w-4 h-4 text-red-500" /> : <HeartIcon className="w-4 h-4 text-gray-400" />}
+          </button>
         </div>
 
         <div className="p-4">
@@ -62,9 +89,7 @@ const VenueCard = ({ venue }: VenueCardProps) => {
             </div>
             <div className="flex items-center gap-1 text-emerald-600">
               <TagIcon className="w-3.5 h-3.5" />
-              <span className="text-sm font-semibold">
-                {formatPrice(venue.price_per_slot, venue.currency)}
-              </span>
+              <span className="text-sm font-semibold">{formatPrice(venue.price_per_slot, venue.currency)}</span>
               <span className="text-xs text-gray-400">{t('venue.perHour')}</span>
             </div>
           </div>

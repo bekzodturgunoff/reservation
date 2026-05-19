@@ -65,8 +65,17 @@ export interface Review {
   booking_id: string
   rating: number
   comment: string
+  photos: string[]
   created_at: string
   profiles?: Profile
+  venues?: Venue
+}
+
+export interface Favorite {
+  id: string
+  user_id: string
+  venue_id: string
+  created_at: string
   venues?: Venue
 }
 
@@ -83,4 +92,35 @@ export interface ToastMessage {
   id: string
   type: 'success' | 'error' | 'info' | 'warning'
   message: string
+}
+
+export interface DailyRevenue {
+  date: string
+  revenue: number
+  bookings: number
+}
+
+export interface BookingStatusBreakdown {
+  name: string
+  value: number
+  color: string
+}
+
+export interface VenueBookingStats {
+  venueId: string
+  venueName: string
+  icon: string
+  bookings: number
+  revenue: number
+}
+
+export interface AnalyticsData {
+  dailyRevenue: DailyRevenue[]
+  statusBreakdown: BookingStatusBreakdown[]
+  venueStats: VenueBookingStats[]
+  totalRevenue: number
+  totalBookings: number
+  avgRating: number
+  revenueChange: number
+  bookingsChange: number
 }

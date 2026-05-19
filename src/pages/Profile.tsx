@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { CameraIcon, CalendarDaysIcon, ClockIcon, MapPinIcon, XCircleIcon, StarIcon } from '@heroicons/react/24/outline'
+import { CameraIcon, CalendarDaysIcon, ClockIcon, MapPinIcon, XCircleIcon, StarIcon, TrashIcon } from '@heroicons/react/24/outline'
 import { useTranslation } from 'react-i18next'
 import { useAuthStore } from '../store/authStore'
 import { useToastStore } from '../store/toastStore'
@@ -11,13 +11,14 @@ import { useTitle } from '../hooks/useTitle'
 import { updateProfile, uploadAvatar } from '../api/profiles'
 import { getBookingsByUser, cancelBookingWithSlot } from '../api/bookings'
 import { getReviewsByUser } from '../api/reviews'
+import { getFavorites, removeFavorite } from '../api/favorites'
 import { formatDate, formatTime } from '../lib/utils'
 import Button from '../components/ui/Button'
 import Input from '../components/ui/Input'
 import Badge from '../components/ui/Badge'
 import type { Booking, Review } from '../types'
 
-type Tab = 'upcoming' | 'past' | 'reviews'
+type Tab = 'upcoming' | 'past' | 'reviews' | 'calendar' | 'favorites'
 
 const statusVariant: Record<string, 'success' | 'warning' | 'danger' | 'default' | 'info'> = {
   confirmed: 'success',
@@ -59,8 +60,35 @@ const Profile = () => {
     enabled: !!user,
   })
 
+  const { data: favorites = [] } = useQuery({
+    queryKey: ['favorites', user?.id],
+    queryFn: () => getFavorites(user!.id),
+    enabled: !!user,
+  })
+
   const upcomingBookings = bookings.filter(b => b.status === 'confirmed')
   const pastBookings = bookings.filter(b => b.status === 'completed' || b.status === 'cancelled')
+
+  const [calMonth, setCalMonth] = useState(() => new Date().getMonth())
+  const [calYear, setCalYear] = useState(() => new Date().getFullYear())
+
+  const calendarDays = useMemo(() => {
+    const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate()
+    const firstDay = new Date(calYear, calMonth, 1).getDay()
+    const days: { date: string; day: number; bookings: typeof upcomingBookings }[] = []
+    for (let i = 0; i < firstDay; i++) days.push({ date: '', day: 0, bookings: [] })
+    for (let d = 1; d <= daysInMonth; d++) {
+      const dateStr = `${calYear}-${String(calMonth + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`
+      const bks = upcomingBookings.filter(b => b.slots?.date === dateStr)
+      days.push({ date: dateStr, day: d, bookings: bks })
+    }
+    return days
+  }, [calMonth, calYear, upcomingBookings])
+
+  const removeFavMutation = useMutation({
+    mutationFn: (venueId: string) => removeFavorite(user!.id, venueId),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['favorites'] }),
+  })
 
   const profileMutation = useMutation({
     mutationFn: (data: FormData) => updateProfile(user!.id, data),
@@ -223,8 +251,10 @@ const Profile = () => {
       <div className="flex gap-1 bg-gray-100 rounded-xl p-1">
         {([
           { key: 'upcoming', label: `${t('profile.tabs.upcoming')} (${upcomingBookings.length})` },
+          { key: 'calendar', label: '📅' },
           { key: 'past', label: `${t('profile.tabs.past')} (${pastBookings.length})` },
           { key: 'reviews', label: `${t('profile.tabs.reviews')} (${reviews.length})` },
+          { key: 'favorites', label: `❤️ (${favorites.length})` },
         ] as { key: Tab; label: string }[]).map(tab => (
           <button
             key={tab.key}
@@ -252,6 +282,57 @@ const Profile = () => {
             : pastBookings.map(b => <BookingCard key={b.id} booking={b} />)
         )}
 
+        {activeTab === 'calendar' && (
+          <div className="bg-white rounded-2xl border border-gray-100 p-4 shadow-sm">
+            <div className="flex items-center justify-between mb-4">
+              <button onClick={() => { if (calMonth === 0) { setCalMonth(11); setCalYear(y => y - 1) } else setCalMonth(m => m - 1) }} className="text-sm text-emerald-600 font-medium hover:underline">←</button>
+              <span className="text-sm font-semibold text-gray-900">{new Date(calYear, calMonth).toLocaleDateString('uz-UZ', { month: 'long', year: 'numeric' })}</span>
+              <button onClick={() => { if (calMonth === 11) { setCalMonth(0); setCalYear(y => y + 1) } else setCalMonth(m => m + 1) }} className="text-sm text-emerald-600 font-medium hover:underline">→</button>
+            </div>
+            <div className="grid grid-cols-7 gap-1 text-center text-xs text-gray-400 mb-2">
+              {['Ya','Du','Se','Ch','Pa','Ju','Sh'].map(d => <div key={d} className="py-1">{d}</div>)}
+            </div>
+            <div className="grid grid-cols-7 gap-1">
+              {calendarDays.map((d, i) => (
+                <div key={i} className={`aspect-square rounded-lg p-1 text-center text-xs ${d.day === 0 ? 'invisible' : d.bookings.length > 0 ? 'bg-emerald-50 text-emerald-700 font-semibold' : 'text-gray-700'}`}>
+                  <span>{d.day}</span>
+                  {d.bookings.length > 0 && <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full mx-auto mt-0.5" />}
+                </div>
+              ))}
+            </div>
+            {upcomingBookings.length > 0 && (
+              <div className="mt-4 space-y-2 border-t border-gray-100 pt-4">
+                <p className="text-xs font-medium text-gray-500 mb-2">{t('profile.tabs.upcoming')}</p>
+                {upcomingBookings.map(b => (
+                  <div key={b.id} className="flex items-center gap-2 text-xs text-gray-700">
+                    <span className="text-emerald-600 font-medium">{b.slots?.date || '—'}</span>
+                    <span>{b.slots?.start_time?.slice(0,5) || '—'}</span>
+                    <span className="text-gray-400">—</span>
+                    <span className="font-medium">{b.venues?.name || t('profile.venue')}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+        {activeTab === 'favorites' && (
+          favorites.length === 0
+            ? <EmptyState text="Sevimli joylar yo'q" sub="Yoqtirgan venue laringizni saqlang" />
+            : <div className="space-y-3">{(favorites as any[]).map((f: any) => (
+              <div key={f.id} className="flex items-center justify-between bg-white rounded-2xl border border-gray-100 p-4 shadow-sm">
+                <div className="flex items-center gap-3">
+                  <span className="text-2xl">{f.venues?.categories?.icon || '🏢'}</span>
+                  <div>
+                    <p className="font-medium text-gray-900 text-sm">{f.venues?.name}</p>
+                    <p className="text-xs text-gray-500">{f.venues?.city}</p>
+                  </div>
+                </div>
+                <button onClick={() => removeFavMutation.mutate(f.venue_id)} className="text-gray-400 hover:text-red-500 transition-colors">
+                  <TrashIcon className="w-4 h-4" />
+                </button>
+              </div>
+            ))}</div>
+        )}
         {activeTab === 'reviews' && (
           reviews.length === 0
             ? <EmptyState text={t('profile.emptyReviews')} sub={t('profile.emptyReviewsDesc')} />

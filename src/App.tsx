@@ -34,7 +34,11 @@ const App = () => {
     })
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (_event, session) => {
+      async (event, session) => {
+        if (event === 'SIGNED_OUT') {
+          logout()
+          return
+        }
         setUser(session?.user ?? null)
         if (session?.user) {
           try {
@@ -43,8 +47,6 @@ const App = () => {
           } catch {
             setProfile(null)
           }
-        } else {
-          logout()
         }
       }
     )

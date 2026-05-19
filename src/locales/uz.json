@@ -109,7 +109,11 @@
     "loginToBookDesc": "Bron qilish uchun avval kiring",
     "paymentNote": "💳 To'lov tizimi keyinroq qo'shiladi. Hozirda joyida to'lash mumkin.",
     "noRating": "Hali baho yo'q",
-    "noSlotsForDate": "Bu sana uchun vaqtlar mavjud emas"
+    "noSlotsForDate": "Bu sana uchun vaqtlar mavjud emas",
+    "writeReview": "Izoh qoldirish",
+    "submitReview": "Izohni yuborish",
+    "reviewPlaceholder": "Tajribangiz bilan o'rtoqlashing...",
+    "reviewSubmitted": "Izoh muvaffaqiyatli yuborildi"
   },
   "booking": {
     "title": "Bron qilish",
@@ -208,6 +212,25 @@
     "emptyBookings": "Hali bronlar yo'q",
     "user": "Foydalanuvchi",
     "venue": "Venue",
+    "analytics": {
+      "title": "Analitika",
+      "revenueChart": "Daromad",
+      "bookingChart": "Bronlar",
+      "statusChart": "Bron holati",
+      "venueChart": "Venue lar bo'yicha bronlar",
+      "daily": "Kunlik",
+      "weekly": "Haftalik",
+      "monthly": "Oylik",
+      "bookings": "Bronlar",
+      "revenue": "Daromad",
+      "amount": "Miqdor",
+      "noData": "Ma'lumot mavjud emas",
+      "revenueChange": "o'tgan oyga nisbatan",
+      "bookingsChange": "o'tgan oyga nisbatan",
+      "confirmed": "Tasdiqlangan",
+      "cancelled": "Bekor qilingan",
+      "completed": "Yakunlangan"
+    },
     "setup": {
       "editTitle": "Venue ni tahrirlash",
       "newTitle": "Yangi venue qo'shish",
