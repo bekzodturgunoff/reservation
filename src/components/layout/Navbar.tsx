@@ -1,15 +1,19 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
+import { Menu, X, Globe, ChevronDown, User, CalendarDays, LogOut, LayoutDashboard } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
-import { Menu, X, User, LogOut, Calendar } from 'lucide-react'
 import { useAuthStore } from '../../store/authStore'
-import Button from '../ui/Button'
+import { useToastStore } from '../../store/toastStore'
+import { supabase } from '../../lib/supabase'
 
 const Navbar = () => {
   const { t, i18n } = useTranslation()
   const { user, profile, logout } = useAuthStore()
-  const [menuOpen, setMenuOpen] = useState(false)
-  const [dropdownOpen, setDropdownOpen] = useState(false)
+  const { addToast } = useToastStore()
+  const navigate = useNavigate()
+
+  const [mobileOpen, setMobileOpen] = useState(false)
+  const [userMenuOpen, setUserMenuOpen] = useState(false)
 
   const toggleLang = () => {
     const next = i18n.language === 'uz' ? 'ru' : 'uz'
@@ -17,89 +21,146 @@ const Navbar = () => {
     localStorage.setItem('lang', next)
   }
 
+  const handleLogout = async () => {
+    await supabase.auth.signOut()
+    logout()
+    setUserMenuOpen(false)
+    addToast({ type: 'success', message: 'Logged out successfully' })
+    navigate('/')
+  }
+
+  const categories = [
+    { slug: 'cafe', label: '☕ Kafe' },
+    { slug: 'restaurant', label: '🍽️ Restoran' },
+    { slug: 'football', label: '⚽ Futbol' },
+    { slug: 'gaming', label: '🎮 Gaming' },
+  ]
+
   return (
-    <nav className="sticky top-0 z-40 border-b border-gray-200 bg-white/95 backdrop-blur">
-      <div className="mx-auto max-w-7xl flex items-center justify-between px-4 h-16">
-        <Link to="/" className="text-xl font-bold text-blue-600">BronUz</Link>
+    <nav className="bg-white border-b border-gray-200 sticky top-0 z-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between h-16">
 
-        <div className="hidden md:flex items-center gap-4">
-          <button
-            onClick={toggleLang}
-            className="text-sm font-medium text-gray-600 hover:text-gray-900 px-2 py-1 rounded hover:bg-gray-100"
-          >
-            {i18n.language === 'uz' ? 'RU' : 'UZ'}
-          </button>
+          <Link to="/" className="flex items-center gap-2">
+            <div className="w-8 h-8 bg-emerald-600 rounded-lg flex items-center justify-center">
+              <CalendarDays className="w-5 h-5 text-white" />
+            </div>
+            <span className="text-xl font-bold text-gray-900">BronUz</span>
+          </Link>
 
-          {user ? (
-            <div className="relative">
-              <button
-                onClick={() => setDropdownOpen(!dropdownOpen)}
-                className="flex items-center gap-2 rounded-full p-1 hover:bg-gray-100"
+          <div className="hidden md:flex items-center gap-6">
+            {categories.map(cat => (
+              <Link
+                key={cat.slug}
+                to={`/search?category=${cat.slug}`}
+                className="text-sm text-gray-600 hover:text-emerald-600 transition-colors"
               >
-                <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white text-sm font-medium">
-                  {profile?.full_name?.[0] || 'U'}
-                </div>
-              </button>
-              {dropdownOpen && (
-                <>
-                  <div className="fixed inset-0" onClick={() => setDropdownOpen(false)} />
-                  <div className="absolute right-0 mt-2 w-48 rounded-xl border border-gray-200 bg-white py-2 shadow-lg">
+                {cat.label}
+              </Link>
+            ))}
+          </div>
+
+          <div className="flex items-center gap-3">
+
+            <button
+              onClick={toggleLang}
+              className="flex items-center gap-1 text-sm text-gray-600 hover:text-emerald-600 transition-colors px-2 py-1 rounded-md hover:bg-gray-100"
+            >
+              <Globe className="w-4 h-4" />
+              <span className="uppercase font-medium">{i18n.language}</span>
+            </button>
+
+            {user && profile ? (
+              <div className="relative">
+                <button
+                  onClick={() => setUserMenuOpen(!userMenuOpen)}
+                  className="flex items-center gap-2 text-sm text-gray-700 hover:text-emerald-600 transition-colors px-3 py-2 rounded-lg hover:bg-gray-100"
+                >
+                  <div className="w-7 h-7 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-700 font-semibold text-xs">
+                    {profile.full_name?.charAt(0)?.toUpperCase() || 'U'}
+                  </div>
+                  <span className="hidden sm:block max-w-[120px] truncate">{profile.full_name}</span>
+                  <ChevronDown className="w-4 h-4" />
+                </button>
+
+                {userMenuOpen && (
+                  <div className="absolute right-0 mt-2 w-52 bg-white rounded-xl shadow-lg border border-gray-100 py-1 z-50">
                     <Link
                       to="/profile"
-                      className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
-                      onClick={() => setDropdownOpen(false)}
+                      onClick={() => setUserMenuOpen(false)}
+                      className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50"
                     >
-                      <User className="w-4 h-4" /> {t('common.profile') || 'Profile'}
+                      <User className="w-4 h-4" /> My Profile
                     </Link>
-                    <Link
-                      to="/profile?tab=bookings"
-                      className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
-                      onClick={() => setDropdownOpen(false)}
-                    >
-                      <Calendar className="w-4 h-4" /> {t('common.my_bookings') || 'My Bookings'}
-                    </Link>
+                    {(profile.role === 'business' || profile.role === 'admin') && (
+                      <Link
+                        to="/business/dashboard"
+                        onClick={() => setUserMenuOpen(false)}
+                        className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50"
+                      >
+                        <LayoutDashboard className="w-4 h-4" /> Business Panel
+                      </Link>
+                    )}
+                    {profile.role === 'admin' && (
+                      <Link
+                        to="/admin"
+                        onClick={() => setUserMenuOpen(false)}
+                        className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50"
+                      >
+                        <LayoutDashboard className="w-4 h-4" /> Admin Panel
+                      </Link>
+                    )}
                     <hr className="my-1 border-gray-100" />
                     <button
-                      onClick={() => { logout(); setDropdownOpen(false) }}
-                      className="flex w-full items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-gray-50"
+                      onClick={handleLogout}
+                      className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50"
                     >
                       <LogOut className="w-4 h-4" /> {t('common.logout')}
                     </button>
                   </div>
-                </>
-              )}
-            </div>
-          ) : (
-            <>
-              <Link to="/login"><Button variant="ghost">{t('common.login')}</Button></Link>
-              <Link to="/register"><Button>{t('common.register')}</Button></Link>
-            </>
-          )}
+                )}
+              </div>
+            ) : (
+              <div className="flex items-center gap-2">
+                <Link
+                  to="/login"
+                  className="text-sm text-gray-700 hover:text-emerald-600 px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors"
+                >
+                  {t('common.login')}
+                </Link>
+                <Link
+                  to="/register"
+                  className="text-sm bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700 transition-colors font-medium"
+                >
+                  {t('common.register')}
+                </Link>
+              </div>
+            )}
+
+            <button
+              className="md:hidden p-2 rounded-lg hover:bg-gray-100"
+              onClick={() => setMobileOpen(!mobileOpen)}
+            >
+              {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            </button>
+          </div>
         </div>
 
-        <button className="md:hidden p-2" onClick={() => setMenuOpen(!menuOpen)}>
-          {menuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-        </button>
+        {mobileOpen && (
+          <div className="md:hidden border-t border-gray-100 py-3 space-y-1">
+            {categories.map(cat => (
+              <Link
+                key={cat.slug}
+                to={`/search?category=${cat.slug}`}
+                onClick={() => setMobileOpen(false)}
+                className="block px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-lg"
+              >
+                {cat.label}
+              </Link>
+            ))}
+          </div>
+        )}
       </div>
-
-      {menuOpen && (
-        <div className="md:hidden border-t border-gray-100 px-4 py-4 space-y-3">
-          <button onClick={toggleLang} className="block text-sm font-medium text-gray-600">
-            {i18n.language === 'uz' ? 'RU' : 'UZ'}
-          </button>
-          {user ? (
-            <>
-              <Link to="/profile" className="block text-sm text-gray-700" onClick={() => setMenuOpen(false)}>{t('common.profile') || 'Profile'}</Link>
-              <button onClick={() => { logout(); setMenuOpen(false) }} className="block text-sm text-red-600">{t('common.logout')}</button>
-            </>
-          ) : (
-            <>
-              <Link to="/login" onClick={() => setMenuOpen(false)} className="block"><Button variant="ghost" className="w-full">{t('common.login')}</Button></Link>
-              <Link to="/register" onClick={() => setMenuOpen(false)} className="block"><Button className="w-full">{t('common.register')}</Button></Link>
-            </>
-          )}
-        </div>
-      )}
     </nav>
   )
 }

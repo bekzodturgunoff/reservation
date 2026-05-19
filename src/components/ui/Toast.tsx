@@ -1,44 +1,52 @@
+import { useEffect } from 'react'
+import { CheckCircle, XCircle, AlertCircle, Info, X } from 'lucide-react'
 import { useToastStore } from '../../store/toastStore'
-import { CheckCircle, XCircle, Info, AlertTriangle, X } from 'lucide-react'
 
 const icons = {
-  success: CheckCircle,
-  error: XCircle,
-  info: Info,
-  warning: AlertTriangle,
+  success: <CheckCircle className="w-5 h-5 text-emerald-500" />,
+  error: <XCircle className="w-5 h-5 text-red-500" />,
+  warning: <AlertCircle className="w-5 h-5 text-yellow-500" />,
+  info: <Info className="w-5 h-5 text-blue-500" />,
 }
 
-const colors = {
-  success: 'bg-green-50 border-green-200 text-green-800',
-  error: 'bg-red-50 border-red-200 text-red-800',
-  info: 'bg-blue-50 border-blue-200 text-blue-800',
-  warning: 'bg-yellow-50 border-yellow-200 text-yellow-800',
+const bgColors = {
+  success: 'bg-emerald-50 border-emerald-200',
+  error: 'bg-red-50 border-red-200',
+  warning: 'bg-yellow-50 border-yellow-200',
+  info: 'bg-blue-50 border-blue-200',
 }
 
-const ToastContainer = () => {
+const Toast = () => {
   const { toasts, removeToast } = useToastStore()
 
-  if (toasts.length === 0) return null
-
   return (
-    <div className="fixed top-4 right-4 z-[100] flex flex-col gap-2">
-      {toasts.map((toast) => {
-        const Icon = icons[toast.type]
-        return (
-          <div
-            key={toast.id}
-            className={`flex items-center gap-3 rounded-lg border px-4 py-3 shadow-lg min-w-[300px] ${colors[toast.type]}`}
-          >
-            <Icon className="w-5 h-5 shrink-0" />
-            <p className="text-sm flex-1">{toast.message}</p>
-            <button onClick={() => removeToast(toast.id)} className="shrink-0">
-              <X className="w-4 h-4" />
-            </button>
-          </div>
-        )
-      })}
+    <div className="fixed bottom-4 right-4 z-[100] flex flex-col gap-2 max-w-sm w-full">
+      {toasts.map((toast) => (
+        <ToastItem
+          key={toast.id}
+          toast={toast}
+          onRemove={() => removeToast(toast.id)}
+        />
+      ))}
     </div>
   )
 }
 
-export default ToastContainer
+const ToastItem = ({ toast, onRemove }: { toast: any; onRemove: () => void }) => {
+  useEffect(() => {
+    const timer = setTimeout(onRemove, 4000)
+    return () => clearTimeout(timer)
+  }, [])
+
+  return (
+    <div className={`flex items-start gap-3 px-4 py-3 rounded-xl border shadow-md ${bgColors[toast.type as keyof typeof bgColors]}`}>
+      {icons[toast.type as keyof typeof icons]}
+      <p className="text-sm text-gray-800 flex-1">{toast.message}</p>
+      <button onClick={onRemove} className="text-gray-400 hover:text-gray-600 mt-0.5">
+        <X className="w-4 h-4" />
+      </button>
+    </div>
+  )
+}
+
+export default Toast
