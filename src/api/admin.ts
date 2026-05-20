@@ -10,13 +10,13 @@ export interface AdminStats {
 }
 
 export interface PendingVenue extends Venue {
-  profiles?: { full_name: string; email?: string; phone?: string }
+  profiles?: { full_name: string; email?: string; phone?: string; avatar_url?: string | null }
 }
 
 export const getPendingVenues = async (): Promise<PendingVenue[]> => {
   const { data, error } = await supabase
     .from('venues')
-    .select('*, categories(id, slug, name_uz, name_ru, icon), profiles!owner_id(full_name, phone)')
+    .select('*, categories(id, slug, name_uz, name_ru, icon), profiles!owner_id(full_name, phone, avatar_url)')
     .eq('status', 'pending')
     .order('created_at', { ascending: false })
   if (error) throw error
@@ -26,7 +26,7 @@ export const getPendingVenues = async (): Promise<PendingVenue[]> => {
 export const getHumanReviewVenues = async (): Promise<PendingVenue[]> => {
   const { data, error } = await supabase
     .from('venues')
-    .select('*, categories(id, slug, name_uz, name_ru, icon), profiles!owner_id(full_name, phone)')
+    .select('*, categories(id, slug, name_uz, name_ru, icon), profiles!owner_id(full_name, phone, avatar_url)')
     .eq('status', 'human_action_needed')
     .order('created_at', { ascending: false })
   if (error) throw error

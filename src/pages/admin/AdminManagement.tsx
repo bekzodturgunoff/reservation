@@ -8,18 +8,13 @@ import { useToastStore } from '../../store/toastStore'
 import { useTitle } from '../../hooks/useTitle'
 import { supabase } from '../../lib/supabase'
 import Button from '../../components/ui/Button'
-import { useTranslation } from 'react-i18next'
-
-const MASTER_ADMIN_EMAIL = 'bekzodturgunoff@gmail.com'
 
 const AdminManagement = () => {
-  const { t } = useTranslation()
   useTitle('Manage Admins')
   const navigate = useNavigate()
   const { addToast } = useToastStore()
   const queryClient = useQueryClient()
   const user = useAuthStore(s => s.user)
-  const profile = useAuthStore(s => s.profile)
 
   const [authorized, setAuthorized] = useState(false)
   const [authEmail, setAuthEmail] = useState('')

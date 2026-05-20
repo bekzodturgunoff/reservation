@@ -82,9 +82,13 @@ const VenueDetailReviews = ({ reviews, venueId, hasUser }: Props) => {
             <div key={review.id} className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
               <div className="flex items-start justify-between mb-2">
                 <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-700 font-semibold text-sm">
-                    {review.profiles?.full_name?.charAt(0)?.toUpperCase() || 'U'}
-                  </div>
+                  {review.profiles?.avatar_url ? (
+                    <img src={review.profiles.avatar_url} alt="" className="w-9 h-9 rounded-full object-cover border border-gray-200" />
+                  ) : (
+                    <div className="w-9 h-9 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-700 font-semibold text-sm">
+                      {review.profiles?.full_name?.charAt(0)?.toUpperCase() || 'U'}
+                    </div>
+                  )}
                   <div>
                     <p className="font-medium text-gray-900 text-sm">
                       {review.profiles?.full_name || t('venue.user')}

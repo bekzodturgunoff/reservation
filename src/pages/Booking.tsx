@@ -156,7 +156,9 @@ const Booking = () => {
         venue_id: venue.id,
         venue_name: venue.name,
         customer_name: profile?.full_name || user.user_metadata?.full_name || user.email || 'Mijoz',
+        customer_email: user.email || undefined,
         customer_phone: profile?.phone || user.phone || undefined,
+        service_name: selectedService?.name || undefined,
         date: slot.date,
         start_time: slot.start_time.slice(0, 5),
         end_time: slot.end_time.slice(0, 5),
@@ -380,9 +382,9 @@ const Booking = () => {
 
         {/* Recurring booking */}
         <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
-          <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center justify-between gap-3 mb-3 flex-wrap">
             <div className="flex items-center gap-2">
-              <ArrowPathIcon className="w-5 h-5 text-emerald-600" />
+              <ArrowPathIcon className="w-5 h-5 text-emerald-600 shrink-0" />
               <h3 className="font-semibold text-gray-900">Repeat Booking</h3>
             </div>
             <label className="relative inline-flex items-center cursor-pointer">

@@ -154,12 +154,12 @@ const BusinessDashboard = () => {
 
   return (
     <div className="space-y-8">
-      <div className="flex items-center justify-between">
-        <div>
+      <div className="flex items-start justify-between gap-4 flex-wrap">
+        <div className="min-w-0 flex-1">
           <h1 className="text-2xl font-bold text-gray-900">{t('business.dashboard')}</h1>
-          <p className="text-sm text-gray-500 mt-1">{profile?.full_name} {t('business.welcome')}</p>
+          <p className="text-sm text-gray-500 mt-1 truncate">{profile?.full_name} {t('business.welcome')}</p>
         </div>
-        <Link to="/business/venue/new">
+        <Link to="/business/venue/new" className="shrink-0">
           <Button><PlusCircleIcon className="w-4 h-4" /> {t('business.addVenue')}</Button>
         </Link>
       </div>
@@ -226,6 +226,16 @@ const BusinessDashboard = () => {
           </Link>
         )}
       </div>
+
+      {venues.length > 0 && (
+        <div className="bg-blue-50 border border-blue-100 rounded-2xl p-4 flex items-start gap-3">
+          <span className="text-lg shrink-0 mt-0.5">💡</span>
+          <div>
+            <h3 className="text-sm font-semibold text-blue-900">{t('business.guideTitle')}</h3>
+            <p className="text-sm text-blue-700 mt-0.5">{t('business.guideText')}</p>
+          </div>
+        </div>
+      )}
 
       {/* Telegram Connect */}
       <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
@@ -333,6 +343,13 @@ const BusinessDashboard = () => {
                     <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium ${venueStatusConfig[v.status]?.color || 'bg-gray-100 text-gray-700'}`}>
                       {venueStatusConfig[v.status]?.icon || '•'} {venueStatusConfig[v.status]?.label || v.status}
                     </span>
+                    <Link
+                      to={`/business/venue/${v.id}/availability`}
+                      className="p-2 text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-xl transition-colors"
+                      title={t('business.setup.manageAvailability')}
+                    >
+                      <CalendarDaysIcon className="w-4 h-4" />
+                    </Link>
                     <Link
                       to={`/business/venue/${v.id}/edit`}
                       className="p-2 text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-xl transition-colors"

@@ -11,7 +11,9 @@ interface NotificationPayload {
   venue_id: string
   venue_name: string
   customer_name: string
+  customer_email?: string
   customer_phone?: string
+  service_name?: string
   date: string
   start_time: string
   end_time: string
@@ -62,8 +64,11 @@ serve(async (req) => {
 
     const message =
       `🆕 <b>Yangi bron!</b>\n\n` +
-      `📍 <b>Venue:</b> ${payload.venue_name}\n` +
-      `👤 <b>Mijoz:</b> ${payload.customer_name}${payload.customer_phone ? ` (${payload.customer_phone})` : ''}\n` +
+      `📍 <b>Joy:</b> ${payload.venue_name}\n` +
+      `👤 <b>Mijoz:</b> ${payload.customer_name}\n` +
+      (payload.customer_email ? `📧 ${payload.customer_email}\n` : '') +
+      (payload.customer_phone ? `📞 ${payload.customer_phone}\n` : '') +
+      (payload.service_name ? `🔧 <b>Xizmat:</b> ${payload.service_name}\n` : '') +
       `📅 <b>Sana:</b> ${payload.date}\n` +
       `⏰ <b>Vaqt:</b> ${payload.start_time} — ${payload.end_time}\n` +
       (payload.note ? `📝 <b>Izoh:</b> ${payload.note}\n` : '') +

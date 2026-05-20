@@ -324,7 +324,7 @@ const Profile = () => {
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 bg-gray-100 rounded-xl p-1 overflow-x-auto">
+      <div className="flex gap-1 bg-gray-100 rounded-xl p-1 overflow-x-auto scrollbar-hide">
         {([
           { key: 'upcoming', label: `${t('profile.tabs.upcoming')} (${upcomingBookings.length})` },
           { key: 'calendar', label: '📅' },
@@ -337,7 +337,7 @@ const Profile = () => {
           <button
             key={tab.key}
             onClick={() => setActiveTab(tab.key)}
-            className={`flex-1 py-2.5 text-sm font-medium rounded-lg transition-colors whitespace-nowrap px-2 ${
+            className={`py-2.5 text-sm font-medium rounded-lg transition-colors whitespace-nowrap px-3 flex-shrink-0 ${
               activeTab === tab.key ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'
             }`}
           >

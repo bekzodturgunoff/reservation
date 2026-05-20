@@ -11,6 +11,7 @@
     "back": "Back",
     "home": "Home",
     "all": "All",
+    "selectRegion": "Select region",
     "other": "Other",
     "error": "Something went wrong",
     "success": "Success",
@@ -253,6 +254,8 @@
     "addFirstVenue": "Add your first venue",
     "upcomingBookings": "Upcoming bookings",
     "emptyBookings": "No bookings yet",
+    "guideTitle": "Quick guide",
+    "guideText": "Click a venue name or the calendar icon to manage its time slots. Customers can only book when slots are available.",
     "user": "User",
     "venue": "Venue",
     "tips": {
@@ -315,6 +318,7 @@
       "location": "Location (click the map)",
       "photos": "Photos",
       "upload": "Upload",
+      "uploading": "Uploading...",
       "cancel": "Cancel",
       "update": "Update",
       "create": "Create",
@@ -331,11 +335,18 @@
       "serviceAdded": "Option added",
       "serviceDeleted": "Option removed",
       "useMyLocation": "Use my location",
+      "geoLocated": "Location found",
+      "geoDenied": "Location access denied. Please allow location access in your browser settings.",
+      "geoUnavailable": "Location unavailable. Try again later.",
+      "geoTimeout": "Location request timed out. Try again.",
+      "geoError": "Failed to get location",
+      "geoNotSupported": "Geolocation is not supported by your browser",
       "cancellationPolicy": "Cancellation policy",
       "cancellationFlexible": "Flexible — free cancellation up to 24h before",
       "cancellationStandard": "Standard — free cancellation up to 12h before",
       "cancellationStrict": "Strict — no free cancellation",
-      "cancellationDesc": "Shown to customers during booking"
+      "cancellationDesc": "Shown to customers during booking",
+      "manageAvailability": "Manage time slots"
     },
     "availability": {
       "title": "Manage time slots",
@@ -462,5 +473,19 @@
     "installTitle": "Install BronUz",
     "installDesc": "Install the app on your device — faster and more convenient",
     "install": "Install"
+  },
+  "regions": {
+    "Andijan Region": "Andijan Region",
+    "Bukhara Region": "Bukhara Region",
+    "Fergana Region": "Fergana Region",
+    "Jizzakh Region": "Jizzakh Region",
+    "Khorazm Region": "Khorazm Region",
+    "Namangan Region": "Namangan Region",
+    "Navoiy Region": "Navoiy Region",
+    "Qashqadaryo Region": "Qashqadaryo Region",
+    "Samarqand Region": "Samarqand Region",
+    "Sirdaryo Region": "Sirdaryo Region",
+    "Surxondaryo Region": "Surxondaryo Region",
+    "Tashkent Region": "Tashkent Region"
   }
 }

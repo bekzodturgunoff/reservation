@@ -19,8 +19,6 @@ import { useTranslation } from 'react-i18next'
 import { getVenueStaff, createStaff, deleteStaff } from '../../api/staff'
 import type { PricingUnit, StaffMember } from '../../types'
 
-const CITIES = Object.values(UZBEKISTAN_REGIONS).flat()
-
 const PRICING_UNITS: { value: PricingUnit; labelKey: string; exampleKey: string }[] = [
   { value: 'per_hour', labelKey: 'common.pricing_units.per_hour', exampleKey: 'business.setup.pricingUnit_per_hour' },
   { value: 'per_session', labelKey: 'common.pricing_units.per_session', exampleKey: 'business.setup.pricingUnit_per_session' },
@@ -44,6 +42,8 @@ const VenueSetup = () => {
   const [photos, setPhotos] = useState<string[]>([])
   const [uploading, setUploading] = useState(false)
   const [submitting, setSubmitting] = useState(false)
+  const [selectedRegion, setSelectedRegion] = useState('')
+  const [locating, setLocating] = useState(false)
   const [newStaffName, setNewStaffName] = useState('')
   const [newStaffTitle, setNewStaffTitle] = useState('')
   const [newServiceName, setNewServiceName] = useState('')
@@ -51,7 +51,7 @@ const VenueSetup = () => {
   const [newServiceDesc, setNewServiceDesc] = useState('')
   const [newServiceDuration, setNewServiceDuration] = useState('')
   const [newServiceUnit, setNewServiceUnit] = useState<PricingUnit>('per_hour')
-  const [localServices, setLocalServices] = useState<{ name: string; price: number; unit: PricingUnit; description: string; duration_minutes: number | null }[]>([])
+  const [localServices, setLocalServices] = useState<{ id?: string; name: string; price: number; unit: PricingUnit; description: string; duration_minutes: number | null }[]>([])
   const [staffList, setStaffList] = useState<StaffMember[]>([])
   const fileRef = useRef<HTMLInputElement>(null)
   const mapRef = useRef<HTMLDivElement>(null)
@@ -174,7 +174,7 @@ const VenueSetup = () => {
 
   type FormData = z.infer<typeof schema>
 
-  const { register, handleSubmit, formState: { errors }, reset } = useForm<FormData>({
+  const { register, handleSubmit, formState: { errors }, reset, setValue } = useForm<FormData>({
     resolver: zodResolver(schema),
   })
 
@@ -189,6 +189,12 @@ const VenueSetup = () => {
         phone: existingVenue.phone || '',
       })
       if (existingVenue.photos?.length) setPhotos(existingVenue.photos)
+      for (const [region, cities] of Object.entries(UZBEKISTAN_REGIONS)) {
+        if (cities.includes(existingVenue.city)) {
+          setSelectedRegion(region)
+          break
+        }
+      }
     }
   }, [existingVenue])
 
@@ -287,8 +293,8 @@ const VenueSetup = () => {
   const allServices = isEdit ? services : [...localServices]
 
   return (
-    <div className="max-w-2xl mx-auto">
-      <h1 className="text-2xl font-bold text-gray-900 mb-6">{isEdit ? t('business.setup.editTitle') : t('business.setup.newTitle')}</h1>
+    <div className="max-w-2xl mx-auto px-4 sm:px-0">
+      <h1 className="text-xl sm:text-2xl font-bold text-gray-900 mb-6">{isEdit ? t('business.setup.editTitle') : t('business.setup.newTitle')}</h1>
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
         <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm space-y-4">
           <Input label={t('business.setup.name')} placeholder={t('business.setup.namePlaceholder')} error={errors.name?.message} {...register('name')} />
@@ -306,11 +312,34 @@ const VenueSetup = () => {
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Input label={t('business.setup.address')} placeholder={t('business.setup.addressPlaceholder')} error={errors.address?.message} {...register('address')} />
-            <div>
+            <div className="space-y-2">
               <label className="block text-sm font-medium text-gray-700 mb-1.5">{t('business.setup.city')}</label>
-              <select {...register('city')} className="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
-                {CITIES.map(c => <option key={c} value={c}>{c}</option>)}
+              <select
+                value={selectedRegion}
+                onChange={e => {
+                  const region = e.target.value
+                  setSelectedRegion(region)
+                  if (region) {
+                    const cities = UZBEKISTAN_REGIONS[region]
+                    if (cities?.length) setValue('city', cities[0])
+                  } else {
+                    setValue('city', '')
+                  }
+                }}
+                className="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 mb-1"
+              >
+                <option value="">{t('common.selectRegion')}</option>
+                {Object.keys(UZBEKISTAN_REGIONS).map(r => (
+                  <option key={r} value={r}>{t(`regions.${r}`)}</option>
+                ))}
               </select>
+              {selectedRegion && (
+                <select {...register('city')} className="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                  {UZBEKISTAN_REGIONS[selectedRegion].map(c => (
+                    <option key={c} value={c}>{c}</option>
+                  ))}
+                </select>
+              )}
             </div>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -323,20 +352,37 @@ const VenueSetup = () => {
             <label className="block text-sm font-medium text-gray-700">{t('business.setup.location')}</label>
             <button
               type="button"
+              disabled={locating}
               onClick={() => {
-                if (!navigator.geolocation) return
+                if (!navigator.geolocation) {
+                  addToast({ type: 'error', message: t('business.setup.geoNotSupported') })
+                  return
+                }
+                setLocating(true)
                 navigator.geolocation.getCurrentPosition(
-                  (pos) => setUserPosition([pos.coords.latitude, pos.coords.longitude]),
-                  () => {},
+                  (pos) => {
+                    setUserPosition([pos.coords.latitude, pos.coords.longitude])
+                    setLocating(false)
+                    addToast({ type: 'success', message: t('business.setup.geoLocated') })
+                  },
+                  (err) => {
+                    setLocating(false)
+                    const msgs: Record<number, string> = {
+                      [err.PERMISSION_DENIED]: t('business.setup.geoDenied'),
+                      [err.POSITION_UNAVAILABLE]: t('business.setup.geoUnavailable'),
+                      [err.TIMEOUT]: t('business.setup.geoTimeout'),
+                    }
+                    addToast({ type: 'error', message: msgs[err.code] || t('business.setup.geoError') })
+                  },
                   { enableHighAccuracy: true, timeout: 10000 },
                 )
               }}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-blue-600 bg-blue-50 rounded-xl hover:bg-blue-100 transition-colors"
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-blue-600 bg-blue-50 rounded-xl hover:bg-blue-100 transition-colors disabled:opacity-50 whitespace-nowrap"
             >
-              📍 {t('business.setup.useMyLocation')}
+              📍 {locating ? t('common.loading') : t('business.setup.useMyLocation')}
             </button>
           </div>
-          <div ref={mapRef} className="h-[300px] rounded-xl overflow-hidden border border-gray-200" />
+          <div ref={mapRef} className="h-[300px] rounded-xl overflow-hidden border border-gray-200 relative z-0" />
           <p className="text-xs text-gray-400 mt-2">{position[0].toFixed(4)}, {position[1].toFixed(4)}</p>
         </div>
 
@@ -349,9 +395,21 @@ const VenueSetup = () => {
                 <button type="button" onClick={() => removePhoto(i)} className="absolute top-1 right-1 w-5 h-5 bg-red-500 text-white rounded-full text-xs flex items-center justify-center hover:bg-red-600">×</button>
               </div>
             ))}
-            <button type="button" onClick={() => fileRef.current?.click()} disabled={uploading} className="w-24 h-24 rounded-xl border-2 border-dashed border-gray-200 flex flex-col items-center justify-center text-gray-400 hover:border-emerald-300 hover:text-emerald-600 transition-colors disabled:opacity-50">
-              <CameraIcon className="w-5 h-5" />
-              <span className="text-xs mt-1">{uploading ? '...' : t('business.setup.upload')}</span>
+            <button type="button" onClick={() => fileRef.current?.click()} disabled={uploading} className="w-24 h-24 rounded-xl border-2 border-dashed border-gray-200 flex flex-col items-center justify-center text-gray-400 hover:border-emerald-300 hover:text-emerald-600 transition-colors disabled:opacity-50 relative">
+              {uploading ? (
+                <>
+                  <svg className="animate-spin w-5 h-5 text-emerald-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                  </svg>
+                  <span className="text-xs mt-1 text-emerald-600 font-medium">{t('business.setup.uploading')}</span>
+                </>
+              ) : (
+                <>
+                  <CameraIcon className="w-5 h-5" />
+                  <span className="text-xs mt-1">{t('business.setup.upload')}</span>
+                </>
+              )}
             </button>
             <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handlePhotoUpload} />
           </div>
@@ -369,14 +427,14 @@ const VenueSetup = () => {
                     <p className="text-sm font-medium text-gray-900">{s.name}</p>
                     <p className="text-xs text-gray-500">
                       {s.price.toLocaleString()} so'm / {t(`common.pricing_units.${s.unit}`)}
-                      {s.duration_minutes && ` · ${s.duration_minutes} min`}
+                      {s.duration_minutes ? ` · ${s.duration_minutes} ${s.unit === 'per_day' ? t('common.pricing_units.per_day') : t('common.minute')}` : ''}
                     </p>
                   </div>
                   <button
                     type="button"
                     onClick={() => {
                       if (isEdit) {
-                        deleteServiceMutation.mutate(s.id)
+                        deleteServiceMutation.mutate(s.id!)
                       } else {
                         setLocalServices(prev => prev.filter((_, idx) => idx !== i))
                       }
@@ -431,8 +489,11 @@ const VenueSetup = () => {
                 placeholder={t('business.setup.serviceDescription')}
               />
             </div>
-            <div>
-              <label className="block text-xs font-medium text-gray-500 mb-1">{t('business.setup.serviceDuration')}</label>
+            <div className={['per_hour', 'per_session', 'per_person', 'per_day'].includes(newServiceUnit) ? '' : 'hidden'}>
+              <label className="block text-xs font-medium text-gray-500 mb-1">
+                {t('business.setup.serviceDuration')}
+                {newServiceUnit === 'per_day' ? ` (${t('common.pricing_units.per_day')})` : ` (${t('common.minute')})`}
+              </label>
               <input
                 type="number"
                 value={newServiceDuration}

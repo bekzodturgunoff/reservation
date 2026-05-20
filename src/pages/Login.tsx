@@ -66,7 +66,7 @@ const Login = () => {
           <p className="text-gray-500 mt-1 text-sm">{t('auth.loginSubtitle')}</p>
         </div>
 
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8">
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 sm:p-8">
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
             <Input
               label={t('common.email')}

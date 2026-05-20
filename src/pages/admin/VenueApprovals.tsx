@@ -292,9 +292,13 @@ const VenueApprovals = () => {
 
                   {v.profiles && (
                     <div className="mt-4 pt-4 border-t border-gray-50 flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-700 font-semibold text-xs">
-                        {v.profiles.full_name?.charAt(0)?.toUpperCase() || 'O'}
-                      </div>
+                      {v.profiles.avatar_url ? (
+                        <img src={v.profiles.avatar_url} alt="" className="w-8 h-8 rounded-full object-cover border border-gray-200" />
+                      ) : (
+                        <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-700 font-semibold text-xs">
+                          {v.profiles.full_name?.charAt(0)?.toUpperCase() || 'O'}
+                        </div>
+                      )}
                       <div className="text-sm">
                         <p className="font-medium text-gray-700">{v.profiles.full_name}</p>
                         {v.profiles.phone && <p className="text-gray-400 text-xs">{v.profiles.phone}</p>}

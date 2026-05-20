@@ -11,6 +11,7 @@
     "back": "Orqaga",
     "home": "Bosh sahifa",
     "all": "Hammasi",
+    "selectRegion": "Viloyatni tanlang",
     "other": "Boshqa",
     "error": "Xatolik yuz berdi",
     "success": "Muvaffaqiyatli",
@@ -253,6 +254,8 @@
     "addFirstVenue": "Birinchi joyni qo'shish",
     "upcomingBookings": "Kelgusi bronlar",
     "emptyBookings": "Hali bronlar yo'q",
+    "guideTitle": "Qo'llanma",
+    "guideText": "Joy nomini yoki kalendar ikonkasini bosing — vaqtlarni boshqaring. Mijozlar faqat vaqtlar mavjud bo'lganda bron qila oladi.",
     "user": "Foydalanuvchi",
     "venue": "Joy",
     "tips": {
@@ -315,6 +318,7 @@
       "location": "Joylashuv (xaritada bosing)",
       "photos": "Rasmlar",
       "upload": "Yuklash",
+      "uploading": "Yuklanmoqda...",
       "cancel": "Bekor qilish",
       "update": "Yangilash",
       "create": "Qo'shish",
@@ -331,11 +335,18 @@
       "serviceAdded": "Variant qo'shildi",
       "serviceDeleted": "Variant o'chirildi",
       "useMyLocation": "Meni joylashuvimni aniqlash",
+      "geoLocated": "Joylashuv aniqlandi",
+      "geoDenied": "Joylashuvga ruxsat berilmagan. Brauzer sozlamalarida ruxsat bering.",
+      "geoUnavailable": "Joylashuv mavjud emas. Keyinroq qayta urinib ko'ring.",
+      "geoTimeout": "Joylashuv aniqlash vaqti tugadi. Qayta urinib ko'ring.",
+      "geoError": "Joylashuvni aniqlashda xatolik",
+      "geoNotSupported": "Brauzeringiz geolokatsiyani qo'llab-quvvatlamaydi",
       "cancellationPolicy": "Bekor qilish sharti",
       "cancellationFlexible": "Moslashuvchan — 24 soat oldin bepul",
       "cancellationStandard": "Standart — 12 soat oldin bepul",
       "cancellationStrict": "Qattiq — bepul bekor qilib bo'lmaydi",
-      "cancellationDesc": "Buyurtma berishda mijozlarga ko'rsatiladi"
+      "cancellationDesc": "Buyurtma berishda mijozlarga ko'rsatiladi",
+      "manageAvailability": "Vaqtlarni boshqarish"
     },
     "availability": {
       "title": "Vaqtlarni boshqarish",
@@ -462,5 +473,19 @@
     "installTitle": "BronUz ni o'rnating",
     "installDesc": "Ilovani qurilmangizga o'rnating — tezroq va qulay",
     "install": "O'rnatish"
+  },
+  "regions": {
+    "Andijan Region": "Andijon viloyati",
+    "Bukhara Region": "Buxoro viloyati",
+    "Fergana Region": "Farg'ona viloyati",
+    "Jizzakh Region": "Jizzax viloyati",
+    "Khorazm Region": "Xorazm viloyati",
+    "Namangan Region": "Namangan viloyati",
+    "Navoiy Region": "Navoiy viloyati",
+    "Qashqadaryo Region": "Qashqadaryo viloyati",
+    "Samarqand Region": "Samarqand viloyati",
+    "Sirdaryo Region": "Sirdaryo viloyati",
+    "Surxondaryo Region": "Surxondaryo viloyati",
+    "Tashkent Region": "Toshkent viloyati"
   }
 }

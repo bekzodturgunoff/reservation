@@ -57,12 +57,12 @@ const AdminDashboard = () => {
 
   return (
     <div className="space-y-8">
-      <div className="flex items-center justify-between">
-        <div>
+      <div className="flex items-start justify-between gap-4 flex-wrap">
+        <div className="min-w-0 flex-1">
           <h1 className="text-2xl font-bold text-gray-900">{t('admin.dashboard')}</h1>
           <p className="text-sm text-gray-500 mt-1">{t('admin.subtitle')}</p>
         </div>
-        <Link to="/admin/approvals">
+        <Link to="/admin/approvals" className="shrink-0">
           <Button><ShieldExclamationIcon className="w-4 h-4" /> {t('admin.approvals')}</Button>
         </Link>
       </div>

@@ -163,9 +163,13 @@ const Navbar = () => {
                       🪙 {totalPoints}
                     </span>
                   )}
-                  <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-700 font-semibold text-xs">
-                    {profile.full_name?.charAt(0)?.toUpperCase() || 'U'}
-                  </div>
+                  {profile.avatar_url ? (
+                    <img src={profile.avatar_url} alt="" className="w-6 h-6 sm:w-7 sm:h-7 rounded-full object-cover border border-gray-200" />
+                  ) : (
+                    <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-700 font-semibold text-xs">
+                      {profile.full_name?.charAt(0)?.toUpperCase() || 'U'}
+                    </div>
+                  )}
                   <span className="hidden sm:block max-w-[120px] truncate">{profile.full_name}</span>
                   <ChevronDownIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                 </button>
@@ -236,9 +240,13 @@ const Navbar = () => {
             {user && profile ? (
               <div className="px-4 py-4 space-y-1">
                 <div className="flex items-center gap-3 px-3 py-3 mb-2">
-                  <div className="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-700 font-semibold">
-                    {profile.full_name?.charAt(0)?.toUpperCase() || 'U'}
-                  </div>
+                  {profile.avatar_url ? (
+                    <img src={profile.avatar_url} alt="" className="w-10 h-10 rounded-full object-cover border border-gray-200" />
+                  ) : (
+                    <div className="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-700 font-semibold">
+                      {profile.full_name?.charAt(0)?.toUpperCase() || 'U'}
+                    </div>
+                  )}
                   <div className="min-w-0">
                     <p className="text-sm font-medium text-gray-900 truncate">{profile.full_name}</p>
                     <p className="text-xs text-gray-400 capitalize">{profile.role}</p>
