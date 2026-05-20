@@ -11,7 +11,7 @@ const VenueDetailHeader = ({ venue, photoIndex, onPhotoIndexChange }: Props) => 
   const photos = venue.photos?.length ? venue.photos : []
 
   return (
-    <div className="relative rounded-2xl overflow-hidden bg-gray-100">
+    <div className="relative -mx-4 sm:mx-0 rounded-none sm:rounded-2xl overflow-hidden" style={{background: 'var(--color-surface)'}}>
       {photos.length > 0 ? (
         <>
           <img
@@ -46,7 +46,7 @@ const VenueDetailHeader = ({ venue, photoIndex, onPhotoIndexChange }: Props) => 
           )}
         </>
       ) : (
-        <div className="h-64 sm:h-80 flex items-center justify-center text-6xl bg-gradient-to-br from-emerald-50 to-emerald-100">
+        <div className="h-64 sm:h-80 flex items-center justify-center text-6xl" style={{background: 'var(--color-brand-light)'}}>
           {venue.categories?.icon || '🏢'}
         </div>
       )}

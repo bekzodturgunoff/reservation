@@ -10,7 +10,9 @@ import { useAuthStore } from '../../store/authStore'
 import { isFavorited, addFavorite, removeFavorite } from '../../api/favorites'
 import { getVenueSocialProof } from '../../api/venues'
 import { useToastStore } from '../../store/toastStore'
+import { queryKeys } from '../../lib/queryKeys'
 import Badge from '../ui/Badge'
+import Card from '../ui/Card'
 
 interface VenueCardProps {
   venue: Venue
@@ -32,7 +34,6 @@ const VenueCard = ({ venue }: VenueCardProps) => {
   const { t } = useTranslation()
   const user = useAuthStore(s => s.user)
   const { addToast } = useToastStore()
-  const categoryName = venue.categories?.name_uz || t('common.other')
   const photo = venue.photos?.[0] || null
   const rating = venue.avg_rating ?? null
   const reviewCount = venue.review_count ?? 0
@@ -42,6 +43,7 @@ const VenueCard = ({ venue }: VenueCardProps) => {
   const services: VenueService[] = venue.services || []
   const unit = venue.pricing_unit || 'per_hour'
   const showServices = unit !== 'per_hour' && services.length > 0
+  const categoryName = venue.categories?.name_uz || t('common.other')
 
   const { data: favorited } = useQuery({
     queryKey: ['favorited', user?.id, venue.id],
@@ -50,7 +52,7 @@ const VenueCard = ({ venue }: VenueCardProps) => {
   })
 
   const { data: socialProof } = useQuery({
-    queryKey: ['venues', venue.id, 'socialProof'],
+    queryKey: queryKeys.venues.socialProof(venue.id),
     queryFn: () => getVenueSocialProof(venue.id),
     staleTime: 120_000,
   })
@@ -81,35 +83,52 @@ const VenueCard = ({ venue }: VenueCardProps) => {
 
   return (
     <Link to={`/venues/${venue.id}`} className="group block">
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-md hover:-translate-y-0.5 transition-all duration-200">
-        <div className="relative h-48 bg-gray-100 overflow-hidden">
+      <Card padding="none" hover>
+        <div className="relative h-48 overflow-hidden rounded-t-[14px]">
           {photo ? (
             <img
               src={photo}
               alt={venue.name}
-              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
             />
           ) : (
-            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-emerald-50 to-emerald-100">
+            <div
+              className="w-full h-full flex items-center justify-center"
+              style={{ background: 'var(--color-brand-light)' }}
+            >
               <span className="text-5xl">{venue.categories?.icon || '🏢'}</span>
             </div>
           )}
           <div className="absolute top-3 left-3">
-            <Badge variant="success" className="bg-white/90 text-emerald-700 backdrop-blur-sm shadow-sm">
+            <Badge variant="success" className="shadow-sm">
               {venue.categories?.icon} {categoryName}
             </Badge>
           </div>
-          <button onClick={toggleFav} className="absolute top-3 right-3 w-8 h-8 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center shadow-sm hover:bg-white transition-colors">
-            {fav ? <HeartIconSolid className="w-4 h-4 text-red-500" /> : <HeartIcon className="w-4 h-4 text-gray-400" />}
+          <button
+            onClick={toggleFav}
+            className="absolute top-3 right-3 w-8 h-8 rounded-full flex items-center justify-center shadow-sm transition-colors"
+            style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)' }}
+          >
+            {fav ? (
+              <HeartIconSolid className="w-4 h-4" style={{ color: '#FF4D4D' }} />
+            ) : (
+              <HeartIcon className="w-4 h-4" style={{ color: 'var(--color-text-tertiary)' }} />
+            )}
           </button>
         </div>
 
-        <div className="p-4">
-          <h3 className="font-semibold text-gray-900 text-base leading-snug mb-1 group-hover:text-emerald-600 transition-colors line-clamp-1">
+        <div className="p-5">
+          <h3
+            className="font-semibold text-base leading-snug mb-1 line-clamp-1 transition-colors duration-200 group-hover:text-[var(--color-brand)]"
+            style={{ color: 'var(--color-text-primary)' }}
+          >
             {venue.name}
           </h3>
-          <div className="flex items-center gap-1 text-gray-500 text-sm mb-3">
-            <MapPinIcon className="w-3.5 h-3.5 flex-shrink-0" />
+          <div
+            className="flex items-center gap-1 text-sm mb-3"
+            style={{ color: 'var(--color-text-secondary)' }}
+          >
+            <MapPinIcon className="w-3.5 h-3.5 shrink-0" />
             <span className="line-clamp-1">{venue.address || venue.city}</span>
           </div>
 
@@ -117,14 +136,23 @@ const VenueCard = ({ venue }: VenueCardProps) => {
             <div className="space-y-1.5 mb-2">
               {services.slice(0, 3).map(s => (
                 <div key={s.id} className="flex items-center justify-between text-sm">
-                  <span className="text-gray-600 truncate mr-2">{s.name}</span>
-                  <span className="font-semibold text-emerald-600 shrink-0">
-                    {formatPrice(s.price)}{s.unit !== 'fixed' && <span className="text-xs text-gray-400 font-normal">{unitLabel(s.unit, t)}</span>}
+                  <span className="truncate mr-2" style={{ color: 'var(--color-text-secondary)' }}>
+                    {s.name}
+                  </span>
+                  <span className="font-semibold shrink-0" style={{ color: 'var(--color-brand)' }}>
+                    {formatPrice(s.price)}
+                    {s.unit !== 'fixed' && (
+                      <span className="text-xs font-normal" style={{ color: 'var(--color-text-tertiary)' }}>
+                        {unitLabel(s.unit, t)}
+                      </span>
+                    )}
                   </span>
                 </div>
               ))}
               {services.length > 3 && (
-                <p className="text-xs text-gray-400">+{services.length - 3} more</p>
+                <p className="text-xs" style={{ color: 'var(--color-text-tertiary)' }}>
+                  +{services.length - 3} more
+                </p>
               )}
             </div>
           ) : (
@@ -132,49 +160,74 @@ const VenueCard = ({ venue }: VenueCardProps) => {
               <div className="flex items-center gap-3">
                 {rating !== null ? (
                   <div className="flex items-center gap-1">
-                    <StarIcon className="w-3.5 h-3.5 text-yellow-400" />
-                    <span className="text-sm font-medium text-gray-700">{rating.toFixed(1)}</span>
-                    <span className="text-xs text-gray-400">({reviewCount})</span>
+                    <StarIcon className="w-3.5 h-3.5" style={{ color: '#F59E0B' }} />
+                    <span className="text-sm font-medium" style={{ color: 'var(--color-text-primary)' }}>
+                      {rating.toFixed(1)}
+                    </span>
+                    <span className="text-xs" style={{ color: 'var(--color-text-tertiary)' }}>
+                      ({reviewCount})
+                    </span>
                   </div>
                 ) : (
-                  <span className="text-xs text-gray-400">{t('venue.noRating')}</span>
+                  <span className="text-xs" style={{ color: 'var(--color-text-tertiary)' }}>
+                    {t('venue.noRating')}
+                  </span>
                 )}
               </div>
-              <div className="flex items-center gap-1 text-emerald-600">
+              <div className="flex items-center gap-1" style={{ color: 'var(--color-brand)' }}>
                 <TagIcon className="w-3.5 h-3.5" />
-                <span className="text-sm font-semibold">{formatPrice(venue.price_per_slot, venue.currency)}</span>
-                {unit !== 'fixed' && <span className="text-xs text-gray-400">{unitLabel(unit, t)}</span>}
+                <span className="text-sm font-semibold">
+                  {formatPrice(venue.price_per_slot, venue.currency)}
+                </span>
+                {unit !== 'fixed' && (
+                  <span className="text-xs font-normal" style={{ color: 'var(--color-text-tertiary)' }}>
+                    {unitLabel(unit, t)}
+                  </span>
+                )}
               </div>
             </div>
           )}
 
-          {/* Social proof footer */}
           {socialProof && (
-            <div className="mt-3 pt-3 border-t border-gray-100 space-y-1.5">
+            <div
+              className="mt-3 pt-3 space-y-1.5"
+              style={{ borderTop: '1px solid var(--color-border)' }}
+            >
               {socialProof.recommendationPercent > 0 && (
                 <div className="flex items-center gap-1.5">
                   <span className="text-xs">👍</span>
-                  <div className="flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                  <div
+                    className="flex-1 h-1.5 rounded-full overflow-hidden"
+                    style={{ background: 'var(--color-border)' }}
+                  >
                     <div
-                      className="h-full bg-emerald-500 rounded-full transition-all"
-                      style={{ width: `${socialProof.recommendationPercent}%` }}
+                      className="h-full rounded-full transition-all"
+                      style={{
+                        width: `${socialProof.recommendationPercent}%`,
+                        background: 'var(--color-brand)',
+                      }}
                     />
                   </div>
-                  <span className="text-xs font-medium text-gray-600">{socialProof.recommendationPercent}%</span>
+                  <span className="text-xs font-medium" style={{ color: 'var(--color-text-secondary)' }}>
+                    {socialProof.recommendationPercent}%
+                  </span>
                 </div>
               )}
               {socialProof.recentReviews.length > 0 && (
-                <div className="flex items-center gap-1.5 text-xs text-gray-500 overflow-hidden">
+                <div
+                  className="flex items-center gap-1.5 text-xs overflow-hidden"
+                  style={{ color: 'var(--color-text-tertiary)' }}
+                >
                   <span>🗣️</span>
                   <span className="truncate italic">
-                    "{socialProof.recentReviews[quoteIndex % socialProof.recentReviews.length]?.text?.slice(0, 60)}"
+                    &ldquo;{socialProof.recentReviews[quoteIndex % socialProof.recentReviews.length]?.text?.slice(0, 60)}&rdquo;
                   </span>
                 </div>
               )}
             </div>
           )}
         </div>
-      </div>
+      </Card>
     </Link>
   )
 }

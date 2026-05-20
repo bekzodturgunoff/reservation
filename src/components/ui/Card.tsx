@@ -1,25 +1,19 @@
-import { cn } from '../../lib/utils'
-
 interface CardProps {
   children: React.ReactNode
   className?: string
-  onClick?: () => void
   hover?: boolean
+  onClick?: () => void
+  padding?: 'none' | 'sm' | 'md' | 'lg'
 }
 
-const Card = ({ children, className, onClick, hover }: CardProps) => {
-  return (
-    <div
-      onClick={onClick}
-      className={cn(
-        'bg-white rounded-2xl border border-gray-100 shadow-sm',
-        hover && 'cursor-pointer hover:shadow-md hover:-translate-y-0.5 transition-all duration-200',
-        className
-      )}
-    >
-      {children}
-    </div>
-  )
-}
+const paddingClasses = { none: '', sm: 'p-4', md: 'p-5', lg: 'p-6' }
 
+const Card = ({ children, className = '', hover, onClick, padding = 'md' }: CardProps) => (
+  <div
+    onClick={onClick}
+    className={`card ${hover ? 'card-hover' : ''} ${paddingClasses[padding]} ${onClick ? 'cursor-pointer' : ''} ${className}`}
+  >
+    {children}
+  </div>
+)
 export default Card

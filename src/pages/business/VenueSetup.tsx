@@ -300,7 +300,7 @@ const VenueSetup = () => {
           <Input label={t('business.setup.name')} placeholder={t('business.setup.namePlaceholder')} error={errors.name?.message} {...register('name')} />
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1.5">{t('business.setup.category')}</label>
-            <select {...register('category_id')} className="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
+            <select {...register('category_id')} className="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-base sm:text-sm min-h-[44px] focus:outline-none focus:ring-2 focus:ring-emerald-500">
               <option value="">{t('business.setup.categoryPlaceholder')}</option>
               {categories.map(c => <option key={c.id} value={c.id}>{c.icon} {c.name_uz}</option>)}
             </select>
@@ -308,7 +308,7 @@ const VenueSetup = () => {
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1.5">{t('business.setup.description')}</label>
-            <textarea {...register('description')} rows={3} placeholder={t('business.setup.descriptionPlaceholder')} className="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 resize-none" />
+            <textarea {...register('description')} rows={3} placeholder={t('business.setup.descriptionPlaceholder')} className="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-base sm:text-sm min-h-[44px] focus:outline-none focus:ring-2 focus:ring-emerald-500 resize-none" />
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Input label={t('business.setup.address')} placeholder={t('business.setup.addressPlaceholder')} error={errors.address?.message} {...register('address')} />
@@ -326,7 +326,7 @@ const VenueSetup = () => {
                     setValue('city', '')
                   }
                 }}
-                className="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 mb-1"
+                className="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-base sm:text-sm min-h-[44px] focus:outline-none focus:ring-2 focus:ring-emerald-500 mb-1"
               >
                 <option value="">{t('common.selectRegion')}</option>
                 {Object.keys(UZBEKISTAN_REGIONS).map(r => (
@@ -334,7 +334,7 @@ const VenueSetup = () => {
                 ))}
               </select>
               {selectedRegion && (
-                <select {...register('city')} className="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                <select {...register('city')} className="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-base sm:text-sm min-h-[44px] focus:outline-none focus:ring-2 focus:ring-emerald-500">
                   {UZBEKISTAN_REGIONS[selectedRegion].map(c => (
                     <option key={c} value={c}>{c}</option>
                   ))}

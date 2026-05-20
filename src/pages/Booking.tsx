@@ -124,6 +124,8 @@ const Booking = () => {
         ? { frequency: recurringFreq, occurrences: recurringOccurrences }
         : null
 
+      await updateSlotAvailability(slot.id, false)
+
       const booking = await createBooking({
         user_id: user.id,
         venue_id: venue.id,
@@ -140,8 +142,6 @@ const Booking = () => {
         status: 'confirmed',
       })
 
-      await updateSlotAvailability(slot.id, false)
-
       if (promoCodeId) {
         await incrementPromoUsage(promoCodeId).catch(() => {})
       }
@@ -152,7 +152,7 @@ const Booking = () => {
           old.map((s: any) => s.id === slot.id ? { ...s, is_available: false } : s)
       )
 
-      sendTelegramNotification({
+      const notified = await sendTelegramNotification({
         venue_id: venue.id,
         venue_name: venue.name,
         customer_name: profile?.full_name || user.user_metadata?.full_name || user.email || 'Mijoz',
@@ -165,6 +165,10 @@ const Booking = () => {
         note: note || undefined,
         booking_id: booking.id,
       })
+
+      if (!notified) {
+        addToast({ type: 'warning', message: t('booking.telegramFailed', "Telegram bildirishnoma yuborilmadi. Admin bilan bog'lanishingiz mumkin.") })
+      }
 
       queryClient.invalidateQueries({ queryKey: ['slots'] })
       queryClient.invalidateQueries({ queryKey: ['bookings'] })
@@ -180,9 +184,9 @@ const Booking = () => {
   if (loading) {
     return (
       <div className="max-w-2xl mx-auto animate-pulse space-y-6 py-8">
-        <div className="h-8 w-1/2 bg-gray-200 rounded-lg" />
-        <div className="h-32 bg-gray-100 rounded-2xl" />
-        <div className="h-24 bg-gray-100 rounded-2xl" />
+        <div className="h-8 w-1/2 rounded-lg" style={{background: 'var(--color-surface)'}} />
+        <div className="h-32 rounded-2xl" style={{background: 'var(--color-surface)'}} />
+        <div className="h-24 rounded-2xl" style={{background: 'var(--color-surface)'}} />
       </div>
     )
   }
@@ -191,8 +195,8 @@ const Booking = () => {
     return (
       <div className="flex flex-col items-center justify-center py-20 text-center">
         <span className="text-5xl mb-4">⚠️</span>
-        <h2 className="text-xl font-semibold text-gray-900 mb-2">{t('booking.notFound')}</h2>
-        <p className="text-gray-500 mb-6">{t('booking.notFoundDesc')}</p>
+        <h2 className="text-xl font-semibold mb-2" style={{color: 'var(--color-text-primary)'}}>{t('booking.notFound')}</h2>
+        <p className="mb-6" style={{color: 'var(--color-text-secondary)'}}>{t('booking.notFoundDesc')}</p>
         <Button onClick={() => navigate('/')}>{t('booking.backHome')}</Button>
       </div>
     )
@@ -202,28 +206,29 @@ const Booking = () => {
     <div className="max-w-2xl mx-auto">
       <button
         onClick={() => navigate(-1)}
-        className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-emerald-600 mb-6 transition-colors"
+        className="flex items-center gap-1.5 text-sm mb-6 transition-colors"
+        style={{color: 'var(--color-text-secondary)'}}
       >
         <ArrowLeftIcon className="w-4 h-4" /> {t('common.back')}
       </button>
 
-      <h1 className="text-2xl font-bold text-gray-900 mb-6">{t('booking.confirmBooking')}</h1>
+      <h1 className="text-2xl font-bold mb-6" style={{color: 'var(--color-text-primary)'}}>{t('booking.confirmBooking')}</h1>
 
       <div className="space-y-6">
 
         {/* Venue info */}
-        <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
+        <div className="rounded-2xl border p-6 shadow-sm" style={{background: 'var(--color-surface)', borderColor: 'var(--color-border)'}}>
           <div className="flex items-start gap-4">
-            <div className="w-16 h-16 rounded-xl bg-emerald-100 flex items-center justify-center text-2xl flex-shrink-0">
+            <div className="w-16 h-16 rounded-xl flex items-center justify-center text-2xl flex-shrink-0" style={{background: 'var(--color-brand-light)'}}>
               {venue.categories?.icon || '🏢'}
             </div>
             <div className="flex-1 min-w-0">
-              <h2 className="font-semibold text-gray-900 text-lg">{venue.name}</h2>
-              <p className="text-sm text-gray-500 flex items-center gap-1 mt-0.5">
+              <h2 className="font-semibold text-lg" style={{color: 'var(--color-text-primary)'}}>{venue.name}</h2>
+              <p className="text-sm flex items-center gap-1 mt-0.5" style={{color: 'var(--color-text-secondary)'}}>
                 <MapPinIcon className="w-3.5 h-3.5" /> {venue.address || venue.city}
               </p>
               <div className="flex items-center gap-3 mt-2">
-                <span className="text-xs bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded-full font-medium">
+                <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{background: 'var(--color-brand-light)', color: 'var(--color-brand)'}}>
                   {venue.categories?.icon} {venue.categories?.name_uz || t('common.other')}
                 </span>
               </div>
@@ -232,32 +237,32 @@ const Booking = () => {
         </div>
 
         {/* Booking details */}
-        <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
-          <h3 className="font-semibold text-gray-900 mb-4">{t('booking.details')}</h3>
+        <div className="rounded-2xl border p-6 shadow-sm" style={{background: 'var(--color-surface)', borderColor: 'var(--color-border)'}}>
+          <h3 className="font-semibold mb-4" style={{color: 'var(--color-text-primary)'}}>{t('booking.details')}</h3>
           <div className="space-y-3">
             <div className="flex items-center gap-3 text-sm">
-              <CalendarDaysIcon className="w-4 h-4 text-gray-400" />
-              <span className="text-gray-700">{formatDate(slot.date)}</span>
+              <CalendarDaysIcon className="w-4 h-4" style={{color: 'var(--color-text-tertiary)'}} />
+              <span style={{color: 'var(--color-text-primary)'}}>{formatDate(slot.date)}</span>
             </div>
             <div className="flex items-center gap-3 text-sm">
-              <ClockIcon className="w-4 h-4 text-gray-400" />
-              <span className="text-gray-700">
+              <ClockIcon className="w-4 h-4" style={{color: 'var(--color-text-tertiary)'}} />
+              <span style={{color: 'var(--color-text-primary)'}}>
                 {slot.start_time.slice(0, 5)} — {slot.end_time.slice(0, 5)}
               </span>
             </div>
             {selectedService && (
               <div className="flex items-center gap-3 text-sm">
-                <TagIcon className="w-4 h-4 text-gray-400" />
-                <span className="text-gray-700">
+                <TagIcon className="w-4 h-4" style={{color: 'var(--color-text-tertiary)'}} />
+                <span style={{color: 'var(--color-text-primary)'}}>
                   {t('booking.selectedService')} <strong>{selectedService.name}</strong>
                 </span>
               </div>
             )}
             <div className="flex items-center gap-3 text-sm">
-              <TagIcon className="w-4 h-4 text-gray-400" />
-              <span className="font-semibold text-emerald-600">{formatPrice(basePrice)}</span>
+              <TagIcon className="w-4 h-4" style={{color: 'var(--color-text-tertiary)'}} />
+              <span className="font-semibold" style={{color: 'var(--color-brand)'}}>{formatPrice(basePrice)}</span>
               {venue.pricing_unit !== 'fixed' && (
-                <span className="text-gray-400">
+                <span style={{color: 'var(--color-text-tertiary)'}}>
                   {t(`common.pricing_units.${venue.pricing_unit}`)}
                 </span>
               )}
@@ -266,15 +271,16 @@ const Booking = () => {
         </div>
 
         {/* Group size */}
-        <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
+        <div className="rounded-2xl border p-6 shadow-sm" style={{background: 'var(--color-surface)', borderColor: 'var(--color-border)'}}>
           <div className="flex items-center gap-2 mb-3">
-            <UsersIcon className="w-5 h-5 text-emerald-600" />
-            <h3 className="font-semibold text-gray-900">Party Size</h3>
+            <UsersIcon className="w-5 h-5" style={{color: 'var(--color-brand)'}} />
+            <h3 className="font-semibold" style={{color: 'var(--color-text-primary)'}}>Party Size</h3>
           </div>
           <select
             value={groupSize}
             onChange={e => setGroupSize(Number(e.target.value))}
-            className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            className="w-full border rounded-xl px-4 py-2.5 text-base sm:text-sm min-h-[44px] input-field"
+            style={{borderColor: 'var(--color-border)'}}
           >
             {Array.from({ length: venue.max_group_size || 20 }).map((_, i) => (
               <option key={i + 1} value={i + 1}>{i + 1} {i === 0 ? 'person' : 'people'}</option>
@@ -284,18 +290,23 @@ const Booking = () => {
 
         {/* Staff selection */}
         {staff.filter(s => s.is_active).length > 0 && (
-          <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
-            <h3 className="font-semibold text-gray-900 mb-3">Choose Staff (optional)</h3>
+          <div className="rounded-2xl border p-6 shadow-sm" style={{background: 'var(--color-surface)', borderColor: 'var(--color-border)'}}>
+            <h3 className="font-semibold mb-3" style={{color: 'var(--color-text-primary)'}}>Choose Staff (optional)</h3>
             <div className="space-y-2">
               <button
                 onClick={() => setSelectedStaff(null)}
                 className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm transition-colors border ${
                   selectedStaff === null
-                    ? 'border-emerald-300 bg-emerald-50 text-emerald-700'
-                    : 'border-gray-200 text-gray-600 hover:border-gray-300'
+                    ? ''
+                    : 'hover:border-gray-300'
                 }`}
+                style={
+                  selectedStaff === null
+                    ? {borderColor: 'var(--color-brand)', background: 'var(--color-brand-light)', color: 'var(--color-brand)'}
+                    : {borderColor: 'var(--color-border)', color: 'var(--color-text-secondary)'}
+                }
               >
-                <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-sm">🤖</div>
+                <div className="w-8 h-8 rounded-full flex items-center justify-center text-sm" style={{background: 'var(--color-surface)'}}>🤖</div>
                 <span>No preference</span>
               </button>
               {staff.filter(s => s.is_active).map(s => (
@@ -304,16 +315,21 @@ const Booking = () => {
                   onClick={() => setSelectedStaff(s.id)}
                   className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm transition-colors border ${
                     selectedStaff === s.id
-                      ? 'border-emerald-300 bg-emerald-50 text-emerald-700'
-                      : 'border-gray-200 text-gray-600 hover:border-gray-300'
+                      ? ''
+                      : 'hover:border-gray-300'
                   }`}
+                  style={
+                    selectedStaff === s.id
+                      ? {borderColor: 'var(--color-brand)', background: 'var(--color-brand-light)', color: 'var(--color-brand)'}
+                      : {borderColor: 'var(--color-border)', color: 'var(--color-text-secondary)'}
+                  }
                 >
-                  <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center text-sm font-semibold text-emerald-700">
+                  <div className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold" style={{background: 'var(--color-brand-light)', color: 'var(--color-brand)'}}>
                     {s.name.charAt(0)}
                   </div>
                   <div className="text-left">
                     <p className="font-medium">{s.name}</p>
-                    {s.title && <p className="text-xs text-gray-400">{s.title}</p>}
+                    {s.title && <p className="text-xs" style={{color: 'var(--color-text-tertiary)'}}>{s.title}</p>}
                   </div>
                 </button>
               ))}
@@ -322,15 +338,16 @@ const Booking = () => {
         )}
 
         {/* Promo code */}
-        <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
-          <h3 className="font-semibold text-gray-900 mb-3">Promo Code</h3>
+        <div className="rounded-2xl border p-6 shadow-sm" style={{background: 'var(--color-surface)', borderColor: 'var(--color-border)'}}>
+          <h3 className="font-semibold mb-3" style={{color: 'var(--color-text-primary)'}}>Promo Code</h3>
           <div className="flex gap-2">
             <input
               type="text"
               value={promoCode}
               onChange={e => { setPromoCode(e.target.value); setPromoError('') }}
               placeholder="Enter promo code"
-              className="flex-1 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              className="flex-1 border rounded-xl px-4 py-2.5 text-sm input-field"
+              style={{borderColor: 'var(--color-border)'}}
             />
             <Button
               variant="secondary"
@@ -343,7 +360,7 @@ const Booking = () => {
           </div>
           {promoError && <p className="text-xs text-red-500 mt-1.5">{promoError}</p>}
           {promoDiscount > 0 && (
-            <p className="text-xs text-emerald-600 mt-1.5 font-medium">
+            <p className="text-xs mt-1.5 font-medium" style={{color: 'var(--color-brand)'}}>
               Discount applied: -{formatPrice(promoDiscount)}
             </p>
           )}
@@ -351,19 +368,19 @@ const Booking = () => {
 
         {/* Loyalty points redeem */}
         {canRedeem && (
-          <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
+          <div className="rounded-2xl border p-6 shadow-sm" style={{background: 'var(--color-surface)', borderColor: 'var(--color-border)'}}>
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="font-semibold text-gray-900">Loyalty Points</h3>
-                <p className="text-sm text-gray-500 mt-0.5">
+                <h3 className="font-semibold" style={{color: 'var(--color-text-primary)'}}>Loyalty Points</h3>
+                <p className="text-sm mt-0.5" style={{color: 'var(--color-text-secondary)'}}>
                   🪙 {totalLoyaltyPoints} points available
                 </p>
                 {redeemPoints > 0 ? (
-                  <p className="text-xs text-emerald-600 mt-1">
+                  <p className="text-xs mt-1" style={{color: 'var(--color-brand)'}}>
                     Redeeming for {formatPrice(redeemDiscount)} off
                   </p>
                 ) : (
-                  <p className="text-xs text-gray-400 mt-1">
+                  <p className="text-xs mt-1" style={{color: 'var(--color-text-tertiary)'}}>
                     Redeem {totalLoyaltyPoints} pts for {formatPrice(maxRedeemValue)} off
                   </p>
                 )}
@@ -381,11 +398,11 @@ const Booking = () => {
         )}
 
         {/* Recurring booking */}
-        <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
+        <div className="rounded-2xl border p-6 shadow-sm" style={{background: 'var(--color-surface)', borderColor: 'var(--color-border)'}}>
           <div className="flex items-center justify-between gap-3 mb-3 flex-wrap">
             <div className="flex items-center gap-2">
-              <ArrowPathIcon className="w-5 h-5 text-emerald-600 shrink-0" />
-              <h3 className="font-semibold text-gray-900">Repeat Booking</h3>
+              <ArrowPathIcon className="w-5 h-5 shrink-0" style={{color: 'var(--color-brand)'}} />
+              <h3 className="font-semibold" style={{color: 'var(--color-text-primary)'}}>Repeat Booking</h3>
             </div>
             <label className="relative inline-flex items-center cursor-pointer">
               <input
@@ -394,17 +411,18 @@ const Booking = () => {
                 onChange={e => setEnableRecurring(e.target.checked)}
                 className="sr-only peer"
               />
-              <div className="w-9 h-5 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-emerald-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-600" />
+              <div className="w-9 h-5 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all" style={enableRecurring ? {background: 'var(--color-brand)'} : {background: 'var(--color-surface)'}} />
             </label>
           </div>
           {enableRecurring && (
             <div className="space-y-3">
               <div>
-                <label className="block text-xs font-medium text-gray-500 mb-1">Frequency</label>
+                <label className="block text-xs font-medium mb-1" style={{color: 'var(--color-text-secondary)'}}>Frequency</label>
                 <select
                   value={recurringFreq}
                   onChange={e => setRecurringFreq(e.target.value as RecurringPattern['frequency'])}
-                  className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  className="w-full border rounded-xl px-4 py-2.5 text-base sm:text-sm min-h-[44px] input-field"
+                  style={{borderColor: 'var(--color-border)'}}
                 >
                   <option value="weekly">Weekly</option>
                   <option value="bi-weekly">Bi-weekly</option>
@@ -412,11 +430,12 @@ const Booking = () => {
                 </select>
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-500 mb-1">Occurrences</label>
+                <label className="block text-xs font-medium mb-1" style={{color: 'var(--color-text-secondary)'}}>Occurrences</label>
                 <select
                   value={recurringOccurrences}
                   onChange={e => setRecurringOccurrences(Number(e.target.value))}
-                  className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  className="w-full border rounded-xl px-4 py-2.5 text-base sm:text-sm min-h-[44px] input-field"
+                  style={{borderColor: 'var(--color-border)'}}
                 >
                   {Array.from({ length: 12 }).map((_, i) => (
                     <option key={i + 1} value={i + 1}>{i + 1} {i === 0 ? 'time' : 'times'}</option>
@@ -428,8 +447,8 @@ const Booking = () => {
         </div>
 
         {/* Note field */}
-        <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
-          <label htmlFor="note" className="font-semibold text-gray-900 block mb-2">
+        <div className="rounded-2xl border p-6 shadow-sm" style={{background: 'var(--color-surface)', borderColor: 'var(--color-border)'}}>
+          <label htmlFor="note" className="font-semibold block mb-2" style={{color: 'var(--color-text-primary)'}}>
             {t('booking.note')}
           </label>
           <textarea
@@ -438,15 +457,16 @@ const Booking = () => {
             value={note}
             onChange={e => setNote(e.target.value)}
             placeholder={t('booking.notePlaceholder')}
-            className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent resize-none"
+            className="w-full border rounded-xl px-4 py-3 text-sm resize-none input-field"
+            style={{borderColor: 'var(--color-border)', color: 'var(--color-text-primary)'}}
           />
         </div>
 
         {/* Payment section */}
-        <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
+        <div className="rounded-2xl border p-6 shadow-sm" style={{background: 'var(--color-surface)', borderColor: 'var(--color-border)'}}>
           <div className="flex items-center gap-2 mb-4">
-            <CreditCardIcon className="w-5 h-5 text-emerald-600" />
-            <h3 className="font-semibold text-gray-900">{t('booking.payment')}</h3>
+            <CreditCardIcon className="w-5 h-5" style={{color: 'var(--color-brand)'}} />
+            <h3 className="font-semibold" style={{color: 'var(--color-text-primary)'}}>{t('booking.payment')}</h3>
           </div>
 
           <div className="p-4 bg-yellow-50 rounded-xl border border-yellow-100 mb-4">
@@ -455,53 +475,53 @@ const Booking = () => {
             </p>
           </div>
 
-          <div className="p-4 bg-green-50 rounded-xl border border-green-100 flex items-center justify-between">
+          <div className="p-4 rounded-xl border flex items-center justify-between" style={{background: 'var(--color-brand-light)', borderColor: 'var(--color-brand)'}}>
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center">
-                <CreditCardIcon className="w-4 h-4 text-green-600" />
+              <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{background: 'var(--color-brand-light)'}}>
+                <CreditCardIcon className="w-4 h-4" style={{color: 'var(--color-brand)'}} />
               </div>
               <div>
-                <p className="text-sm font-medium text-green-800">{t('booking.payOnArrival')}</p>
-                <p className="text-xs text-green-600">{t('booking.payOnArrivalDesc')}</p>
+                <p className="text-sm font-medium" style={{color: 'var(--color-brand)'}}>{t('booking.payOnArrival')}</p>
+                <p className="text-xs" style={{color: 'var(--color-brand)'}}>{t('booking.payOnArrivalDesc')}</p>
               </div>
             </div>
-            <div className="w-5 h-5 rounded-full border-2 border-green-500 flex items-center justify-center">
-              <div className="w-2.5 h-2.5 rounded-full bg-green-500" />
+            <div className="w-5 h-5 rounded-full border-2 flex items-center justify-center" style={{borderColor: 'var(--color-brand)'}}>
+              <div className="w-2.5 h-2.5 rounded-full" style={{background: 'var(--color-brand)'}} />
             </div>
           </div>
         </div>
 
         {/* Total + Confirm */}
-        <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
+        <div className="rounded-2xl border p-6 shadow-sm" style={{background: 'var(--color-surface)', borderColor: 'var(--color-border)'}}>
           <div className="space-y-1 mb-4">
             <div className="flex items-center justify-between text-sm">
-              <span className="text-gray-500">Base price</span>
-              <span className="text-gray-700">{formatPrice(basePrice)}</span>
+              <span style={{color: 'var(--color-text-secondary)'}}>Base price</span>
+              <span style={{color: 'var(--color-text-primary)'}}>{formatPrice(basePrice)}</span>
             </div>
             {promoDiscount > 0 && (
               <div className="flex items-center justify-between text-sm">
-                <span className="text-green-600">Promo discount</span>
-                <span className="text-green-600">-{formatPrice(promoDiscount)}</span>
+                <span style={{color: 'var(--color-brand)'}}>Promo discount</span>
+                <span style={{color: 'var(--color-brand)'}}>-{formatPrice(promoDiscount)}</span>
               </div>
             )}
             {redeemDiscount > 0 && (
               <div className="flex items-center justify-between text-sm">
-                <span className="text-green-600">Points discount</span>
-                <span className="text-green-600">-{formatPrice(redeemDiscount)}</span>
+                <span style={{color: 'var(--color-brand)'}}>Points discount</span>
+                <span style={{color: 'var(--color-brand)'}}>-{formatPrice(redeemDiscount)}</span>
               </div>
             )}
             {groupSize > 1 && (
               <div className="flex items-center justify-between text-sm">
-                <span className="text-gray-500">Party size</span>
-                <span className="text-gray-700">×{groupSize}</span>
+                <span style={{color: 'var(--color-text-secondary)'}}>Party size</span>
+                <span style={{color: 'var(--color-text-primary)'}}>×{groupSize}</span>
               </div>
             )}
-            <div className="border-t border-gray-100 pt-2 flex items-center justify-between">
-              <span className="text-gray-600">{t('booking.total')}</span>
+            <div className="border-t pt-2 flex items-center justify-between" style={{borderColor: 'var(--color-border)'}}>
+              <span style={{color: 'var(--color-text-secondary)'}}>{t('booking.total')}</span>
               <div className="text-right">
-                <p className="text-2xl font-bold text-gray-900">{formatPrice(effectivePrice)}</p>
+                <p className="text-2xl font-bold" style={{color: 'var(--color-text-primary)'}}>{formatPrice(effectivePrice)}</p>
                 {venue.pricing_unit !== 'fixed' && (
-                  <p className="text-xs text-gray-400">
+                  <p className="text-xs" style={{color: 'var(--color-text-tertiary)'}}>
                     {t('common.pricing_units.' + venue.pricing_unit)}
                   </p>
                 )}
@@ -526,7 +546,7 @@ const Booking = () => {
             {t('booking.confirmBooking')}
           </Button>
 
-          <p className="text-xs text-gray-400 text-center mt-3">
+          <p className="text-xs text-center mt-3" style={{color: 'var(--color-text-tertiary)'}}>
             {t('booking.terms')}
           </p>
         </div>

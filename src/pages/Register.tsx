@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { EnvelopeIcon, LockClosedIcon, UserIcon, PhoneIcon, CalendarDaysIcon, BriefcaseIcon } from '@heroicons/react/24/outline'
+import { EnvelopeIcon, LockClosedIcon, UserIcon, PhoneIcon, CalendarDaysIcon, BriefcaseIcon, ShieldCheckIcon, BoltIcon, StarIcon } from '@heroicons/react/24/outline'
 import { useTranslation } from 'react-i18next'
 import { supabase } from '../lib/supabase'
 import { useToastStore } from '../store/toastStore'
@@ -73,104 +73,140 @@ const Register = () => {
     navigate('/login')
   }
 
-  return (
-    <div className="min-h-[80vh] flex items-center justify-center px-4 py-8">
-      <div className="w-full max-w-md">
-        <div className="text-center mb-8">
-          <div className="flex justify-center mb-4">
-            <div className="w-12 h-12 bg-emerald-600 rounded-2xl flex items-center justify-center">
-              <CalendarDaysIcon className="w-7 h-7 text-white" />
-            </div>
-          </div>
-          <h1 className="text-2xl font-bold text-gray-900">{t('auth.registerTitle')}</h1>
-          <p className="text-gray-500 mt-1 text-sm">{t('auth.registerSubtitle')}</p>
-        </div>
+  const activeRoleStyle = {
+    borderColor: 'var(--color-brand)',
+    background: 'var(--color-brand-light)',
+    color: 'var(--color-brand)',
+  }
 
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 sm:p-8">
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                {t('auth.accountType')}
-              </label>
-              <div className="grid grid-cols-2 gap-3">
-                <button
-                  type="button"
-                  onClick={() => setValue('role', 'user')}
-                  className={`flex items-center gap-2 p-3 rounded-xl border-2 text-sm font-medium transition-all ${
-                    selectedRole === 'user'
-                      ? 'border-emerald-500 bg-emerald-50 text-emerald-700'
-                      : 'border-gray-200 text-gray-600 hover:border-gray-300'
-                  }`}
-                >
-                  <UserIcon className="w-4 h-4" />
-                  {t('auth.user')}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setValue('role', 'business')}
-                  className={`flex items-center gap-2 p-3 rounded-xl border-2 text-sm font-medium transition-all ${
-                    selectedRole === 'business'
-                      ? 'border-emerald-500 bg-emerald-50 text-emerald-700'
-                      : 'border-gray-200 text-gray-600 hover:border-gray-300'
-                  }`}
-                >
-                  <BriefcaseIcon className="w-4 h-4" />
-                  {t('auth.business')}
-                </button>
+  const inactiveRoleStyle = {
+    borderColor: 'var(--color-border)',
+    color: 'var(--color-text-secondary)',
+  }
+
+  return (
+    <div className="-mx-6 flex min-h-[calc(100vh-64px)]">
+      <div className="hidden lg:flex lg:w-1/2 items-center justify-center p-12" style={{ background: '#0A0A0A' }}>
+        <div className="max-w-sm">
+          <div className="mb-8">
+            <span style={{ fontFamily: 'Geist, sans-serif', fontSize: '28px', fontWeight: 700, color: '#00A86B', letterSpacing: '-0.03em' }}>Bron</span>
+            <span style={{ fontFamily: 'Geist, sans-serif', fontSize: '28px', fontWeight: 700, color: '#FFFFFF', letterSpacing: '-0.03em' }}>Uz</span>
+          </div>
+          <h2 className="text-2xl font-bold text-white mb-3">
+            {t('auth.registerTitle')}
+          </h2>
+          <p className="text-sm mb-10" style={{ color: '#6B6B6B' }}>
+            {t('auth.registerSubtitle')}
+          </p>
+          <div className="space-y-6">
+            {[
+              { icon: <ShieldCheckIcon className="w-5 h-5" />, text: t('home.featureSecureDesc') },
+              { icon: <BoltIcon className="w-5 h-5" />, text: t('home.featureFastDesc') },
+              { icon: <StarIcon className="w-5 h-5" />, text: t('home.featureVerifiedDesc') },
+            ].map(item => (
+              <div key={item.text} className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: 'rgba(255,255,255,0.06)', color: '#00A86B' }}>
+                  {item.icon}
+                </div>
+                <p className="text-sm" style={{ color: '#A8A8A8' }}>{item.text}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <div className="w-full lg:w-1/2 flex items-center justify-center p-4 sm:p-12 overflow-y-auto">
+        <div className="w-full max-w-md">
+          <div className="text-center mb-8 lg:hidden mt-8">
+            <div className="flex justify-center mb-4">
+              <div className="w-12 h-12 rounded-2xl flex items-center justify-center" style={{ background: 'var(--color-brand)' }}>
+                <CalendarDaysIcon className="w-7 h-7 text-white" />
               </div>
             </div>
+            <h1 className="text-2xl font-bold" style={{ color: 'var(--color-text-primary)' }}>{t('auth.registerTitle')}</h1>
+            <p className="text-sm mt-1" style={{ color: 'var(--color-text-secondary)' }}>{t('auth.registerSubtitle')}</p>
+          </div>
 
-            <Input
-              label={t('common.fullName')}
-              placeholder={t('auth.namePlaceholder')}
-              leftIcon={<UserIcon className="w-4 h-4" />}
-              error={errors.full_name?.message}
-              {...register('full_name')}
-            />
-            <Input
-              label={t('common.phone')}
-              placeholder={t('auth.phonePlaceholder')}
-              leftIcon={<PhoneIcon className="w-4 h-4" />}
-              error={errors.phone?.message}
-              {...register('phone')}
-            />
-            <Input
-              label={t('common.email')}
-              type="email"
-              placeholder={t('auth.emailPlaceholder')}
-              leftIcon={<EnvelopeIcon className="w-4 h-4" />}
-              error={errors.email?.message}
-              {...register('email')}
-            />
-            <Input
-              label={t('common.password')}
-              type="password"
-              placeholder={t('auth.passwordPlaceholder')}
-leftIcon={<LockClosedIcon className="w-4 h-4" />}
-               error={errors.password?.message}
-               {...register('password')}
-            />
-            <Input
-               label={t('common.confirmPassword')}
-               type="password"
-               placeholder={t('auth.passwordPlaceholder')}
-               leftIcon={<LockClosedIcon className="w-4 h-4" />}
-              error={errors.confirm_password?.message}
-              {...register('confirm_password')}
-            />
+          <div className="p-5 sm:p-8" style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '14px' }}>
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+              <div>
+                <label className="block text-sm font-medium mb-2" style={{ color: 'var(--color-text-secondary)' }}>
+                  {t('auth.accountType')}
+                </label>
+                <div className="grid grid-cols-2 gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setValue('role', 'user')}
+                    className="flex items-center gap-2 p-3 rounded-xl border-2 text-sm font-medium transition-all"
+                    style={selectedRole === 'user' ? activeRoleStyle : inactiveRoleStyle}
+                  >
+                    <UserIcon className="w-4 h-4" />
+                    {t('auth.user')}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setValue('role', 'business')}
+                    className="flex items-center gap-2 p-3 rounded-xl border-2 text-sm font-medium transition-all"
+                    style={selectedRole === 'business' ? activeRoleStyle : inactiveRoleStyle}
+                  >
+                    <BriefcaseIcon className="w-4 h-4" />
+                    {t('auth.business')}
+                  </button>
+                </div>
+              </div>
 
-            <Button type="submit" loading={loading} className="w-full" size="lg">
-              {t('common.register')}
-            </Button>
-          </form>
+              <Input
+                label={t('common.fullName')}
+                placeholder={t('auth.namePlaceholder')}
+                leftIcon={<UserIcon className="w-4 h-4" />}
+                error={errors.full_name?.message}
+                {...register('full_name')}
+              />
+              <Input
+                label={t('common.phone')}
+                placeholder={t('auth.phonePlaceholder')}
+                leftIcon={<PhoneIcon className="w-4 h-4" />}
+                error={errors.phone?.message}
+                {...register('phone')}
+              />
+              <Input
+                label={t('common.email')}
+                type="email"
+                placeholder={t('auth.emailPlaceholder')}
+                leftIcon={<EnvelopeIcon className="w-4 h-4" />}
+                error={errors.email?.message}
+                {...register('email')}
+              />
+              <Input
+                label={t('common.password')}
+                type="password"
+                placeholder={t('auth.passwordPlaceholder')}
+                leftIcon={<LockClosedIcon className="w-4 h-4" />}
+                error={errors.password?.message}
+                {...register('password')}
+              />
+              <Input
+                label={t('common.confirmPassword')}
+                type="password"
+                placeholder={t('auth.passwordPlaceholder')}
+                leftIcon={<LockClosedIcon className="w-4 h-4" />}
+                error={errors.confirm_password?.message}
+                {...register('confirm_password')}
+              />
 
-          <div className="mt-6 text-center">
-            <p className="text-sm text-gray-500">
-              {t('auth.haveAccount')}{' '}
-              <Link to="/login" className="text-emerald-600 font-medium hover:underline">
-                {t('auth.loginLink')}
-              </Link>
-            </p>
+              <Button type="submit" loading={loading} className="w-full" size="lg">
+                {t('common.register')}
+              </Button>
+            </form>
+
+            <div className="mt-6 text-center">
+              <p className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>
+                {t('auth.haveAccount')}{' '}
+                <Link to="/login" className="font-medium hover:underline" style={{ color: 'var(--color-brand)' }}>
+                  {t('auth.loginLink')}
+                </Link>
+              </p>
+            </div>
           </div>
         </div>
       </div>

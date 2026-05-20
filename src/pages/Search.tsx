@@ -118,22 +118,24 @@ const Search = () => {
 
   return (
     <div className="min-h-screen">
-      <div className="bg-white border-b border-gray-100 sticky top-16 z-30 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:lg:px-8 py-4 shadow-sm overflow-hidden">
+      <div className="border-b sticky top-16 z-30 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:lg:px-8 py-4 shadow-sm overflow-hidden" style={{background: 'var(--color-surface)', borderColor: 'var(--color-border)'}}>
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row gap-3">
 
           <div className="relative flex-1">
-            <SearchIcon className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <SearchIcon className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4" style={{color: 'var(--color-text-tertiary)'}} />
             <input
               type="text"
               placeholder={t('search.placeholder')}
               value={search}
               onChange={e => setSearch(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent bg-gray-50"
+              className="w-full pl-10 pr-4 py-2.5 text-sm border rounded-xl"
+              style={{borderColor: 'var(--color-border)', outline: 'none', background: 'var(--color-bg)'}}
             />
             {search && (
               <button
                 onClick={() => setSearch('')}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                className="absolute right-3 top-1/2 -translate-y-1/2"
+                style={{color: 'var(--color-text-tertiary)'}}
               >
                 <XMarkIcon className="w-4 h-4" />
               </button>
@@ -151,7 +153,8 @@ const Search = () => {
                 setCity('')
               }
             }}
-            className="sm:w-40 px-3 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-gray-50 text-gray-700"
+            className="sm:w-40 px-3 py-2.5 text-sm border rounded-xl"
+            style={{borderColor: 'var(--color-border)', outline: 'none', background: 'var(--color-bg)', color: 'var(--color-text-primary)'}}
           >
             <option value="">{t('common.all')}</option>
             {Object.keys(UZBEKISTAN_REGIONS).map(r => (
@@ -163,7 +166,8 @@ const Search = () => {
             <select
               value={city}
               onChange={e => setCity(e.target.value)}
-              className="sm:w-40 px-3 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-gray-50 text-gray-700"
+              className="sm:w-40 px-3 py-2.5 text-sm border rounded-xl"
+              style={{borderColor: 'var(--color-border)', outline: 'none', background: 'var(--color-bg)', color: 'var(--color-text-primary)'}}
             >
               <option value={selectedRegion}>All cities</option>
               {citiesInRegion.map(c => (
@@ -174,37 +178,41 @@ const Search = () => {
 
           <button
             onClick={() => setFiltersOpen(!filtersOpen)}
-            className={`flex items-center gap-2 px-4 py-2.5 text-sm rounded-xl border transition-colors ${
-              hasActiveFilters
-                ? 'bg-emerald-50 border-emerald-200 text-emerald-700'
-                : 'border-gray-200 text-gray-700 hover:bg-gray-50'
-            }`}
+            className="flex items-center gap-2 px-4 py-2.5 text-sm rounded-xl border transition-colors"
+            style={hasActiveFilters
+              ? { background: 'var(--color-brand-light)', borderColor: 'var(--color-brand)', color: 'var(--color-brand)' }
+              : { borderColor: 'var(--color-border)', color: 'var(--color-text-primary)' }
+            }
           >
             <SlidersHorizontalIcon className="w-4 h-4" />
             {t('search.filters')}
             {hasActiveFilters && (
-              <span className="w-5 h-5 bg-emerald-600 text-white rounded-full text-xs flex items-center justify-center font-medium">
+              <span className="w-5 h-5 text-white rounded-full text-xs flex items-center justify-center font-medium" style={{background: 'var(--color-brand)'}}>
                 {[search, category, minPrice, maxPrice].filter(Boolean).length}
               </span>
             )}
             {filtersOpen ? <ChevronUpIcon className="w-3.5 h-3.5" /> : <ChevronDownIcon className="w-3.5 h-3.5" />}
           </button>
 
-          <div className="flex items-center bg-gray-100 rounded-xl p-1 gap-1">
+          <div className="flex items-center rounded-xl p-1 gap-1" style={{background: 'var(--color-bg)'}}>
             <button
               onClick={() => setViewMode('grid')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-                viewMode === 'grid' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'
-              }`}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors"
+              style={viewMode === 'grid'
+                ? { background: 'var(--color-surface)', color: 'var(--color-text-primary)' }
+                : { color: 'var(--color-text-secondary)' }
+              }
             >
               <Squares2X2Icon className="w-4 h-4" />
               <span className="hidden sm:inline">{t('search.grid')}</span>
             </button>
             <button
               onClick={() => setViewMode('map')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-                viewMode === 'map' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'
-              }`}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors"
+              style={viewMode === 'map'
+                ? { background: 'var(--color-surface)', color: 'var(--color-text-primary)' }
+                : { color: 'var(--color-text-secondary)' }
+              }
             >
               <MapIcon className="w-4 h-4" />
               <span className="hidden sm:inline">{t('search.map')}</span>
@@ -213,14 +221,15 @@ const Search = () => {
         </div>
 
         {filtersOpen && (
-          <div className="max-w-7xl mx-auto mt-4 p-4 bg-gray-50 rounded-2xl border border-gray-100">
+          <div className="max-w-7xl mx-auto mt-4 p-4 rounded-2xl border-none shadow-[var(--shadow-sm)]" style={{background: 'var(--color-surface)'}}>
             <div className="flex flex-wrap gap-4 items-end">
               <div className="flex-1 min-w-[160px]">
-                <label className="block text-xs font-medium text-gray-600 mb-1.5">{t('common.category')}</label>
+                <label className="block text-xs font-medium mb-1.5" style={{color: 'var(--color-text-secondary)'}}>{t('common.category')}</label>
                 <select
                   value={category}
                   onChange={e => setCategory(e.target.value)}
-                  className="w-full px-3 py-2 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white"
+                  className="w-full px-3 py-2 text-base sm:text-sm min-h-[44px] border rounded-xl"
+                  style={{borderColor: 'var(--color-border)', outline: 'none', background: 'var(--color-surface)'}}
                 >
                   <option value="">{t('search.allCategories')}</option>
                   {categories.map(cat => (
@@ -231,23 +240,25 @@ const Search = () => {
                 </select>
               </div>
               <div className="flex-1 min-w-[120px]">
-                <label className="block text-xs font-medium text-gray-600 mb-1.5">{t('search.minPrice')}</label>
+                <label className="block text-xs font-medium mb-1.5" style={{color: 'var(--color-text-secondary)'}}>{t('search.minPrice')}</label>
                 <input
                   type="number"
                   placeholder="0"
                   value={minPrice}
                   onChange={e => setMinPrice(e.target.value)}
-                  className="w-full px-3 py-2 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white"
+                  className="w-full px-3 py-2 text-base sm:text-sm min-h-[44px] border rounded-xl"
+                  style={{borderColor: 'var(--color-border)', outline: 'none', background: 'var(--color-surface)'}}
                 />
               </div>
               <div className="flex-1 min-w-[120px]">
-                <label className="block text-xs font-medium text-gray-600 mb-1.5">{t('search.maxPrice')}</label>
+                <label className="block text-xs font-medium mb-1.5" style={{color: 'var(--color-text-secondary)'}}>{t('search.maxPrice')}</label>
                 <input
                   type="number"
                   placeholder="500000"
                   value={maxPrice}
                   onChange={e => setMaxPrice(e.target.value)}
-                  className="w-full px-3 py-2 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white"
+                  className="w-full px-3 py-2 text-base sm:text-sm min-h-[44px] border rounded-xl"
+                  style={{borderColor: 'var(--color-border)', outline: 'none', background: 'var(--color-surface)'}}
                 />
               </div>
               {hasActiveFilters && (
@@ -266,11 +277,11 @@ const Search = () => {
       <div className="mt-5 mb-5 flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
         <button
           onClick={() => setCategory('')}
-          className={`flex-shrink-0 flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium transition-all border ${
-            category === ''
-              ? 'bg-emerald-600 text-white border-emerald-600'
-              : 'bg-white text-gray-600 border-gray-200 hover:border-emerald-300'
-          }`}
+          className="flex-shrink-0 flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium transition-all border"
+          style={category === ''
+            ? { background: 'var(--color-brand)', color: 'white', borderColor: 'var(--color-brand)' }
+            : { background: 'var(--color-surface)', color: 'var(--color-text-secondary)', borderColor: 'var(--color-border)' }
+          }
         >
           {t('search.allCategories')}
         </button>
@@ -278,11 +289,11 @@ const Search = () => {
           <button
             key={cat.id}
             onClick={() => setCategory(cat.slug === category ? '' : cat.slug)}
-            className={`flex-shrink-0 flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium transition-all border ${
-              category === cat.slug
-                ? 'bg-emerald-600 text-white border-emerald-600'
-                : 'bg-white text-gray-600 border-gray-200 hover:border-emerald-300'
-            }`}
+            className="flex-shrink-0 flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium transition-all border"
+            style={category === cat.slug
+              ? { background: 'var(--color-brand)', color: 'white', borderColor: 'var(--color-brand)' }
+              : { background: 'var(--color-surface)', color: 'var(--color-text-secondary)', borderColor: 'var(--color-border)' }
+            }
           >
             {cat.icon} {getLangName(cat.name_uz, cat.name_ru)}
           </button>
@@ -291,18 +302,18 @@ const Search = () => {
 
       <div className="flex items-center justify-between mb-5">
         <div>
-          <p className="text-sm text-gray-600">
+          <p className="text-sm" style={{color: 'var(--color-text-secondary)'}}>
             {isLoading ? (
               <span className="animate-pulse">{t('search.searching')}</span>
             ) : (
               <>
-                <span className="font-semibold text-gray-900">{venues.length}</span> {t('search.results')}
+                <span className="font-semibold" style={{color: 'var(--color-text-primary)'}}>{venues.length}</span> {t('search.results')}
                 {activeCategory && (
-                  <span className="ml-1 text-gray-500">
+                  <span className="ml-1" style={{color: 'var(--color-text-secondary)'}}>
                     — {activeCategory.icon} {getLangName(activeCategory.name_uz, activeCategory.name_ru)}
                   </span>
                 )}
-                {city ? <span className="ml-1 text-gray-500">· {city}</span> : <span className="ml-1 text-gray-500">· All cities</span>}
+                {city ? <span className="ml-1" style={{color: 'var(--color-text-secondary)'}}>· {city}</span> : <span className="ml-1" style={{color: 'var(--color-text-secondary)'}}>· All cities</span>}
               </>
             )}
           </p>

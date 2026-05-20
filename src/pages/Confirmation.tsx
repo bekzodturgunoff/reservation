@@ -29,7 +29,6 @@ const Confirmation = () => {
   useEffect(() => {
     if (!booking) return
 
-    // Generate QR check-in URL
     const generateQrUrl = async () => {
       const msg = booking.id
       const enc = new TextEncoder()
@@ -42,7 +41,6 @@ const Confirmation = () => {
 
     generateQrUrl()
 
-    // Send rebooking reminder
     if (!reminderSent) {
       setReminderSent(true)
       const slot = booking.slots as { date?: string; start_time?: string } | null
@@ -74,9 +72,9 @@ const Confirmation = () => {
   if (isLoading) {
     return (
       <div className="max-w-lg mx-auto animate-pulse space-y-6 py-12">
-        <div className="w-20 h-20 bg-gray-200 rounded-full mx-auto" />
-        <div className="h-8 w-1/2 bg-gray-200 rounded-lg mx-auto" />
-        <div className="h-32 bg-gray-100 rounded-2xl" />
+        <div className="w-20 h-20 rounded-full mx-auto" style={{background: 'var(--color-bg)'}} />
+        <div className="h-8 w-1/2 rounded-lg mx-auto" style={{background: 'var(--color-bg)'}} />
+        <div className="h-32 rounded-2xl" style={{background: 'var(--color-bg)'}} />
       </div>
     )
   }
@@ -85,8 +83,8 @@ const Confirmation = () => {
     return (
       <div className="flex flex-col items-center justify-center py-20 text-center">
         <span className="text-5xl mb-4">⚠️</span>
-        <h2 className="text-xl font-semibold text-gray-900 mb-2">{t('confirmation.notFound')}</h2>
-        <p className="text-gray-500 mb-6">{t('confirmation.notFoundDesc')}</p>
+        <h2 className="text-xl font-semibold mb-2" style={{color: 'var(--color-text-primary)'}}>{t('confirmation.notFound')}</h2>
+        <p className="mb-6" style={{color: 'var(--color-text-secondary)'}}>{t('confirmation.notFoundDesc')}</p>
         <Link to="/"><Button>{t('confirmation.backHome')}</Button></Link>
       </div>
     )
@@ -101,47 +99,47 @@ const Confirmation = () => {
 
       {/* Success animation */}
       <div className="mb-6">
-        <div className="w-20 h-20 bg-emerald-100 rounded-full flex items-center justify-center mx-auto animate-bounce">
-          <CheckCircleIcon className="w-10 h-10 text-emerald-600" />
+        <div className="w-20 h-20 rounded-full flex items-center justify-center mx-auto animate-bounce" style={{background: 'var(--color-brand-light)'}}>
+          <CheckCircleIcon className="w-10 h-10" style={{color: 'var(--color-brand)'}} />
         </div>
       </div>
 
-      <h1 className="text-2xl font-bold text-gray-900 mb-2">{t('confirmation.successTitle')}</h1>
-      <p className="text-gray-500 text-sm mb-2">
-        {t('confirmation.bookingNumber')} <span className="font-mono text-gray-700 font-medium">{booking.id.slice(0, 8)}</span>
+      <h1 className="text-2xl font-bold mb-2" style={{color: 'var(--color-text-primary)'}}>{t('confirmation.successTitle')}</h1>
+      <p className="text-sm mb-2" style={{color: 'var(--color-text-secondary)'}}>
+        {t('confirmation.bookingNumber')} <span className="font-mono font-medium" style={{color: 'var(--color-text-primary)'}}>{booking.id.slice(0, 8)}</span>
       </p>
       <p className="text-xs text-amber-600 mb-8">{earningsTip}</p>
 
       {/* QR Code */}
       {qrUrl && (
         <div className="mb-6 flex flex-col items-center">
-          <div className="bg-white rounded-2xl border border-gray-100 p-4 shadow-sm inline-block">
+          <div className="rounded-2xl border p-4 shadow-sm inline-block" style={{background: 'var(--color-surface)', borderColor: 'var(--color-border)'}}>
             <img
               src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(qrUrl)}`}
               alt="Check-in QR Code"
               className="w-36 h-36"
             />
           </div>
-          <p className="text-xs text-gray-400 mt-2">Show this at the venue for check-in</p>
+          <p className="text-xs mt-2" style={{color: 'var(--color-text-tertiary)'}}>Show this at the venue for check-in</p>
         </div>
       )}
 
       {/* Booking details card */}
-      <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm text-left mb-6">
-        <h3 className="font-semibold text-gray-900 mb-4">{t('confirmation.details')}</h3>
+      <div className="rounded-2xl border p-6 shadow-sm text-left mb-6" style={{background: 'var(--color-surface)', borderColor: 'var(--color-border)'}}>
+        <h3 className="font-semibold mb-4" style={{color: 'var(--color-text-primary)'}}>{t('confirmation.details')}</h3>
 
         {venue && (
-          <div className="flex items-start gap-3 mb-4 pb-4 border-b border-gray-100">
-            <div className="w-12 h-12 rounded-xl bg-emerald-100 flex items-center justify-center text-xl flex-shrink-0">
+          <div className="flex items-start gap-3 mb-4 pb-4 border-b" style={{borderBottomColor: 'var(--color-border)'}}>
+            <div className="w-12 h-12 rounded-xl flex items-center justify-center text-xl flex-shrink-0" style={{background: 'var(--color-brand-light)'}}>
               🏢
             </div>
             <div>
-              <p className="font-medium text-gray-900">{venue.name}</p>
-              <p className="text-sm text-gray-500 flex items-center gap-1 mt-0.5">
+              <p className="font-medium" style={{color: 'var(--color-text-primary)'}}>{venue.name}</p>
+              <p className="text-sm flex items-center gap-1 mt-0.5" style={{color: 'var(--color-text-secondary)'}}>
                 <MapPinIcon className="w-3 h-3" /> {venue.address}
               </p>
               {venue.phone && (
-                <a href={`tel:${venue.phone}`} className="text-sm text-emerald-600 hover:underline mt-0.5 block">
+                <a href={`tel:${venue.phone}`} className="text-sm hover:underline mt-0.5 block" style={{color: 'var(--color-brand)'}}>
                   {venue.phone}
                 </a>
               )}
@@ -153,35 +151,35 @@ const Confirmation = () => {
           {slot && (
             <>
               <div className="flex items-center gap-3">
-                <CalendarDaysIcon className="w-4 h-4 text-gray-400" />
-                <span className="text-gray-700">{formatDate(slot.date)}</span>
+                <CalendarDaysIcon className="w-4 h-4" style={{color: 'var(--color-text-tertiary)'}} />
+                <span style={{color: 'var(--color-text-primary)'}}>{formatDate(slot.date)}</span>
               </div>
               <div className="flex items-center gap-3">
-                <ClockIcon className="w-4 h-4 text-gray-400" />
-                <span className="text-gray-700">{slot.start_time?.slice(0, 5)} — {slot.end_time?.slice(0, 5)}</span>
+                <ClockIcon className="w-4 h-4" style={{color: 'var(--color-text-tertiary)'}} />
+                <span style={{color: 'var(--color-text-primary)'}}>{slot.start_time?.slice(0, 5)} — {slot.end_time?.slice(0, 5)}</span>
               </div>
             </>
           )}
           {booking.service_name && (
             <div className="flex items-center gap-3">
-              <TagIcon className="w-4 h-4 text-gray-400" />
-              <span className="text-gray-700">{booking.service_name}</span>
+              <TagIcon className="w-4 h-4" style={{color: 'var(--color-text-tertiary)'}} />
+              <span style={{color: 'var(--color-text-primary)'}}>{booking.service_name}</span>
             </div>
           )}
           {booking.group_size > 1 && (
             <div className="flex items-center gap-3">
-              <span className="text-gray-400">👥</span>
-              <span className="text-gray-700">Party of {booking.group_size}</span>
+              <span style={{color: 'var(--color-text-tertiary)'}}>👥</span>
+              <span style={{color: 'var(--color-text-primary)'}}>Party of {booking.group_size}</span>
             </div>
           )}
           <div className="flex items-center gap-3">
-            <TagIcon className="w-4 h-4 text-gray-400" />
-            <span className="font-semibold text-emerald-600">{formatPrice(booking.total_price)}</span>
+            <TagIcon className="w-4 h-4" style={{color: 'var(--color-text-tertiary)'}} />
+            <span className="font-semibold" style={{color: 'var(--color-brand)'}}>{formatPrice(booking.total_price)}</span>
           </div>
           {booking.note && (
-            <div className="mt-3 pt-3 border-t border-gray-100">
-              <p className="text-xs text-gray-400 mb-1">{t('confirmation.note')}</p>
-              <p className="text-gray-600">{booking.note}</p>
+            <div className="mt-3 pt-3 border-t" style={{borderTopColor: 'var(--color-border)'}}>
+              <p className="text-xs mb-1" style={{color: 'var(--color-text-tertiary)'}}>{t('confirmation.note')}</p>
+              <p style={{color: 'var(--color-text-secondary)'}}>{booking.note}</p>
             </div>
           )}
         </div>

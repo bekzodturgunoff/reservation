@@ -3,7 +3,7 @@ import type { TelegramLink } from '../types'
 
 const TELEGRAM_NOTIFY_FUNCTION = 'telegram-notify'
 
-const invokeSafe = async (fn: string, body: Record<string, unknown>, ms = 3000): Promise<void> => {
+const invokeSafe = async (fn: string, body: Record<string, unknown>, ms = 3000): Promise<boolean> => {
   const timeout = new Promise<void>((_, reject) =>
     setTimeout(() => reject(new Error('timeout')), ms)
   )
@@ -11,7 +11,13 @@ const invokeSafe = async (fn: string, body: Record<string, unknown>, ms = 3000):
     const { error } = await supabase.functions.invoke(fn, { body })
     if (error) throw error
   })()
-  await Promise.race([call, timeout]).catch(() => {})
+  try {
+    await Promise.race([call, timeout])
+    return true
+  } catch (err) {
+    console.warn(`[telegram] ${fn} failed:`, err instanceof Error ? err.message : err)
+    return false
+  }
 }
 
 export const getTelegramLinks = async (userId: string): Promise<TelegramLink[]> => {
@@ -36,6 +42,6 @@ export const generateUserLinkCode = (userId: string): string => {
   return btoa(`user:${userId}`)
 }
 
-export const sendTelegramNotification = (payload: Record<string, unknown>): void => {
-  invokeSafe(TELEGRAM_NOTIFY_FUNCTION, payload)
+export const sendTelegramNotification = async (payload: Record<string, unknown>): Promise<boolean> => {
+  return invokeSafe(TELEGRAM_NOTIFY_FUNCTION, payload)
 }

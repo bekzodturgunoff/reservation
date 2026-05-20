@@ -1,22 +1,20 @@
-import { useEffect } from 'react'
 import { Outlet, useLocation } from 'react-router-dom'
+import { useEffect } from 'react'
 import Navbar from './Navbar'
 import Footer from './Footer'
 import Toast from '../ui/Toast'
-import ErrorBoundary from '../ui/ErrorBoundary'
 import InstallPrompt from '../ui/InstallPrompt'
+import ErrorBoundary from '../ui/ErrorBoundary'
 
 const PageWrapper = () => {
   const { pathname } = useLocation()
 
-  useEffect(() => {
-    window.scrollTo(0, 0)
-  }, [pathname])
+  useEffect(() => { window.scrollTo({ top: 0, behavior: 'instant' }) }, [pathname])
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50">
+    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: 'var(--color-bg)' }}>
       <Navbar />
-      <main className="flex-1 w-full max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6">
+      <main style={{ flex: 1, width: '100%', maxWidth: '1280px', margin: '0 auto', padding: '0 24px' }}>
         <ErrorBoundary>
           <div className="page-enter">
             <Outlet />
@@ -29,5 +27,4 @@ const PageWrapper = () => {
     </div>
   )
 }
-
 export default PageWrapper

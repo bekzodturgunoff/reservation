@@ -4,6 +4,7 @@ export interface Profile {
   phone: string
   avatar_url: string | null
   role: 'user' | 'business' | 'admin'
+  total_points?: number
   created_at: string
 }
 

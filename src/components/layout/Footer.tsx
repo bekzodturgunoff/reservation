@@ -1,64 +1,58 @@
 import { Link } from 'react-router-dom'
-import { CalendarDaysIcon, PhoneIcon, EnvelopeIcon } from '@heroicons/react/24/outline'
-import { useTranslation } from 'react-i18next'
 
-const Footer = () => {
-  const { t } = useTranslation()
-
-  return (
-    <footer className="bg-white border-t border-gray-200 mt-auto">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10">
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 sm:gap-8">
-
-          <div className="md:col-span-1">
-            <Link to="/" className="flex items-center gap-2 mb-3">
-              <div className="w-7 h-7 sm:w-8 sm:h-8 bg-emerald-600 rounded-lg flex items-center justify-center">
-                <CalendarDaysIcon className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
-              </div>
-              <span className="text-base sm:text-lg font-bold text-gray-900">BronUz</span>
-            </Link>
-            <p className="text-xs sm:text-sm text-gray-500 max-w-xs">
-              {t('footer.description')}
-            </p>
-            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4 mt-3 sm:mt-4">
-              <a href="tel:+998900000000" className="flex items-center gap-1.5 text-xs sm:text-sm text-gray-500 hover:text-emerald-600">
-                <PhoneIcon className="w-3.5 h-3.5" /> +998 90 000 00 00
-              </a>
-              <a href="mailto:info@bronuz.uz" className="flex items-center gap-1.5 text-xs sm:text-sm text-gray-500 hover:text-emerald-600">
-                <EnvelopeIcon className="w-3.5 h-3.5" /> info@bronuz.uz
-              </a>
-            </div>
+const Footer = () => (
+  <footer style={{ background: '#0A0A0A', color: '#A8A8A8', marginTop: 'auto' }}>
+    <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '48px 24px 32px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '40px', marginBottom: '40px' }}>
+        <div>
+          <div style={{ marginBottom: '16px' }}>
+            <span style={{ fontFamily: 'Geist, sans-serif', fontSize: '20px', fontWeight: 700, color: '#00A86B', letterSpacing: '-0.03em' }}>Bron</span>
+            <span style={{ fontFamily: 'Geist, sans-serif', fontSize: '20px', fontWeight: 700, color: '#FFFFFF', letterSpacing: '-0.03em' }}>Uz</span>
           </div>
-
-          <div>
-            <h4 className="text-xs sm:text-sm font-semibold text-gray-900 mb-3">{t('footer.site')}</h4>
-            <ul className="space-y-2">
-              <li><Link to="/search" className="text-xs sm:text-sm text-gray-500 hover:text-emerald-600 transition-colors">{t('footer.search')}</Link></li>
-              <li><Link to="/register" className="text-xs sm:text-sm text-gray-500 hover:text-emerald-600 transition-colors">{t('footer.register')}</Link></li>
-              <li><Link to="/login" className="text-xs sm:text-sm text-gray-500 hover:text-emerald-600 transition-colors">{t('footer.login')}</Link></li>
-              <li><Link to="/register" className="text-xs sm:text-sm text-gray-500 hover:text-emerald-600 transition-colors">{t('footer.forBusiness')}</Link></li>
-            </ul>
-          </div>
-
-          <div>
-            <h4 className="text-xs sm:text-sm font-semibold text-gray-900 mb-3">{t('footer.categories')}</h4>
-            <ul className="space-y-2">
-              <li><Link to="/search" className="text-xs sm:text-sm text-gray-500 hover:text-emerald-600 transition-colors">{t('common.all')}</Link></li>
-              <li><Link to="/search?category=cafe" className="text-xs sm:text-sm text-gray-500 hover:text-emerald-600 transition-colors">☕ {t('footer.cafe')}</Link></li>
-              <li><Link to="/search?category=restaurant" className="text-xs sm:text-sm text-gray-500 hover:text-emerald-600 transition-colors">🍽️ {t('footer.restaurant')}</Link></li>
-              <li><Link to="/search?category=football" className="text-xs sm:text-sm text-gray-500 hover:text-emerald-600 transition-colors">⚽ {t('footer.football')}</Link></li>
-              <li><Link to="/search?category=gym" className="text-xs sm:text-sm text-gray-500 hover:text-emerald-600 transition-colors">🏋️ {t('footer.gym')}</Link></li>
-            </ul>
+          <p style={{ fontSize: '13px', lineHeight: '1.6', maxWidth: '260px' }}>
+            O'zbekistondagi istalgan joyni bron qiling — kafe, restoran, sport maydoni va boshqalar.
+          </p>
+          <div style={{ display: 'flex', gap: '12px', marginTop: '20px' }}>
+            <a href="tel:+998900000000" style={{ color: '#A8A8A8', fontSize: '13px', textDecoration: 'none' }}>+998 90 000 00 00</a>
           </div>
         </div>
 
-        <div className="border-t border-gray-100 mt-6 sm:mt-8 pt-4 sm:pt-6 flex flex-col sm:flex-row items-center justify-between gap-2">
-          <p className="text-xs text-gray-400 text-center sm:text-left">{t('footer.copyright', { year: new Date().getFullYear() })}</p>
-          <p className="hidden sm:block text-xs text-gray-400">{t('footer.location')}</p>
+        <div>
+          <p style={{ fontSize: '11px', fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#6B6B6B', marginBottom: '16px' }}>Sayt</p>
+          {[['/', 'Bosh sahifa'], ['/search', 'Qidirish'], ['/register', "Ro'yxatdan o'tish"]].map(([to, label]) => (
+            <Link key={to} to={to} style={{ display: 'block', color: '#A8A8A8', textDecoration: 'none', fontSize: '13px', marginBottom: '10px', transition: 'color 150ms' }}
+              onMouseEnter={e => (e.currentTarget as HTMLAnchorElement).style.color = '#00A86B'}
+              onMouseLeave={e => (e.currentTarget as HTMLAnchorElement).style.color = '#A8A8A8'}
+            >{label}</Link>
+          ))}
+        </div>
+
+        <div>
+          <p style={{ fontSize: '11px', fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#6B6B6B', marginBottom: '16px' }}>Kategoriyalar</p>
+          {[['cafe', 'Kafe'], ['restaurant', 'Restoran'], ['football', 'Futbol'], ['gaming', 'Gaming'], ['gym', 'Sport zal']].map(([slug, label]) => (
+            <Link key={slug} to={`/search?category=${slug}`} style={{ display: 'block', color: '#A8A8A8', textDecoration: 'none', fontSize: '13px', marginBottom: '10px', transition: 'color 150ms' }}
+              onMouseEnter={e => (e.currentTarget as HTMLAnchorElement).style.color = '#00A86B'}
+              onMouseLeave={e => (e.currentTarget as HTMLAnchorElement).style.color = '#A8A8A8'}
+            >{label}</Link>
+          ))}
+        </div>
+
+        <div>
+          <p style={{ fontSize: '11px', fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#6B6B6B', marginBottom: '16px' }}>Biznes uchun</p>
+          {[['/register', "Joyingizni qo'shing"], ['/business/dashboard', 'Biznes panel']].map(([to, label]) => (
+            <Link key={to} to={to} style={{ display: 'block', color: '#A8A8A8', textDecoration: 'none', fontSize: '13px', marginBottom: '10px', transition: 'color 150ms' }}
+              onMouseEnter={e => (e.currentTarget as HTMLAnchorElement).style.color = '#00A86B'}
+              onMouseLeave={e => (e.currentTarget as HTMLAnchorElement).style.color = '#A8A8A8'}
+            >{label}</Link>
+          ))}
         </div>
       </div>
-    </footer>
-  )
-}
 
+      <div style={{ borderTop: '1px solid #1A1A1A', paddingTop: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
+        <p style={{ fontSize: '12px', color: '#6B6B6B' }}>© 2026 BronUz. Barcha huquqlar himoyalangan.</p>
+        <p style={{ fontSize: '12px', color: '#6B6B6B' }}>Toshkent, O'zbekiston 🇺🇿</p>
+      </div>
+    </div>
+  </footer>
+)
 export default Footer

@@ -199,15 +199,15 @@ const Profile = () => {
   const totalEarned = (loyaltyPoints ?? []).reduce((sum, p) => sum + p.lifetime_earned, 0)
 
   const BookingCard = ({ booking }: { booking: Booking }) => (
-    <div className="bg-white rounded-2xl border border-gray-100 p-4 shadow-sm">
+    <div className="rounded-2xl border p-4 shadow-sm" style={{background: 'var(--color-surface)', borderColor: 'var(--color-border)'}}>
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-start gap-3 flex-1 min-w-0">
-          <div className="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center text-lg flex-shrink-0">
+          <div className="w-10 h-10 rounded-xl flex items-center justify-center text-lg flex-shrink-0" style={{background: 'var(--color-brand-light)'}}>
             🏢
           </div>
           <div className="min-w-0">
-            <p className="font-medium text-gray-900 text-sm">{booking.venues?.name || t('profile.venue')}</p>
-            <div className="flex flex-wrap items-center gap-2 mt-1 text-xs text-gray-500">
+            <p className="font-medium text-sm" style={{color: 'var(--color-text-primary)'}}>{booking.venues?.name || t('profile.venue')}</p>
+            <div className="flex flex-wrap items-center gap-2 mt-1 text-xs" style={{color: 'var(--color-text-secondary)'}}>
               <span className="flex items-center gap-1">
                 <CalendarDaysIcon className="w-3 h-3" /> {formatDate(booking.slots?.date || '')}
               </span>
@@ -234,7 +234,7 @@ const Profile = () => {
         </div>
       </div>
       {booking.status === 'confirmed' && (
-        <div className="mt-3 pt-3 border-t border-gray-100 flex justify-end">
+        <div className="mt-3 pt-3 border-t flex justify-end" style={{borderTopColor: 'var(--color-border)'}}>
           <Button
             variant="danger"
             size="sm"
@@ -249,11 +249,11 @@ const Profile = () => {
   )
 
   const ReviewCard = ({ review }: { review: Review }) => (
-    <div className="bg-white rounded-2xl border border-gray-100 p-4 shadow-sm">
+    <div className="rounded-2xl border p-4 shadow-sm" style={{background: 'var(--color-surface)', borderColor: 'var(--color-border)'}}>
       <div className="flex items-start justify-between mb-2">
         <div>
-          <p className="font-medium text-gray-900 text-sm">{review.venues?.name || t('profile.venue')}</p>
-          <p className="text-xs text-gray-400 mt-0.5">{formatDate(review.created_at)}</p>
+          <p className="font-medium text-sm" style={{color: 'var(--color-text-primary)'}}>{review.venues?.name || t('profile.venue')}</p>
+          <p className="text-xs mt-0.5" style={{color: 'var(--color-text-tertiary)'}}>{formatDate(review.created_at)}</p>
         </div>
         <div className="flex items-center gap-1">
           <div className="flex items-center gap-0.5">
@@ -262,29 +262,29 @@ const Profile = () => {
             ))}
           </div>
           {review.booking_id && (
-            <span className="ml-1 text-[10px] bg-emerald-50 text-emerald-600 px-1.5 py-0.5 rounded-full font-medium border border-emerald-200">
+            <span className="ml-1 text-[10px] px-1.5 py-0.5 rounded-full font-medium border" style={{color: 'var(--color-brand)', background: 'var(--color-brand-light)', borderColor: 'var(--color-brand)'}}>
               ✔ Verified
             </span>
           )}
         </div>
       </div>
-      {review.comment && <p className="text-sm text-gray-600">{review.comment}</p>}
+      {review.comment && <p className="text-sm" style={{color: 'var(--color-text-secondary)'}}>{review.comment}</p>}
     </div>
   )
 
   return (
     <div className="max-w-3xl mx-auto space-y-8">
-      <h1 className="text-2xl font-bold text-gray-900">{t('profile.title')}</h1>
+      <h1 className="text-2xl font-bold" style={{color: 'var(--color-text-primary)'}}>{t('profile.title')}</h1>
 
       {/* Profile edit card */}
-      <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
+      <div className="rounded-2xl border p-6 shadow-sm" style={{background: 'var(--color-surface)', borderColor: 'var(--color-border)'}}>
         <div className="flex flex-col sm:flex-row items-start gap-6">
           <div className="relative flex-shrink-0">
-            <div className="w-20 h-20 rounded-full bg-emerald-100 flex items-center justify-center text-2xl overflow-hidden">
+            <div className="w-20 h-20 rounded-full flex items-center justify-center text-2xl overflow-hidden" style={{background: 'var(--color-brand-light)'}}>
               {profile?.avatar_url ? (
                 <img src={profile.avatar_url} alt="" className="w-full h-full object-cover" />
               ) : (
-                <span className="text-emerald-700 font-bold text-2xl">
+                <span className="font-bold text-2xl" style={{color: 'var(--color-brand)'}}>
                   {profile?.full_name?.charAt(0)?.toUpperCase() || 'U'}
                 </span>
               )}
@@ -292,7 +292,7 @@ const Profile = () => {
             <button
               onClick={() => fileInputRef.current?.click()}
               disabled={avatarUploading}
-              className="absolute -bottom-1 -right-1 w-7 h-7 bg-emerald-600 rounded-full flex items-center justify-center text-white shadow hover:bg-emerald-700 transition-colors disabled:opacity-50"
+              className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full flex items-center justify-center text-white shadow disabled:opacity-50" style={{background: 'var(--color-brand)'}}
             >
               <CameraIcon className="w-3.5 h-3.5" />
             </button>
@@ -314,7 +314,7 @@ const Profile = () => {
               <Input label={t('common.phone')} error={errors.phone?.message} {...register('phone')} />
             </div>
             <div className="flex items-center justify-between">
-              <p className="text-xs text-gray-400">{t('profile.email')} {user?.email}</p>
+              <p className="text-xs" style={{color: 'var(--color-text-tertiary)'}}>{t('profile.email')} {user?.email}</p>
               <Button type="submit" size="sm" loading={profileMutation.isPending}>
                 {t('common.save')}
               </Button>
@@ -324,7 +324,7 @@ const Profile = () => {
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 bg-gray-100 rounded-xl p-1 overflow-x-auto scrollbar-hide">
+      <div className="flex gap-1 rounded-xl p-1 overflow-x-auto scrollbar-hide" style={{background: 'var(--color-bg)'}}>
         {([
           { key: 'upcoming', label: `${t('profile.tabs.upcoming')} (${upcomingBookings.length})` },
           { key: 'calendar', label: '📅' },
@@ -337,9 +337,11 @@ const Profile = () => {
           <button
             key={tab.key}
             onClick={() => setActiveTab(tab.key)}
-            className={`py-2.5 text-sm font-medium rounded-lg transition-colors whitespace-nowrap px-3 flex-shrink-0 ${
-              activeTab === tab.key ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'
-            }`}
+            className={`py-2.5 text-sm font-medium rounded-lg transition-colors whitespace-nowrap px-3 flex-shrink-0${activeTab === tab.key ? ' shadow-sm' : ''}`}
+            style={activeTab === tab.key
+              ? {background: 'var(--color-surface)', color: 'var(--color-text-primary)'}
+              : {color: 'var(--color-text-secondary)'}
+            }
           >
             {tab.label}
           </button>
@@ -361,32 +363,36 @@ const Profile = () => {
         )}
 
         {activeTab === 'calendar' && (
-          <div className="bg-white rounded-2xl border border-gray-100 p-4 shadow-sm">
+          <div className="rounded-2xl border p-4 shadow-sm" style={{background: 'var(--color-surface)', borderColor: 'var(--color-border)'}}>
             <div className="flex items-center justify-between mb-4">
-              <button onClick={() => { if (calMonth === 0) { setCalMonth(11); setCalYear(y => y - 1) } else setCalMonth(m => m - 1) }} className="text-sm text-emerald-600 font-medium hover:underline">←</button>
-              <span className="text-sm font-semibold text-gray-900">{new Date(calYear, calMonth).toLocaleDateString('uz-UZ', { month: 'long', year: 'numeric' })}</span>
-              <button onClick={() => { if (calMonth === 11) { setCalMonth(0); setCalYear(y => y + 1) } else setCalMonth(m => m + 1) }} className="text-sm text-emerald-600 font-medium hover:underline">→</button>
+              <button onClick={() => { if (calMonth === 0) { setCalMonth(11); setCalYear(y => y - 1) } else setCalMonth(m => m - 1) }} className="text-sm font-medium hover:underline" style={{color: 'var(--color-brand)'}}>←</button>
+              <span className="text-sm font-semibold" style={{color: 'var(--color-text-primary)'}}>{new Date(calYear, calMonth).toLocaleDateString('uz-UZ', { month: 'long', year: 'numeric' })}</span>
+              <button onClick={() => { if (calMonth === 11) { setCalMonth(0); setCalYear(y => y + 1) } else setCalMonth(m => m + 1) }} className="text-sm font-medium hover:underline" style={{color: 'var(--color-brand)'}}>→</button>
             </div>
-            <div className="grid grid-cols-7 gap-1 text-center text-xs text-gray-400 mb-2">
+            <div className="grid grid-cols-7 gap-1 text-center text-xs mb-2" style={{color: 'var(--color-text-tertiary)'}}>
               {['Ya','Du','Se','Ch','Pa','Ju','Sh'].map(d => <div key={d} className="py-1">{d}</div>)}
             </div>
             <div className="grid grid-cols-7 gap-1">
               {calendarDays.map((d, i) => (
-                <div key={i} className={`aspect-square rounded-lg p-1 text-center text-xs ${d.day === 0 ? 'invisible' : d.bookings.length > 0 ? 'bg-emerald-50 text-emerald-700 font-semibold' : 'text-gray-700'}`}>
+                <div key={i} className={`aspect-square rounded-lg p-1 text-center text-xs ${d.day === 0 ? 'invisible' : d.bookings.length > 0 ? 'font-semibold' : ''}`}
+                  style={d.day === 0 ? undefined : d.bookings.length > 0
+                    ? {background: 'var(--color-brand-light)', color: 'var(--color-brand)'}
+                    : {color: 'var(--color-text-primary)'}
+                  }>
                   <span>{d.day}</span>
-                  {d.bookings.length > 0 && <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full mx-auto mt-0.5" />}
+                  {d.bookings.length > 0 && <div className="w-1.5 h-1.5 rounded-full mx-auto mt-0.5" style={{background: 'var(--color-brand)'}} />}
                 </div>
               ))}
             </div>
             {upcomingBookings.length > 0 && (
-              <div className="mt-4 space-y-2 border-t border-gray-100 pt-4">
-                <p className="text-xs font-medium text-gray-500 mb-2">{t('profile.tabs.upcoming')}</p>
+              <div className="mt-4 space-y-2 border-t pt-4" style={{borderTopColor: 'var(--color-border)'}}>
+                <p className="text-xs font-medium mb-2" style={{color: 'var(--color-text-secondary)'}}>{t('profile.tabs.upcoming')}</p>
                 {upcomingBookings.map(b => (
-                  <div key={b.id} className="flex items-center gap-2 text-xs text-gray-700">
-                    <span className="text-emerald-600 font-medium">{b.slots?.date || '—'}</span>
-                    <span>{b.slots?.start_time?.slice(0,5) || '—'}</span>
-                    <span className="text-gray-400">—</span>
-                    <span className="font-medium">{b.venues?.name || t('profile.venue')}</span>
+                  <div key={b.id} className="flex items-center gap-2 text-xs">
+                    <span className="font-medium" style={{color: 'var(--color-brand)'}}>{b.slots?.date || '—'}</span>
+                    <span style={{color: 'var(--color-text-primary)'}}>{b.slots?.start_time?.slice(0,5) || '—'}</span>
+                    <span style={{color: 'var(--color-text-tertiary)'}}>—</span>
+                    <span className="font-medium" style={{color: 'var(--color-text-primary)'}}>{b.venues?.name || t('profile.venue')}</span>
                   </div>
                 ))}
               </div>
@@ -398,15 +404,15 @@ const Profile = () => {
           favorites.length === 0
             ? <EmptyState text="Sevimli joylar yo'q" sub="Yoqtirgan venue laringizni saqlang" />
             : <div className="space-y-3">{(favorites as any[]).map((f: any) => (
-              <div key={f.id} className="flex items-center justify-between bg-white rounded-2xl border border-gray-100 p-4 shadow-sm">
+              <div key={f.id} className="flex items-center justify-between rounded-2xl border p-4 shadow-sm" style={{background: 'var(--color-surface)', borderColor: 'var(--color-border)'}}>
                 <Link to={`/venues/${f.venue_id}`} className="flex items-center gap-3 flex-1 min-w-0">
                   <span className="text-2xl">{f.venues?.categories?.icon || '🏢'}</span>
                   <div className="min-w-0">
-                    <p className="font-medium text-gray-900 text-sm hover:text-emerald-600 transition-colors">{f.venues?.name}</p>
-                    <p className="text-xs text-gray-500">{f.venues?.city}</p>
+                    <p className="font-medium text-sm transition-colors" style={{color: 'var(--color-text-primary)'}}>{f.venues?.name}</p>
+                    <p className="text-xs" style={{color: 'var(--color-text-secondary)'}}>{f.venues?.city}</p>
                   </div>
                 </Link>
-                <button onClick={() => removeFavMutation.mutate(f.venue_id)} className="text-gray-400 hover:text-red-500 transition-colors shrink-0 ml-3">
+                <button onClick={() => removeFavMutation.mutate(f.venue_id)} className="transition-colors shrink-0 ml-3 hover:text-red-500" style={{color: 'var(--color-text-tertiary)'}}>
                   <TrashIcon className="w-4 h-4" />
                 </button>
               </div>
@@ -421,16 +427,16 @@ const Profile = () => {
 
         {activeTab === 'loyalty' && (
           <div className="space-y-4">
-            <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
+            <div className="rounded-2xl border p-6 shadow-sm" style={{background: 'var(--color-surface)', borderColor: 'var(--color-border)'}}>
               <div className="flex items-center gap-3 mb-4">
                 <span className="text-3xl">🪙</span>
                 <div>
-                  <p className="text-2xl font-bold text-gray-900">{totalPoints}</p>
-                  <p className="text-sm text-gray-500">Total points</p>
+                  <p className="text-2xl font-bold" style={{color: 'var(--color-text-primary)'}}>{totalPoints}</p>
+                  <p className="text-sm" style={{color: 'var(--color-text-secondary)'}}>Total points</p>
                 </div>
               </div>
-              <div className="text-sm text-gray-500">
-                Lifetime earned: <span className="font-medium text-gray-700">{totalEarned} points</span>
+              <div className="text-sm" style={{color: 'var(--color-text-secondary)'}}>
+                Lifetime earned: <span className="font-medium" style={{color: 'var(--color-text-primary)'}}>{totalEarned} points</span>
               </div>
               <div className="mt-3 p-3 bg-amber-50 rounded-xl border border-amber-100">
                 <p className="text-xs text-amber-800">
@@ -439,18 +445,19 @@ const Profile = () => {
               </div>
             </div>
 
-            <h3 className="font-semibold text-gray-900">History</h3>
+            <h3 className="font-semibold" style={{color: 'var(--color-text-primary)'}}>History</h3>
             {loyaltyHistory.length === 0 ? (
               <EmptyState text="No points history yet" sub="Complete bookings to earn points" />
             ) : (
               loyaltyHistory.map(h => (
-                <div key={h.id} className="bg-white rounded-2xl border border-gray-100 p-4 shadow-sm">
+                <div key={h.id} className="rounded-2xl border p-4 shadow-sm" style={{background: 'var(--color-surface)', borderColor: 'var(--color-border)'}}>
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm font-medium text-gray-900">{h.description || h.type}</p>
-                      <p className="text-xs text-gray-400 mt-0.5">{formatDate(h.created_at)}</p>
+                      <p className="text-sm font-medium" style={{color: 'var(--color-text-primary)'}}>{h.description || h.type}</p>
+                      <p className="text-xs mt-0.5" style={{color: 'var(--color-text-tertiary)'}}>{formatDate(h.created_at)}</p>
                     </div>
-                    <span className={`text-sm font-semibold ${h.type === 'earned' ? 'text-emerald-600' : 'text-red-500'}`}>
+                    <span className={`text-sm font-semibold ${h.type === 'earned' ? '' : 'text-red-500'}`}
+                      style={h.type === 'earned' ? {color: 'var(--color-brand)'} : undefined}>
                       {h.type === 'earned' ? '+' : '-'}{h.points}
                     </span>
                   </div>
@@ -464,11 +471,11 @@ const Profile = () => {
           waitlist.length === 0
             ? <EmptyState text="No waitlist entries" sub="Join a waitlist when a slot is full" />
             : waitlist.map(w => (
-                <div key={w.id} className="bg-white rounded-2xl border border-gray-100 p-4 shadow-sm">
+                <div key={w.id} className="rounded-2xl border p-4 shadow-sm" style={{background: 'var(--color-surface)', borderColor: 'var(--color-border)'}}>
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0 flex-1">
-                      <p className="font-medium text-gray-900 text-sm">{(w as any).venues?.name || 'Venue'}</p>
-                      <p className="text-xs text-gray-500 mt-1">
+                      <p className="font-medium text-sm" style={{color: 'var(--color-text-primary)'}}>{(w as any).venues?.name || 'Venue'}</p>
+                      <p className="text-xs mt-1" style={{color: 'var(--color-text-secondary)'}}>
                         {w.slot_time ? formatDate(w.slot_time) : '—'} at {w.slot_time?.slice(11, 16) || '—'}
                         {w.party_size > 1 && ` · Party of ${w.party_size}`}
                       </p>
@@ -494,10 +501,10 @@ const Profile = () => {
 }
 
 const EmptyState = ({ text, sub }: { text: string; sub: string }) => (
-  <div className="text-center py-12 bg-gray-50 rounded-2xl">
+  <div className="text-center py-12 rounded-2xl" style={{background: 'var(--color-bg)'}}>
     <span className="text-4xl">📋</span>
-    <p className="text-gray-500 mt-2">{text}</p>
-    <p className="text-sm text-gray-400 mt-1">{sub}</p>
+    <p className="mt-2" style={{color: 'var(--color-text-secondary)'}}>{text}</p>
+    <p className="text-sm mt-1" style={{color: 'var(--color-text-tertiary)'}}>{sub}</p>
   </div>
 )
 
