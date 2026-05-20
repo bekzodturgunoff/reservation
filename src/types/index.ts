@@ -49,7 +49,7 @@ export interface Venue {
   currency: string
   pricing_unit: PricingUnit
   status: 'pending' | 'active' | 'rejected' | 'human_action_needed'
-  ai_review_data: Record<string, unknown> | null
+  ai_review_data: AiReviewData | null
   opening_hours: Record<string, { open: string; close: string; closed: boolean }> | null
   min_notice_hours: number
   max_advance_days: number
@@ -203,6 +203,22 @@ export interface LoyaltyHistory {
   description: string
   booking_id: string | null
   created_at: string
+}
+
+export interface AiReviewFlag {
+  type: 'quota_ended' | 'ai_error' | 'suspicious' | 'approved' | 'rejected' | 'heuristic_fallback'
+  message: string
+}
+
+export type AiReviewStatus = 'ai_approved' | 'ai_rejected' | 'ai_suspicious' | 'ai_quota_ended' | 'ai_error' | 'heuristic_approved' | 'heuristic_suspicious'
+
+export interface AiReviewData {
+  review_status: AiReviewStatus
+  confidence: number
+  reasons: string[]
+  flags: AiReviewFlag[]
+  model_used: string | null
+  reviewed_at: string
 }
 
 export interface SocialProof {

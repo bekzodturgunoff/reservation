@@ -5,7 +5,7 @@ import { CalendarDaysIcon, CurrencyDollarIcon, StarIcon, Cog6ToothIcon, PlusCirc
 import { useAuthStore } from '../../store/authStore'
 import { useTitle } from '../../hooks/useTitle'
 import { useToastStore } from '../../store/toastStore'
-import { getVenuesByOwner } from '../../api/venues'
+import { getVenuesByOwner, deleteVenue } from '../../api/venues'
 import { getBookingsForVenueIds } from '../../api/bookings'
 import { getTelegramLinks, deleteTelegramLink, generateUserLinkCode } from '../../api/telegram'
 import { getVenuePromoCodes, createPromoCode, deletePromoCode } from '../../api/promoCodes'
@@ -84,6 +84,27 @@ const BusinessDashboard = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['telegram-links'] })
       addToast({ type: 'success', message: t('common.success') })
+    },
+  })
+
+  const deleteVenueMutation = useMutation({
+    mutationFn: deleteVenue,
+    onMutate: async (venueId) => {
+      await queryClient.cancelQueries({ queryKey: ['venues', 'owner', profile?.id] })
+      const previous = queryClient.getQueryData(['venues', 'owner', profile?.id])
+      queryClient.setQueryData(['venues', 'owner', profile?.id], (old: any[]) =>
+        old?.filter(v => v.id !== venueId) ?? []
+      )
+      return { previous }
+    },
+    onError: (_, __, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(['venues', 'owner', profile?.id], context.previous)
+      }
+      addToast({ type: 'error', message: t('common.error') })
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['venues', 'owner', profile?.id] })
     },
   })
 
@@ -323,6 +344,17 @@ const BusinessDashboard = () => {
                     >
                       <PencilIcon className="w-4 h-4" />
                     </Link>
+                    <button
+                      onClick={() => {
+                        if (window.confirm(v.name + ' ' + t('business.deleteConfirm'))) {
+                          deleteVenueMutation.mutate(v.id)
+                        }
+                      }}
+                      className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-colors"
+                      title={t('business.deleteVenue')}
+                    >
+                      <TrashIcon className="w-4 h-4" />
+                    </button>
                   </div>
                 </div>
                 <p className="text-[10px] text-gray-400 mt-1">{venueStatusConfig[v.status]?.description}</p>

@@ -16,7 +16,10 @@ const Home = () => {
 
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedCity, setSelectedCity] = useState('')
+  const [selectedRegion, setSelectedRegion] = useState('')
   const [selectedCategory, setSelectedCategory] = useState('')
+
+  const citiesInRegion = selectedRegion ? UZBEKISTAN_REGIONS[selectedRegion] : []
 
   const { data: categories = [] } = useQuery({
     queryKey: ['categories'],
@@ -53,7 +56,8 @@ const Home = () => {
   const handleSearch = () => {
     const params = new URLSearchParams()
     if (searchQuery) params.set('search', searchQuery)
-    if (selectedCity) params.set('city', selectedCity)
+    const cityFilter = selectedCity || selectedRegion || ''
+    if (cityFilter) params.set('city', cityFilter)
     if (selectedCategory) params.set('category', selectedCategory)
     navigate(`/search?${params.toString()}`)
   }
@@ -93,23 +97,34 @@ const Home = () => {
                 className="flex-1 text-gray-900 placeholder-gray-400 text-sm outline-none py-2 bg-transparent"
               />
             </div>
-            <div className="flex items-center gap-2 px-3 sm:border-l border-gray-200">
+            <div className="flex items-center gap-1 px-1 sm:border-l border-gray-200">
               <MapPinIcon className="w-4 h-4 text-gray-400 flex-shrink-0" />
               <select
-                value={selectedCity}
-                onChange={e => setSelectedCity(e.target.value)}
-                className="text-sm text-gray-700 outline-none bg-transparent py-2 pr-2 cursor-pointer"
+                value={selectedRegion}
+                onChange={e => {
+                  const region = e.target.value
+                  setSelectedRegion(region)
+                  setSelectedCity(region)
+                }}
+                className="text-sm text-gray-700 outline-none bg-transparent py-2 cursor-pointer max-w-[110px]"
               >
                 <option value="">{t('common.all')}</option>
-                {Object.entries(UZBEKISTAN_REGIONS).map(([region, cities]) => (
-                  <optgroup key={region} label={region}>
-                    <option value={region}>All {region}</option>
-                    {cities.map(c => (
-                      <option key={c} value={c}>{c}</option>
-                    ))}
-                  </optgroup>
+                {Object.keys(UZBEKISTAN_REGIONS).map(r => (
+                  <option key={r} value={r}>{r}</option>
                 ))}
               </select>
+              {selectedRegion && (
+                <select
+                  value={selectedCity}
+                  onChange={e => setSelectedCity(e.target.value)}
+                  className="text-sm text-gray-700 outline-none bg-transparent py-2 cursor-pointer max-w-[110px]"
+                >
+                  <option value={selectedRegion}>All cities</option>
+                  {citiesInRegion.map(c => (
+                    <option key={c} value={c}>{c}</option>
+                  ))}
+                </select>
+              )}
             </div>
             <button
               onClick={handleSearch}

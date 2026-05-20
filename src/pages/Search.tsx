@@ -3,7 +3,7 @@ import { useSearchParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import {
   MagnifyingGlassIcon as SearchIcon, AdjustmentsHorizontalIcon as SlidersHorizontalIcon, MapIcon, Squares2X2Icon,
-  XMarkIcon, ChevronDownIcon, ChevronUpIcon, MapPinIcon,
+  XMarkIcon, ChevronDownIcon, ChevronUpIcon,
 } from '@heroicons/react/24/outline'
 import { getVenues, type VenueFilters } from '../api/venues'
 import { getCategories } from '../api/categories'
@@ -12,7 +12,6 @@ import VenueMap from '../components/venue/VenueMap'
 import { useTitle } from '../hooks/useTitle'
 import { useTranslation } from 'react-i18next'
 import { UZBEKISTAN_REGIONS } from '../lib/constants'
-import type { Venue } from '../types'
 
 type ViewMode = 'grid' | 'map'
 
@@ -36,11 +35,14 @@ const Search = () => {
 
   const [search, setSearch] = useState(searchParams.get('search') || '')
   const [city, setCity] = useState(searchParams.get('city') || '')
+  const [selectedRegion, setSelectedRegion] = useState(() => {
+    const c = searchParams.get('city') || ''
+    return c in UZBEKISTAN_REGIONS ? c : ''
+  })
   const [category, setCategory] = useState(searchParams.get('category') || '')
   const [minPrice, setMinPrice] = useState(searchParams.get('minPrice') || '')
   const [maxPrice, setMaxPrice] = useState(searchParams.get('maxPrice') || '')
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null)
-  const [locating, setLocating] = useState(false)
 
   const getLangName = (uz: string, ru: string) =>
     i18n.language === 'uz' ? uz : ru
@@ -74,18 +76,15 @@ const Search = () => {
     })
   }, [venues, userLocation])
 
-  const locateMe = () => {
-    if (!navigator.geolocation) return
-    setLocating(true)
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        setUserLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude })
-        setLocating(false)
-      },
-      () => { setLocating(false) },
-      { enableHighAccuracy: true, timeout: 10000 },
-    )
-  }
+  useEffect(() => {
+    if (viewMode === 'map' && !userLocation && navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => setUserLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+        () => {},
+        { enableHighAccuracy: true, timeout: 10000 },
+      )
+    }
+  }, [viewMode])
 
   const syncToUrl = useCallback(() => {
     const params: Record<string, string> = {}
@@ -104,13 +103,16 @@ const Search = () => {
 
   const clearFilters = () => {
     setSearch('')
+    setSelectedRegion('')
     setCity('')
     setCategory('')
     setMinPrice('')
     setMaxPrice('')
   }
 
-  const hasActiveFilters = !!(search || category || minPrice || maxPrice || userLocation)
+  const citiesInRegion = selectedRegion ? UZBEKISTAN_REGIONS[selectedRegion] : []
+
+  const hasActiveFilters = !!(search || category || minPrice || maxPrice)
 
   const activeCategory = categories.find(c => c.slug === category)
 
@@ -139,53 +141,48 @@ const Search = () => {
           </div>
 
           <select
-            value={city}
-            onChange={e => setCity(e.target.value)}
-            className="sm:w-44 px-3 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-gray-50 text-gray-700"
+            value={selectedRegion}
+            onChange={e => {
+              const region = e.target.value
+              setSelectedRegion(region)
+              if (region) {
+                setCity(region)
+              } else {
+                setCity('')
+              }
+            }}
+            className="sm:w-40 px-3 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-gray-50 text-gray-700"
           >
             <option value="">{t('common.all')}</option>
-            {Object.entries(UZBEKISTAN_REGIONS).map(([region, cities]) => (
-              <optgroup key={region} label={region}>
-                <option value={region}>All {region}</option>
-                {cities.map(city => (
-                  <option key={city} value={city}>{city}</option>
-                ))}
-              </optgroup>
+            {Object.keys(UZBEKISTAN_REGIONS).map(r => (
+              <option key={r} value={r}>{r}</option>
             ))}
           </select>
 
-          <button
-            onClick={locateMe}
-            disabled={locating}
-            className={`flex items-center gap-2 px-4 py-2.5 text-sm rounded-xl border transition-colors ${
-              userLocation
-                ? 'bg-emerald-50 border-emerald-200 text-emerald-700'
-                : 'border-gray-200 text-gray-700 hover:bg-gray-50'
-            } disabled:opacity-50`}
-          >
-            <MapPinIcon className="w-4 h-4" />
-            {locating ? '...' : userLocation ? t('search.nearMe') : t('search.nearMe')}
-            {userLocation && (
-              <button
-                onClick={(e) => { e.stopPropagation(); setUserLocation(null) }}
-                className="ml-1 hover:bg-emerald-100 rounded-full p-0.5"
-              >
-                <XMarkIcon className="w-3 h-3" />
-              </button>
-            )}
-          </button>
+          {selectedRegion && (
+            <select
+              value={city}
+              onChange={e => setCity(e.target.value)}
+              className="sm:w-40 px-3 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-gray-50 text-gray-700"
+            >
+              <option value={selectedRegion}>All cities</option>
+              {citiesInRegion.map(c => (
+                <option key={c} value={c}>{c}</option>
+              ))}
+            </select>
+          )}
 
           <button
             onClick={() => setFiltersOpen(!filtersOpen)}
             className={`flex items-center gap-2 px-4 py-2.5 text-sm rounded-xl border transition-colors ${
-              hasActiveFilters && !userLocation
+              hasActiveFilters
                 ? 'bg-emerald-50 border-emerald-200 text-emerald-700'
                 : 'border-gray-200 text-gray-700 hover:bg-gray-50'
             }`}
           >
             <SlidersHorizontalIcon className="w-4 h-4" />
             {t('search.filters')}
-            {hasActiveFilters && !userLocation && (
+            {hasActiveFilters && (
               <span className="w-5 h-5 bg-emerald-600 text-white rounded-full text-xs flex items-center justify-center font-medium">
                 {[search, category, minPrice, maxPrice].filter(Boolean).length}
               </span>
@@ -255,7 +252,7 @@ const Search = () => {
               </div>
               {hasActiveFilters && (
                 <button
-                  onClick={() => { clearFilters(); setUserLocation(null) }}
+                  onClick={clearFilters}
                   className="flex items-center gap-1.5 px-4 py-2 text-sm text-red-600 hover:bg-red-50 rounded-xl transition-colors border border-red-200"
                 >
                   <XMarkIcon className="w-4 h-4" /> {t('search.clear')}
@@ -306,7 +303,6 @@ const Search = () => {
                   </span>
                 )}
                 {city ? <span className="ml-1 text-gray-500">· {city}</span> : <span className="ml-1 text-gray-500">· All cities</span>}
-                {userLocation && <span className="ml-1 text-emerald-600">· 📍 {t('search.sortedByDistance')}</span>}
               </>
             )}
           </p>

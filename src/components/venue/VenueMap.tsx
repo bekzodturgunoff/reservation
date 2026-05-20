@@ -13,11 +13,14 @@ L.Icon.Default.mergeOptions({
   shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
 })
 
-const createCustomIcon = (emoji: string) =>
-  L.divIcon({
+const createCustomIcon = (emoji: string) => {
+  const isDark = document.documentElement.classList.contains('dark')
+  const bg = isDark ? '#1e293b' : 'white'
+  const borderColor = isDark ? '#34d399' : '#059669'
+  return L.divIcon({
     html: `<div style="
-      background: white;
-      border: 2px solid #059669;
+      background: ${bg};
+      border: 2px solid ${borderColor};
       border-radius: 50% 50% 50% 0;
       transform: rotate(-45deg);
       width: 36px;
@@ -34,6 +37,7 @@ const createCustomIcon = (emoji: string) =>
     iconAnchor: [18, 36],
     popupAnchor: [0, -40],
   })
+}
 
 const userIcon = L.divIcon({
   html: `<div style="

@@ -1,5 +1,5 @@
 import { supabase } from '../lib/supabase'
-import type { Venue } from '../types'
+import type { Venue, AiReviewData, AiReviewStatus } from '../types'
 
 export interface AdminStats {
   totalVenues: number
@@ -41,6 +41,45 @@ export const approveVenue = async (id: string): Promise<void> => {
 export const rejectVenue = async (id: string): Promise<void> => {
   const { error } = await supabase.rpc('reject_venue', { venue_id: id })
   if (error) throw error
+}
+
+export const retryAiReview = async (venueId: string): Promise<void> => {
+  const { error } = await supabase.functions.invoke('ai-venue-review', {
+    body: { venue_id: venueId, retry: true },
+  })
+  if (error) throw error
+}
+
+export function isRetryableAiStatus(data: AiReviewData | null): boolean {
+  if (!data) return true
+  const retryable: AiReviewStatus[] = ['ai_quota_ended', 'ai_error']
+  return retryable.includes(data.review_status)
+}
+
+export function getAiReviewStatusLabel(status: AiReviewStatus): string {
+  const labels: Record<AiReviewStatus, string> = {
+    ai_approved: 'AI Approved',
+    ai_rejected: 'AI Rejected',
+    ai_suspicious: 'Suspicious',
+    ai_quota_ended: 'AI Quota Ended',
+    ai_error: 'AI Error',
+    heuristic_approved: 'Heuristic Approved',
+    heuristic_suspicious: 'Heuristic Flagged',
+  }
+  return labels[status] || status
+}
+
+export function getAiReviewStatusVariant(status: AiReviewStatus): 'success' | 'danger' | 'warning' | 'info' | 'default' {
+  const map: Record<AiReviewStatus, 'success' | 'danger' | 'warning' | 'info' | 'default'> = {
+    ai_approved: 'success',
+    ai_rejected: 'danger',
+    ai_suspicious: 'warning',
+    ai_quota_ended: 'info',
+    ai_error: 'warning',
+    heuristic_approved: 'success',
+    heuristic_suspicious: 'info',
+  }
+  return map[status] || 'info'
 }
 
 export const getAdminStats = async (): Promise<AdminStats> => {
