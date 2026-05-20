@@ -49,10 +49,31 @@
       "fixed": "qat'iy"
     },
     "days": {
-      "short": ["Yak", "Du", "Se", "Chor", "Pay", "Ju", "Shan"]
+      "short": [
+        "Yak",
+        "Du",
+        "Se",
+        "Chor",
+        "Pay",
+        "Ju",
+        "Shan"
+      ]
     },
     "months": {
-      "short": ["Yan", "Fev", "Mar", "Apr", "May", "Iyun", "Iyul", "Avg", "Sen", "Okt", "Noy", "Dek"]
+      "short": [
+        "Yan",
+        "Fev",
+        "Mar",
+        "Apr",
+        "May",
+        "Iyun",
+        "Iyul",
+        "Avg",
+        "Sen",
+        "Okt",
+        "Noy",
+        "Dek"
+      ]
     },
     "active": "Faol",
     "pending": "Kutilmoqda",
@@ -103,7 +124,10 @@
     "clear": "Tozalash",
     "searching": "Qidirilmoqda...",
     "results": "ta joy topildi",
-    "empty": "Hech narsa topilmadi — filtrlarni o'zgartiring"
+    "empty": "Hech narsa topilmadi — filtrlarni o'zgartiring",
+    "nearMe": "📍 Yonimdagilar",
+    "sortedByDistance": "Masofa bo'yicha tartiblangan",
+    "yourLocation": "Sizning joylashuvingiz"
   },
   "venue": {
     "about": "Joy haqida",
@@ -292,7 +316,8 @@
       "serviceDuration": "Davom (min)",
       "deleteService": "O'chirish",
       "serviceAdded": "Variant qo'shildi",
-      "serviceDeleted": "Variant o'chirildi"
+      "serviceDeleted": "Variant o'chirildi",
+      "useMyLocation": "Mening joyimni ishlat"
     },
     "availability": {
       "title": "Vaqtlarni boshqarish",
@@ -324,7 +349,8 @@
       "openDate": "Bu sanani ochish",
       "dateClosed": "Sana bron uchun yopildi",
       "dateOpened": "Sana bron uchun ochildi"
-    }
+    },
+    "editVenue": "Venue ni tahrirlash"
   },
   "telegram": {
     "connect": "Telegram ga ulash",
@@ -334,7 +360,13 @@
     "linkVenue": "Venue ni ulash",
     "disconnect": "Uzish",
     "notificationsOn": "Bildirishnomalar yoqilgan",
-    "noVenuesLinked": "Hali venue lar ulanmagan"
+    "noVenuesLinked": "Hali venue lar ulanmagan",
+    "venues": "ta venue",
+    "linkedVenues": "Ulangan venue lar",
+    "autoLinkHint": "Yangi venue lar avtomatik Telegram ga ulanadi",
+    "connectBot": "Telegram botga ulanish",
+    "disconnectAll": "Barchasini uzish",
+    "disconnectAllConfirm": "Barcha venue larni Telegram dan uzishni xohlaysizmi?"
   },
   "admin": {
     "dashboard": "Admin panel",
@@ -363,7 +395,14 @@
       "allDoneDesc": "Yangi venue qo'shilganda sizga xabar keladi",
       "rejectConfirm": "ni rad etishni xohlaysizmi?",
       "perSlot": "/ slot"
-    }
+    },
+    "statsHumanReview": "Tekshirish kerak",
+    "pendingReview": "Kutilayotgan",
+    "humanReview": "Inson tekshiruvi",
+    "needsAttention": "tekshirish kerak",
+    "needsReview": "Tekshirish kerak",
+    "aiReview": "AI tekshiruvi",
+    "confidence": "ishonchlilik"
   },
   "nav": {
     "profile": "Mening profilim",

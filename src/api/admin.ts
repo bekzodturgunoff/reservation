@@ -6,6 +6,7 @@ export interface AdminStats {
   totalUsers: number
   totalBookings: number
   pendingVenues: number
+  humanReviewVenues: number
 }
 
 export interface PendingVenue extends Venue {
@@ -22,6 +23,16 @@ export const getPendingVenues = async (): Promise<PendingVenue[]> => {
   return data
 }
 
+export const getHumanReviewVenues = async (): Promise<PendingVenue[]> => {
+  const { data, error } = await supabase
+    .from('venues')
+    .select('*, categories(id, slug, name_uz, name_ru, icon), profiles!owner_id(full_name, phone)')
+    .eq('status', 'human_action_needed')
+    .order('created_at', { ascending: false })
+  if (error) throw error
+  return data
+}
+
 export const approveVenue = async (id: string): Promise<void> => {
   const { error } = await supabase.rpc('approve_venue', { venue_id: id })
   if (error) throw error
@@ -33,11 +44,12 @@ export const rejectVenue = async (id: string): Promise<void> => {
 }
 
 export const getAdminStats = async (): Promise<AdminStats> => {
-  const [venuesRes, usersRes, bookingsRes, pendingRes] = await Promise.all([
+  const [venuesRes, usersRes, bookingsRes, pendingRes, humanRes] = await Promise.all([
     supabase.from('venues').select('*', { count: 'exact', head: true }),
     supabase.from('profiles').select('*', { count: 'exact', head: true }),
     supabase.from('bookings').select('*', { count: 'exact', head: true }),
     supabase.from('venues').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
+    supabase.from('venues').select('*', { count: 'exact', head: true }).eq('status', 'human_action_needed'),
   ])
 
   return {
@@ -45,5 +57,6 @@ export const getAdminStats = async (): Promise<AdminStats> => {
     totalUsers: usersRes.count ?? 0,
     totalBookings: bookingsRes.count ?? 0,
     pendingVenues: pendingRes.count ?? 0,
+    humanReviewVenues: humanRes.count ?? 0,
   }
 }

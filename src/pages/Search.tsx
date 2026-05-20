@@ -1,20 +1,30 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import {
   MagnifyingGlassIcon as SearchIcon, AdjustmentsHorizontalIcon as SlidersHorizontalIcon, MapIcon, Squares2X2Icon,
-  XMarkIcon, ChevronDownIcon, ChevronUpIcon,
+  XMarkIcon, ChevronDownIcon, ChevronUpIcon, MapPinIcon,
 } from '@heroicons/react/24/outline'
-import { getVenues, getDistricts, type VenueFilters } from '../api/venues'
+import { getVenues, type VenueFilters } from '../api/venues'
 import { getCategories } from '../api/categories'
 import VenueGrid from '../components/venue/VenueGrid'
 import VenueMap from '../components/venue/VenueMap'
 import { useTitle } from '../hooks/useTitle'
 import { useTranslation } from 'react-i18next'
+import { UZBEKISTAN_REGIONS } from '../lib/constants'
+import type { Venue } from '../types'
 
 type ViewMode = 'grid' | 'map'
 
-const CITIES = ["Tashkent", "Samarkand", "Buxoro", "Namangan", "Andijon", "Farg'ona"]
+function haversineDistance(lat1: number, lng1: number, lat2: number, lng2: number): number {
+  const R = 6371
+  const dLat = ((lat2 - lat1) * Math.PI) / 180
+  const dLng = ((lng2 - lng1) * Math.PI) / 180
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos((lat1 * Math.PI) / 180) * Math.cos((lat2 * Math.PI) / 180) * Math.sin(dLng / 2) ** 2
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+}
 
 const Search = () => {
   const { t, i18n } = useTranslation()
@@ -25,11 +35,12 @@ const Search = () => {
   const [filtersOpen, setFiltersOpen] = useState(false)
 
   const [search, setSearch] = useState(searchParams.get('search') || '')
-  const [city, setCity] = useState(searchParams.get('city') || 'Tashkent')
+  const [city, setCity] = useState(searchParams.get('city') || '')
   const [category, setCategory] = useState(searchParams.get('category') || '')
-  const [district, setDistrict] = useState(searchParams.get('district') || '')
   const [minPrice, setMinPrice] = useState(searchParams.get('minPrice') || '')
   const [maxPrice, setMaxPrice] = useState(searchParams.get('maxPrice') || '')
+  const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null)
+  const [locating, setLocating] = useState(false)
 
   const getLangName = (uz: string, ru: string) =>
     i18n.language === 'uz' ? uz : ru
@@ -39,16 +50,10 @@ const Search = () => {
     queryFn: getCategories,
   })
 
-  const { data: districts = [] } = useQuery({
-    queryKey: ['venues', 'districts'],
-    queryFn: getDistricts,
-  })
-
   const filters: VenueFilters = {
     search: search || undefined,
     city: city || undefined,
     category: category || undefined,
-    district: district || undefined,
     minPrice: minPrice ? Number(minPrice) : undefined,
     maxPrice: maxPrice ? Number(maxPrice) : undefined,
   }
@@ -59,16 +64,38 @@ const Search = () => {
     staleTime: 30_000,
   })
 
+  const sortedVenues = useMemo(() => {
+    if (!userLocation) return venues
+    return [...venues].sort((a, b) => {
+      if (!a.lat || !a.lng) return 1
+      if (!b.lat || !b.lng) return -1
+      return haversineDistance(userLocation.lat, userLocation.lng, a.lat, a.lng) -
+             haversineDistance(userLocation.lat, userLocation.lng, b.lat, b.lng)
+    })
+  }, [venues, userLocation])
+
+  const locateMe = () => {
+    if (!navigator.geolocation) return
+    setLocating(true)
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setUserLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude })
+        setLocating(false)
+      },
+      () => { setLocating(false) },
+      { enableHighAccuracy: true, timeout: 10000 },
+    )
+  }
+
   const syncToUrl = useCallback(() => {
     const params: Record<string, string> = {}
     if (search) params.search = search
     if (city) params.city = city
     if (category) params.category = category
-    if (district) params.district = district
     if (minPrice) params.minPrice = minPrice
     if (maxPrice) params.maxPrice = maxPrice
     setSearchParams(params, { replace: true })
-  }, [search, city, category, district, minPrice, maxPrice, setSearchParams])
+  }, [search, city, category, minPrice, maxPrice, setSearchParams])
 
   useEffect(() => {
     const timeout = setTimeout(syncToUrl, 400)
@@ -77,20 +104,19 @@ const Search = () => {
 
   const clearFilters = () => {
     setSearch('')
-    setCity('Tashkent')
+    setCity('')
     setCategory('')
-    setDistrict('')
     setMinPrice('')
     setMaxPrice('')
   }
 
-  const hasActiveFilters = !!(search || category || district || minPrice || maxPrice)
+  const hasActiveFilters = !!(search || category || minPrice || maxPrice || userLocation)
 
   const activeCategory = categories.find(c => c.slug === category)
 
   return (
     <div className="min-h-screen">
-      <div className="bg-white border-b border-gray-100 sticky top-16 z-30 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 py-4 shadow-sm overflow-hidden">
+      <div className="bg-white border-b border-gray-100 sticky top-16 z-30 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:lg:px-8 py-4 shadow-sm overflow-hidden">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row gap-3">
 
           <div className="relative flex-1">
@@ -115,24 +141,51 @@ const Search = () => {
           <select
             value={city}
             onChange={e => setCity(e.target.value)}
-            className="sm:w-40 px-3 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-gray-50 text-gray-700"
+            className="sm:w-44 px-3 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-gray-50 text-gray-700"
           >
-            {CITIES.map(c => (
-              <option key={c} value={c}>{c}</option>
+            <option value="">{t('common.all')}</option>
+            {Object.entries(UZBEKISTAN_REGIONS).map(([region, cities]) => (
+              <optgroup key={region} label={region}>
+                <option value={region}>All {region}</option>
+                {cities.map(city => (
+                  <option key={city} value={city}>{city}</option>
+                ))}
+              </optgroup>
             ))}
           </select>
 
           <button
+            onClick={locateMe}
+            disabled={locating}
+            className={`flex items-center gap-2 px-4 py-2.5 text-sm rounded-xl border transition-colors ${
+              userLocation
+                ? 'bg-emerald-50 border-emerald-200 text-emerald-700'
+                : 'border-gray-200 text-gray-700 hover:bg-gray-50'
+            } disabled:opacity-50`}
+          >
+            <MapPinIcon className="w-4 h-4" />
+            {locating ? '...' : userLocation ? t('search.nearMe') : t('search.nearMe')}
+            {userLocation && (
+              <button
+                onClick={(e) => { e.stopPropagation(); setUserLocation(null) }}
+                className="ml-1 hover:bg-emerald-100 rounded-full p-0.5"
+              >
+                <XMarkIcon className="w-3 h-3" />
+              </button>
+            )}
+          </button>
+
+          <button
             onClick={() => setFiltersOpen(!filtersOpen)}
             className={`flex items-center gap-2 px-4 py-2.5 text-sm rounded-xl border transition-colors ${
-              hasActiveFilters
+              hasActiveFilters && !userLocation
                 ? 'bg-emerald-50 border-emerald-200 text-emerald-700'
                 : 'border-gray-200 text-gray-700 hover:bg-gray-50'
             }`}
           >
             <SlidersHorizontalIcon className="w-4 h-4" />
             {t('search.filters')}
-            {hasActiveFilters && (
+            {hasActiveFilters && !userLocation && (
               <span className="w-5 h-5 bg-emerald-600 text-white rounded-full text-xs flex items-center justify-center font-medium">
                 {[search, category, minPrice, maxPrice].filter(Boolean).length}
               </span>
@@ -202,7 +255,7 @@ const Search = () => {
               </div>
               {hasActiveFilters && (
                 <button
-                  onClick={clearFilters}
+                  onClick={() => { clearFilters(); setUserLocation(null) }}
                   className="flex items-center gap-1.5 px-4 py-2 text-sm text-red-600 hover:bg-red-50 rounded-xl transition-colors border border-red-200"
                 >
                   <XMarkIcon className="w-4 h-4" /> {t('search.clear')}
@@ -239,34 +292,6 @@ const Search = () => {
         ))}
       </div>
 
-      {districts.length > 0 && (
-        <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide mb-4">
-          <button
-            onClick={() => setDistrict('')}
-            className={`flex-shrink-0 flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium transition-all border ${
-              district === ''
-                ? 'bg-emerald-600 text-white border-emerald-600'
-                : 'bg-white text-gray-600 border-gray-200 hover:border-emerald-300'
-            }`}
-          >
-            {t('search.allDistricts')}
-          </button>
-          {districts.map(d => (
-            <button
-              key={d}
-              onClick={() => setDistrict(d === district ? '' : d)}
-              className={`flex-shrink-0 flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium transition-all border ${
-                district === d
-                  ? 'bg-emerald-600 text-white border-emerald-600'
-                  : 'bg-white text-gray-600 border-gray-200 hover:border-emerald-300'
-              }`}
-            >
-              {d}
-            </button>
-          ))}
-        </div>
-      )}
-
       <div className="flex items-center justify-between mb-5">
         <div>
           <p className="text-sm text-gray-600">
@@ -280,7 +305,8 @@ const Search = () => {
                     — {activeCategory.icon} {getLangName(activeCategory.name_uz, activeCategory.name_ru)}
                   </span>
                 )}
-                {city && <span className="ml-1 text-gray-500">· {city}</span>}
+                {city ? <span className="ml-1 text-gray-500">· {city}</span> : <span className="ml-1 text-gray-500">· All cities</span>}
+                {userLocation && <span className="ml-1 text-emerald-600">· 📍 {t('search.sortedByDistance')}</span>}
               </>
             )}
           </p>
@@ -289,16 +315,16 @@ const Search = () => {
 
       {viewMode === 'grid' ? (
         <VenueGrid
-          venues={venues}
+          venues={sortedVenues}
           loading={isLoading}
           emptyMessage={t('search.empty')}
         />
       ) : (
         <div className="space-y-4">
-          <VenueMap venues={venues} />
-          {venues.length > 0 && (
+          <VenueMap venues={sortedVenues} userLocation={userLocation} />
+          {sortedVenues.length > 0 && (
             <div className="mt-4">
-              <VenueGrid venues={venues} loading={isLoading} />
+              <VenueGrid venues={sortedVenues} loading={isLoading} />
             </div>
           )}
         </div>

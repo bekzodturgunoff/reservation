@@ -48,7 +48,8 @@ export interface Venue {
   price_per_slot: number
   currency: string
   pricing_unit: PricingUnit
-  status: 'pending' | 'active' | 'rejected'
+  status: 'pending' | 'active' | 'rejected' | 'human_action_needed'
+  ai_review_data: Record<string, unknown> | null
   opening_hours: Record<string, { open: string; close: string; closed: boolean }> | null
   min_notice_hours: number
   max_advance_days: number

@@ -1,13 +1,13 @@
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { CalendarDaysIcon, CurrencyDollarIcon, StarIcon, Cog6ToothIcon, PlusCircleIcon, PaperAirplaneIcon, TrashIcon, ChartBarSquareIcon, TagIcon } from '@heroicons/react/24/outline'
+import { CalendarDaysIcon, CurrencyDollarIcon, StarIcon, Cog6ToothIcon, PlusCircleIcon, PaperAirplaneIcon, TrashIcon, ChartBarSquareIcon, TagIcon, PencilIcon } from '@heroicons/react/24/outline'
 import { useAuthStore } from '../../store/authStore'
 import { useTitle } from '../../hooks/useTitle'
 import { useToastStore } from '../../store/toastStore'
 import { getVenuesByOwner } from '../../api/venues'
 import { getBookingsForVenueIds } from '../../api/bookings'
-import { getTelegramLinks, deleteTelegramLink, generateLinkCode } from '../../api/telegram'
+import { getTelegramLinks, deleteTelegramLink, generateUserLinkCode } from '../../api/telegram'
 import { getVenuePromoCodes, createPromoCode, deletePromoCode } from '../../api/promoCodes'
 import { computeAnalytics } from '../../api/analytics'
 import { formatPrice, formatDate, formatTime } from '../../lib/utils'
@@ -217,73 +217,74 @@ const BusinessDashboard = () => {
           <h2 className="text-lg font-semibold text-gray-900">{t('telegram.connect')}</h2>
           {telegramLinks.length > 0 && (
             <span className="text-xs bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded-full font-medium">
-              {t('telegram.connected')}
+              {t('telegram.connected')} ({telegramLinks.length} {t('telegram.venues')})
             </span>
           )}
         </div>
         <p className="text-sm text-gray-500 mb-4">{t('telegram.connectDesc')}</p>
 
-        <div className="p-4 bg-blue-50 rounded-xl border border-blue-100 mb-4">
-          <p className="text-sm text-blue-800">
-            {t('telegram.instructions')}
-          </p>
-        </div>
-
         {venues.length === 0 ? (
           <p className="text-sm text-gray-400">{t('business.emptyVenues')}</p>
-        ) : (
-          <div className="space-y-3">
-            {venues.map(v => {
-              const isLinked = linkedVenueIds.has(v.id)
-              const code = generateLinkCode(v.id, user?.id || '')
-              const telegramLink = `https://t.me/bron_uzb_bot?start=${code}`
-              return (
+        ) : telegramLinks.length > 0 ? (
+          <div>
+            <div className="flex items-center gap-2 mb-3">
+              <span className="text-sm text-gray-600">{t('telegram.linkedVenues')}:</span>
+              <Button
+                variant="danger"
+                size="sm"
+                loading={deleteLinkMutation.isPending}
+                onClick={() => {
+                  if (window.confirm(t('telegram.disconnectAllConfirm'))) {
+                    telegramLinks.forEach(l => deleteLinkMutation.mutate(l.id))
+                  }
+                }}
+              >
+                <TrashIcon className="w-3.5 h-3.5" /> {t('telegram.disconnectAll')}
+              </Button>
+            </div>
+            <div className="space-y-2">
+              {venues.filter(v => linkedVenueIds.has(v.id)).map(v => (
                 <div key={v.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
                   <div className="flex items-center gap-3">
                     <span className="text-lg">{v.categories?.icon || '🏢'}</span>
-                    <div>
-                      <p className="text-sm font-medium text-gray-900">{v.name}</p>
-                      <p className="text-xs text-gray-500">
-                        {isLinked
-                          ? t('telegram.notificationsOn')
-                          : t('telegram.noVenuesLinked')}
-                      </p>
-                    </div>
+                    <p className="text-sm font-medium text-gray-900">{v.name}</p>
                   </div>
-                  <div className="flex items-center gap-2">
-                    {isLinked ? (
-                      <Button
-                        variant="danger"
-                        size="sm"
-                        loading={deleteLinkMutation.isPending}
-                        onClick={() => {
-                          const link = telegramLinks.find(l => l.venue_id === v.id)
-                          if (link) deleteLinkMutation.mutate(link.id)
-                        }}
-                      >
-                        <TrashIcon className="w-3.5 h-3.5" /> {t('telegram.disconnect')}
-                      </Button>
-                    ) : (
-                      <a
-                        href={telegramLink}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white text-sm font-medium rounded-xl hover:bg-emerald-700 transition-colors"
-                      >
-                        <PaperAirplaneIcon className="w-3.5 h-3.5" /> {t('telegram.linkVenue')}
-                      </a>
-                    )}
-                  </div>
+                  <Button
+                    variant="danger"
+                    size="sm"
+                    loading={deleteLinkMutation.isPending}
+                    onClick={() => {
+                      const link = telegramLinks.find(l => l.venue_id === v.id)
+                      if (link) deleteLinkMutation.mutate(link.id)
+                    }}
+                  >
+                    <TrashIcon className="w-3.5 h-3.5" /> {t('telegram.disconnect')}
+                  </Button>
                 </div>
-              )
-            })}
+              ))}
+            </div>
+            <p className="text-xs text-gray-400 mt-3">{t('telegram.autoLinkHint')}</p>
+          </div>
+        ) : (
+          <div>
+            <div className="p-4 bg-blue-50 rounded-xl border border-blue-100 mb-4">
+              <p className="text-sm text-blue-800">{t('telegram.instructions')}</p>
+            </div>
+            <a
+              href={`https://t.me/bron_uzb_bot?start=${generateUserLinkCode(user?.id || '')}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 px-6 py-3 bg-emerald-600 text-white text-sm font-medium rounded-xl hover:bg-emerald-700 transition-colors"
+            >
+              <PaperAirplaneIcon className="w-4 h-4" /> {t('telegram.connectBot')}
+            </a>
           </div>
         )}
       </div>
 
       {/* Promo Codes Manager */}
       {venues.length > 0 && (
-        <PromoCodeManager venueId={venues[0].id} />
+        <PromoCodeManager venues={venues} />
       )}
 
       <div>
@@ -297,26 +298,35 @@ const BusinessDashboard = () => {
         ) : (
           <div className="grid gap-3">
             {venues.map(v => (
-              <Link key={v.id} to={`/business/venue/${v.id}/availability`} className="flex items-center justify-between bg-white rounded-2xl border border-gray-100 p-4 hover:shadow-sm transition-shadow">
-                <div className="flex items-center gap-3 min-w-0">
-                  <div className="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center text-lg shrink-0">{v.categories?.icon || '🏢'}</div>
-                  <div className="min-w-0">
-                    <p className="font-medium text-gray-900 text-sm truncate">{v.name}</p>
-                    <p className="text-xs text-gray-500 truncate">
-                      {v.city} · {v.categories?.name_uz || t('common.other')}
-                      {v.services && v.services.length > 0
-                        ? ` · ${v.services.slice(0, 2).map(s => formatPrice(s.price) + '/' + t('common.pricing_units.' + s.unit)).join(', ')}${v.services.length > 2 ? ' +' + (v.services.length - 2) : ''}`
-                        : ` · ${formatPrice(v.price_per_slot)} ${t('common.pricing_units.' + (v.pricing_unit || 'per_hour'))}`}
-                    </p>
+              <div key={v.id} className="bg-white rounded-2xl border border-gray-100 p-4 hover:shadow-sm transition-shadow">
+                <div className="flex items-center justify-between">
+                  <Link to={`/business/venue/${v.id}/availability`} className="flex items-center gap-3 min-w-0 flex-1">
+                    <div className="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center text-lg shrink-0">{v.categories?.icon || '🏢'}</div>
+                    <div className="min-w-0">
+                      <p className="font-medium text-gray-900 text-sm truncate">{v.name}</p>
+                      <p className="text-xs text-gray-500 truncate">
+                        {v.city} · {v.categories?.name_uz || t('common.other')}
+                        {v.services && v.services.length > 0
+                          ? ` · ${v.services.slice(0, 2).map(s => formatPrice(s.price) + '/' + t('common.pricing_units.' + s.unit)).join(', ')}${v.services.length > 2 ? ' +' + (v.services.length - 2) : ''}`
+                          : ` · ${formatPrice(v.price_per_slot)} ${t('common.pricing_units.' + (v.pricing_unit || 'per_hour'))}`}
+                      </p>
+                    </div>
+                  </Link>
+                  <div className="flex items-center gap-2 shrink-0 ml-3">
+                    <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium ${venueStatusConfig[v.status]?.color || 'bg-gray-100 text-gray-700'}`}>
+                      {venueStatusConfig[v.status]?.icon || '•'} {venueStatusConfig[v.status]?.label || v.status}
+                    </span>
+                    <Link
+                      to={`/business/venue/${v.id}/edit`}
+                      className="p-2 text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-xl transition-colors"
+                      title={t('business.editVenue')}
+                    >
+                      <PencilIcon className="w-4 h-4" />
+                    </Link>
                   </div>
                 </div>
-                <div className="text-right shrink-0">
-                  <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium ${venueStatusConfig[v.status]?.color || 'bg-gray-100 text-gray-700'}`}>
-                    {venueStatusConfig[v.status]?.icon || '•'} {venueStatusConfig[v.status]?.label || v.status}
-                  </span>
-                  <p className="text-[10px] text-gray-400 mt-1 max-w-[180px]">{venueStatusConfig[v.status]?.description}</p>
-                </div>
-              </Link>
+                <p className="text-[10px] text-gray-400 mt-1">{venueStatusConfig[v.status]?.description}</p>
+              </div>
             ))}
           </div>
         )}
@@ -362,18 +372,22 @@ const BusinessDashboard = () => {
   )
 }
 
-const PromoCodeManager = ({ venueId }: { venueId: string }) => {
+const PromoCodeManager = ({ venues }: { venues: { id: string; name: string; categories?: { icon?: string } }[] }) => {
   const { addToast } = useToastStore()
   const queryClient = useQueryClient()
+  const [selectedVenueId, setSelectedVenueId] = useState(venues[0]?.id || '')
   const [newCode, setNewCode] = useState('')
   const [newDiscountType, setNewDiscountType] = useState<'percentage' | 'fixed'>('percentage')
   const [newDiscountValue, setNewDiscountValue] = useState('')
   const [newExpiry, setNewExpiry] = useState('')
   const [showForm, setShowForm] = useState(false)
 
+  const venueId = selectedVenueId
+
   const { data: promoCodes = [] } = useQuery({
     queryKey: ['promo', venueId],
     queryFn: () => getVenuePromoCodes(venueId),
+    enabled: !!venueId,
   })
 
   const createMutation = useMutation({
@@ -415,6 +429,20 @@ const PromoCodeManager = ({ venueId }: { venueId: string }) => {
           <PlusCircleIcon className="w-4 h-4" /> {showForm ? 'Cancel' : 'Add'}
         </Button>
       </div>
+
+      {venues.length > 1 && (
+        <div className="mb-4">
+          <select
+            value={selectedVenueId}
+            onChange={e => setSelectedVenueId(e.target.value)}
+            className="w-full border border-gray-200 rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+          >
+            {venues.map(v => (
+              <option key={v.id} value={v.id}>{v.categories?.icon || '🏢'} {v.name}</option>
+            ))}
+          </select>
+        </div>
+      )}
 
       {showForm && (
         <div className="p-4 bg-gray-50 rounded-xl mb-4 space-y-3">

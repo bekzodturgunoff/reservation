@@ -49,10 +49,31 @@
       "fixed": "fixed"
     },
     "days": {
-      "short": ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
+      "short": [
+        "Sun",
+        "Mon",
+        "Tue",
+        "Wed",
+        "Thu",
+        "Fri",
+        "Sat"
+      ]
     },
     "months": {
-      "short": ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+      "short": [
+        "Jan",
+        "Feb",
+        "Mar",
+        "Apr",
+        "May",
+        "Jun",
+        "Jul",
+        "Aug",
+        "Sep",
+        "Oct",
+        "Nov",
+        "Dec"
+      ]
     },
     "active": "Active",
     "pending": "Pending",
@@ -103,7 +124,10 @@
     "clear": "Clear",
     "searching": "Searching...",
     "results": "venues found",
-    "empty": "Nothing found — try changing your filters"
+    "empty": "Nothing found — try changing your filters",
+    "nearMe": "📍 Near me",
+    "sortedByDistance": "Sorted by proximity",
+    "yourLocation": "Your location"
   },
   "venue": {
     "about": "About",
@@ -292,7 +316,8 @@
       "serviceDuration": "Duration (min)",
       "deleteService": "Delete",
       "serviceAdded": "Option added",
-      "serviceDeleted": "Option removed"
+      "serviceDeleted": "Option removed",
+      "useMyLocation": "Use my location"
     },
     "availability": {
       "title": "Manage time slots",
@@ -324,7 +349,8 @@
       "openDate": "Open this date",
       "dateClosed": "Date closed for bookings",
       "dateOpened": "Date reopened for bookings"
-    }
+    },
+    "editVenue": "Edit venue"
   },
   "telegram": {
     "connect": "Connect Telegram",
@@ -334,7 +360,13 @@
     "linkVenue": "Link venue",
     "disconnect": "Disconnect",
     "notificationsOn": "Notifications enabled",
-    "noVenuesLinked": "No venues linked yet"
+    "noVenuesLinked": "No venues linked yet",
+    "venues": "venues",
+    "linkedVenues": "Linked venues",
+    "autoLinkHint": "New venues will be automatically linked to Telegram",
+    "connectBot": "Connect to Telegram Bot",
+    "disconnectAll": "Disconnect all",
+    "disconnectAllConfirm": "Disconnect all venues from Telegram?"
   },
   "admin": {
     "dashboard": "Admin panel",
@@ -363,7 +395,14 @@
       "allDoneDesc": "You'll be notified when a new venue is added",
       "rejectConfirm": "Are you sure you want to reject",
       "perSlot": "/ slot"
-    }
+    },
+    "statsHumanReview": "Needs review",
+    "pendingReview": "Pending review",
+    "humanReview": "Human review",
+    "needsAttention": "need attention",
+    "needsReview": "Needs review",
+    "aiReview": "AI Review",
+    "confidence": "confidence"
   },
   "nav": {
     "profile": "My Profile",

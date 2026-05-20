@@ -1,7 +1,9 @@
+import { useState, useMemo } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { CheckIcon, XMarkIcon, MapPinIcon, PhoneIcon, ClockIcon } from '@heroicons/react/24/outline'
+import { CheckIcon, XMarkIcon, MapPinIcon, PhoneIcon, ClockIcon, ShieldExclamationIcon, SparklesIcon, InformationCircleIcon } from '@heroicons/react/24/outline'
 import { useTitle } from '../../hooks/useTitle'
-import { getPendingVenues, approveVenue, rejectVenue } from '../../api/admin'
+import { getPendingVenues, getHumanReviewVenues, approveVenue, rejectVenue } from '../../api/admin'
 import { formatPrice, formatDate } from '../../lib/utils'
 import Button from '../../components/ui/Button'
 import Badge from '../../components/ui/Badge'
@@ -9,17 +11,35 @@ import Skeleton from '../../components/ui/Skeleton'
 import { useToastStore } from '../../store/toastStore'
 import { useTranslation } from 'react-i18next'
 
+type Tab = 'pending' | 'human'
+
 const VenueApprovals = () => {
   const { t } = useTranslation()
   useTitle(t('admin.approvalsPage.title'))
   const queryClient = useQueryClient()
   const { addToast } = useToastStore()
+  const [searchParams, setSearchParams] = useSearchParams()
+  const [tab, setTab] = useState<Tab>(() => (searchParams.get('tab') === 'human' ? 'human' : 'pending'))
 
-  const { data: venues = [], isLoading } = useQuery({
+  const switchTab = (newTab: Tab) => {
+    setTab(newTab)
+    setSearchParams(newTab === 'human' ? { tab: 'human' } : {})
+  }
+
+  const { data: pendingVenues = [], isLoading: pendingLoading } = useQuery({
     queryKey: ['admin', 'pending-venues'],
     queryFn: getPendingVenues,
     refetchInterval: 15000,
   })
+
+  const { data: humanVenues = [], isLoading: humanLoading } = useQuery({
+    queryKey: ['admin', 'human-review-venues'],
+    queryFn: getHumanReviewVenues,
+    refetchInterval: 15000,
+  })
+
+  const venues = tab === 'human' ? humanVenues : pendingVenues
+  const isLoading = tab === 'human' ? humanLoading : pendingLoading
 
   const approveMutation = useMutation({
     mutationFn: approveVenue,
@@ -48,8 +68,38 @@ const VenueApprovals = () => {
       <div>
         <h1 className="text-2xl font-bold text-gray-900">{t('admin.approvalsPage.title')}</h1>
         <p className="text-sm text-gray-500 mt-1">
-          {venues.length} {t('admin.approvalsPage.waiting')}
+          {tab === 'pending'
+            ? `${pendingVenues.length} ${t('admin.approvalsPage.waiting')}`
+            : `${humanVenues.length} ${t('admin.needsAttention')}`}
         </p>
+      </div>
+
+      {/* Tabs */}
+      <div className="flex gap-1 bg-gray-100 rounded-xl p-1 w-fit">
+        <button
+          onClick={() => switchTab('pending')}
+          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+            tab === 'pending' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'
+          }`}
+        >
+          <SparklesIcon className="w-4 h-4" />
+          {t('admin.pendingReview')}
+          {pendingVenues.length > 0 && (
+            <span className="bg-yellow-100 text-yellow-700 text-xs px-1.5 py-0.5 rounded-full">{pendingVenues.length}</span>
+          )}
+        </button>
+        <button
+          onClick={() => switchTab('human')}
+          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+            tab === 'human' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'
+          }`}
+        >
+          <ShieldExclamationIcon className="w-4 h-4" />
+          {t('admin.humanReview')}
+          {humanVenues.length > 0 && (
+            <span className="bg-orange-100 text-orange-700 text-xs px-1.5 py-0.5 rounded-full">{humanVenues.length}</span>
+          )}
+        </button>
       </div>
 
       {isLoading ? (
@@ -69,7 +119,11 @@ const VenueApprovals = () => {
               <div className="p-5">
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-4 min-w-0">
-                    <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-yellow-100 to-yellow-50 flex items-center justify-center text-2xl shrink-0 border border-yellow-200">
+                    <div className={`w-14 h-14 rounded-xl flex items-center justify-center text-2xl shrink-0 border ${
+                      tab === 'human'
+                        ? 'bg-gradient-to-br from-orange-100 to-orange-50 border-orange-200'
+                        : 'bg-gradient-to-br from-yellow-100 to-yellow-50 border-yellow-200'
+                    }`}>
                       {v.categories?.icon || '🏢'}
                     </div>
                     <div className="min-w-0">
@@ -79,7 +133,9 @@ const VenueApprovals = () => {
                         <span className="text-gray-300">·</span>
                         <span className="text-sm text-gray-500">{v.city}</span>
                         <span className="text-gray-300">·</span>
-                        <Badge variant="warning">{t('common.pending')}</Badge>
+                        <Badge variant={tab === 'human' ? 'warning' : 'info'}>
+                          {tab === 'human' ? t('admin.needsReview') : t('common.pending')}
+                        </Badge>
                       </div>
                     </div>
                   </div>
@@ -142,6 +198,27 @@ const VenueApprovals = () => {
                         className="w-20 h-20 rounded-xl object-cover shrink-0 border border-gray-100"
                       />
                     ))}
+                  </div>
+                )}
+
+                {/* AI Review Data */}
+                {v.ai_review_data && tab === 'human' && (
+                  <div className="mt-4 pt-4 border-t border-orange-100">
+                    <div className="flex items-center gap-2 mb-2">
+                      <SparklesIcon className="w-4 h-4 text-orange-500" />
+                      <span className="text-sm font-medium text-orange-700">{t('admin.aiReview')}</span>
+                      <span className="text-xs text-gray-400">
+                        ({Math.round((v.ai_review_data as any).confidence * 100)}% {t('admin.confidence')})
+                      </span>
+                    </div>
+                    <ul className="space-y-1">
+                      {(v.ai_review_data as any).reasons?.map((r: string, i: number) => (
+                        <li key={i} className="flex items-start gap-2 text-xs text-gray-600">
+                          <InformationCircleIcon className="w-3.5 h-3.5 text-orange-400 mt-0.5 shrink-0" />
+                          {r}
+                        </li>
+                      ))}
+                    </ul>
                   </div>
                 )}
 

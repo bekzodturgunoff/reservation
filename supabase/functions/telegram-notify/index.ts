@@ -1,4 +1,5 @@
 // Telegram notification sender — called after a booking is created
+// NEVER throws — always returns 200. Failures are logged internally.
 import { serve } from 'https://deno.land/std@0.208.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
@@ -19,28 +20,37 @@ interface NotificationPayload {
 }
 
 const sendMessage = async (chatId: number, text: string, bookingId?: string, venueId?: string) => {
-  const body: any = { chat_id: chatId, text, parse_mode: 'HTML' }
-  if (bookingId) {
-    body.reply_markup = {
-      inline_keyboard: [[
-        { text: '📋 Bronni ko\'rish', url: `https://bronuz.uz/confirmation/${bookingId}` },
-        ...(venueId ? [{ text: '🔗 Venue sahifasi', url: `https://bronuz.uz/venues/${venueId}` }] : []),
-      ]]
+  if (!BOT_TOKEN) return
+  try {
+    const body: any = { chat_id: chatId, text, parse_mode: 'HTML' }
+    if (bookingId) {
+      body.reply_markup = {
+        inline_keyboard: [[
+          { text: "📋 Bronni ko'rish", url: `https://bronuz.uz/confirmation/${bookingId}` },
+          ...(venueId ? [{ text: '🔗 Venue sahifasi', url: `https://bronuz.uz/venues/${venueId}` }] : []),
+        ]]
+      }
     }
+    await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    })
+  } catch {
+    // Individual message failures never crash the function
   }
-  await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
-  })
 }
 
 serve(async (req) => {
   try {
+    if (!BOT_TOKEN) {
+      console.error('TELEGRAM_BOT_TOKEN not set')
+      return new Response('ok', { status: 200 })
+    }
+
     const payload: NotificationPayload = await req.json()
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY)
 
-    // Get all chat_ids linked to this venue
     const { data: links } = await supabase
       .from('telegram_links')
       .select('chat_id')
@@ -66,6 +76,6 @@ serve(async (req) => {
     return new Response('ok', { status: 200 })
   } catch (err) {
     console.error(err)
-    return new Response('error', { status: 500 })
+    return new Response('ok', { status: 200 })
   }
 })

@@ -7,6 +7,7 @@ import { getCategories } from '../api/categories'
 import VenueGrid from '../components/venue/VenueGrid'
 import { useTitle } from '../hooks/useTitle'
 import { useTranslation } from 'react-i18next'
+import { UZBEKISTAN_REGIONS } from '../lib/constants'
 
 const Home = () => {
   const { t, i18n } = useTranslation()
@@ -61,8 +62,6 @@ const Home = () => {
     if (e.key === 'Enter') handleSearch()
   }
 
-  const cities = ['Tashkent', 'Samarkand', 'Buxoro', 'Namangan', 'Andijon']
-
   const getLangName = (uz: string, ru: string) =>
     i18n.language === 'uz' ? uz : ru
 
@@ -102,8 +101,13 @@ const Home = () => {
                 className="text-sm text-gray-700 outline-none bg-transparent py-2 pr-2 cursor-pointer"
               >
                 <option value="">{t('common.all')}</option>
-                {cities.map(city => (
-                  <option key={city} value={city}>{city}</option>
+                {Object.entries(UZBEKISTAN_REGIONS).map(([region, cities]) => (
+                  <optgroup key={region} label={region}>
+                    <option value={region}>All {region}</option>
+                    {cities.map(c => (
+                      <option key={c} value={c}>{c}</option>
+                    ))}
+                  </optgroup>
                 ))}
               </select>
             </div>

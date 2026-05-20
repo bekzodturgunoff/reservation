@@ -1,15 +1,23 @@
 import { supabase } from '../lib/supabase'
 import type { Venue, VenueService, SocialProof } from '../types'
+import { UZBEKISTAN_REGIONS } from '../lib/constants'
 
 export interface VenueFilters {
   category?: string
   city?: string
-  district?: string
   minPrice?: number
   maxPrice?: number
   minRating?: number
   date?: string
   search?: string
+}
+
+function resolveCityFilter(city?: string): string[] | undefined {
+  if (!city) return undefined
+  if (city in UZBEKISTAN_REGIONS) {
+    return UZBEKISTAN_REGIONS[city]
+  }
+  return [city]
 }
 
 export const getVenues = async (filters: VenueFilters = {}): Promise<Venue[]> => {
@@ -18,8 +26,8 @@ export const getVenues = async (filters: VenueFilters = {}): Promise<Venue[]> =>
     .select('*, categories(id, slug, name_uz, name_ru, icon), services:venue_services(*)')
     .eq('status', 'active')
 
-  if (filters.city) query = query.eq('city', filters.city)
-  if (filters.district) query = query.eq('district', filters.district)
+  const cities = resolveCityFilter(filters.city)
+  if (cities) query = query.in('city', cities)
   if (filters.minPrice) query = query.gte('price_per_slot', filters.minPrice)
   if (filters.maxPrice) query = query.lte('price_per_slot', filters.maxPrice)
   if (filters.search) query = query.ilike('name', `%${filters.search}%`)
@@ -52,17 +60,6 @@ export const getVenuesByOwner = async (ownerId: string): Promise<Venue[]> => {
     .order('created_at', { ascending: false })
   if (error) throw error
   return data
-}
-
-export const getDistricts = async (): Promise<string[]> => {
-  const { data, error } = await supabase
-    .from('venues')
-    .select('district')
-    .eq('status', 'active')
-    .not('district', 'is', null)
-  if (error) throw error
-  const districts = [...new Set(data.map(v => v.district).filter(Boolean))] as string[]
-  return districts.sort()
 }
 
 export const getVenueSocialProof = async (venueId: string): Promise<SocialProof> => {

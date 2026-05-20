@@ -35,13 +35,30 @@ const createCustomIcon = (emoji: string) =>
     popupAnchor: [0, -40],
   })
 
+const userIcon = L.divIcon({
+  html: `<div style="
+    background: #3b82f6;
+    border: 3px solid white;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    box-shadow: 0 2px 8px rgba(59,130,246,0.5);
+  "></div>`,
+  className: '',
+  iconSize: [20, 20],
+  iconAnchor: [10, 10],
+})
+
 interface VenueMapProps {
   venues: Venue[]
+  userLocation?: { lat: number; lng: number } | null
 }
 
-const VenueMap = ({ venues }: VenueMapProps) => {
+const VenueMap = ({ venues, userLocation }: VenueMapProps) => {
   const { t } = useTranslation()
-  const center: [number, number] = [41.2995, 69.2401]
+  const center: [number, number] = userLocation
+    ? [userLocation.lat, userLocation.lng]
+    : [41.2995, 69.2401]
 
   const venuesWithCoords = venues.filter(v => v.lat && v.lng)
 
@@ -49,7 +66,7 @@ const VenueMap = ({ venues }: VenueMapProps) => {
     <div className="w-full h-[600px] rounded-2xl overflow-hidden border border-gray-200 shadow-sm">
       <MapContainer
         center={center}
-        zoom={12}
+        zoom={userLocation ? 13 : 12}
         style={{ height: '100%', width: '100%' }}
         scrollWheelZoom={true}
       >
@@ -57,6 +74,11 @@ const VenueMap = ({ venues }: VenueMapProps) => {
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
+        {userLocation && (
+          <Marker position={[userLocation.lat, userLocation.lng]} icon={userIcon}>
+            <Popup>{t('search.yourLocation')}</Popup>
+          </Marker>
+        )}
         {venuesWithCoords.map(venue => (
           <Marker
             key={venue.id}

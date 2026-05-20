@@ -14,6 +14,7 @@ import { useTitle } from '../../hooks/useTitle'
 import Button from '../../components/ui/Button'
 import Input from '../../components/ui/Input'
 import { supabase } from '../../lib/supabase'
+import { UZBEKISTAN_REGIONS } from '../../lib/constants'
 import { useTranslation } from 'react-i18next'
 import { getVenueStaff, createStaff, deleteStaff } from '../../api/staff'
 import type { PricingUnit, CancellationPolicy, StaffMember } from '../../types'
@@ -25,7 +26,7 @@ L.Icon.Default.mergeOptions({
   shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
 })
 
-const CITIES = ['Tashkent', 'Samarkand', 'Buxoro', 'Namangan', 'Andijon', "Farg'ona"]
+const CITIES = Object.values(UZBEKISTAN_REGIONS).flat()
 
 const PRICING_UNITS: { value: PricingUnit; labelKey: string; exampleKey: string }[] = [
   { value: 'per_hour', labelKey: 'common.pricing_units.per_hour', exampleKey: 'business.setup.pricingUnit_per_hour' },
@@ -312,7 +313,23 @@ const VenueSetup = () => {
         </div>
 
         <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
-          <label className="block text-sm font-medium text-gray-700 mb-1.5">{t('business.setup.location')}</label>
+          <div className="flex items-center justify-between mb-3">
+            <label className="block text-sm font-medium text-gray-700">{t('business.setup.location')}</label>
+            <button
+              type="button"
+              onClick={() => {
+                if (!navigator.geolocation) return
+                navigator.geolocation.getCurrentPosition(
+                  (pos) => setUserPosition([pos.coords.latitude, pos.coords.longitude]),
+                  () => {},
+                  { enableHighAccuracy: true, timeout: 10000 },
+                )
+              }}
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-blue-600 bg-blue-50 rounded-xl hover:bg-blue-100 transition-colors"
+            >
+              📍 {t('business.setup.useMyLocation')}
+            </button>
+          </div>
           <div className="h-[300px] rounded-xl overflow-hidden border border-gray-200">
             <MapContainer center={position} zoom={13} style={{ height: '100%', width: '100%' }}>
               <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />

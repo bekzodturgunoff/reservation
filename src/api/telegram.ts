@@ -3,6 +3,17 @@ import type { TelegramLink } from '../types'
 
 const TELEGRAM_NOTIFY_FUNCTION = 'telegram-notify'
 
+const invokeSafe = async (fn: string, body: Record<string, unknown>, ms = 3000): Promise<void> => {
+  const timeout = new Promise<void>((_, reject) =>
+    setTimeout(() => reject(new Error('timeout')), ms)
+  )
+  const call = (async () => {
+    const { error } = await supabase.functions.invoke(fn, { body })
+    if (error) throw error
+  })()
+  await Promise.race([call, timeout]).catch(() => {})
+}
+
 export const getTelegramLinks = async (userId: string): Promise<TelegramLink[]> => {
   const { data, error } = await supabase
     .from('telegram_links')
@@ -20,30 +31,11 @@ export const deleteTelegramLink = async (linkId: string): Promise<void> => {
   if (error) throw error
 }
 
-export const generateLinkCode = (venueId: string, userId: string): string => {
-  const data = `${venueId}:${userId}`
-  return btoa(data)
+// Generate a code that links ALL of the user's venues (no specific venue)
+export const generateUserLinkCode = (userId: string): string => {
+  return btoa(`user:${userId}`)
 }
 
-interface NotifyPayload {
-  venue_id: string
-  venue_name: string
-  customer_name: string
-  customer_phone?: string
-  date: string
-  start_time: string
-  end_time: string
-  note?: string
-  booking_id?: string
-}
-
-export const sendTelegramNotification = async (payload: NotifyPayload): Promise<void> => {
-  try {
-    const { error } = await supabase.functions.invoke(TELEGRAM_NOTIFY_FUNCTION, {
-      body: payload,
-    })
-    if (error) console.error('Telegram notify error:', error)
-  } catch (err) {
-    console.error('Telegram notify failed:', err)
-  }
+export const sendTelegramNotification = (payload: Record<string, unknown>): void => {
+  invokeSafe(TELEGRAM_NOTIFY_FUNCTION, payload)
 }

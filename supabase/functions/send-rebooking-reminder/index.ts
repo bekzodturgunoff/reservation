@@ -1,5 +1,6 @@
 // Rebooking reminder — called from booking confirmation page after success
 // Future: can be migrated to cron via pgmq topic `rebooking_reminders`
+// NEVER throws — always returns 200. Failures are logged internally.
 import { serve } from 'https://deno.land/std@0.208.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
@@ -18,11 +19,16 @@ interface Payload {
 }
 
 const sendMessage = async (chatId: number, text: string) => {
-  await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ chat_id: chatId, text, parse_mode: 'HTML' }),
-  })
+  if (!BOT_TOKEN) return
+  try {
+    await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ chat_id: chatId, text, parse_mode: 'HTML' }),
+    })
+  } catch {
+    // never crash on send
+  }
 }
 
 serve(async (req) => {
@@ -30,6 +36,11 @@ serve(async (req) => {
     const authHeader = req.headers.get('x-rebooking-key')
     if (authHeader !== REBOOKING_KEY) {
       return new Response('Unauthorized', { status: 401 })
+    }
+
+    if (!BOT_TOKEN) {
+      console.error('TELEGRAM_BOT_TOKEN not set')
+      return new Response('ok', { status: 200 })
     }
 
     const payload: Payload = await req.json()
@@ -60,6 +71,6 @@ serve(async (req) => {
     return new Response('ok', { status: 200 })
   } catch (err) {
     console.error(err)
-    return new Response('error', { status: 500 })
+    return new Response('ok', { status: 200 })
   }
 })

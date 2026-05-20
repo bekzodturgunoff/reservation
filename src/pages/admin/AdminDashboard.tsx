@@ -52,6 +52,7 @@ const AdminDashboard = () => {
     { icon: <UsersIcon className="w-5 h-5 text-blue-600" />, label: t('admin.statsUsers'), value: stats?.totalUsers ?? '—', bg: 'bg-blue-50' },
     { icon: <CalendarDaysIcon className="w-5 h-5 text-purple-600" />, label: t('admin.statsBookings'), value: stats?.totalBookings ?? '—', bg: 'bg-purple-50' },
     { icon: <ClockIcon className="w-5 h-5 text-yellow-600" />, label: t('admin.statsPending'), value: stats?.pendingVenues ?? '—', bg: 'bg-yellow-50' },
+    { icon: <ShieldExclamationIcon className="w-5 h-5 text-orange-600" />, label: t('admin.statsHumanReview'), value: stats?.humanReviewVenues ?? '—', bg: 'bg-orange-50' },
   ]
 
   return (
@@ -146,10 +147,10 @@ const AdminDashboard = () => {
             <Link to="/admin/approvals" className="flex items-center justify-between bg-white rounded-2xl border border-gray-100 p-4 hover:shadow-sm transition-shadow">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-yellow-50 flex items-center justify-center">
-                  <ShieldExclamationIcon className="w-5 h-5 text-yellow-600" />
+                  <ClockIcon className="w-5 h-5 text-yellow-600" />
                 </div>
                 <div>
-                  <p className="font-medium text-gray-900 text-sm">{t('admin.approvalsLink')}</p>
+                  <p className="font-medium text-gray-900 text-sm">{t('admin.pendingReview')}</p>
                   <p className="text-xs text-gray-500">
                     {pendingVenues.length} {t('admin.pendingCount')}
                   </p>
@@ -157,6 +158,22 @@ const AdminDashboard = () => {
               </div>
               <ArrowRightIcon className="w-5 h-5 text-gray-400" />
             </Link>
+            {stats && stats.humanReviewVenues > 0 && (
+              <Link to="/admin/approvals?tab=human" className="flex items-center justify-between bg-white rounded-2xl border border-orange-100 p-4 hover:shadow-sm transition-shadow">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-orange-50 flex items-center justify-center">
+                    <ShieldExclamationIcon className="w-5 h-5 text-orange-600" />
+                  </div>
+                  <div>
+                    <p className="font-medium text-gray-900 text-sm">{t('admin.humanReview')}</p>
+                    <p className="text-xs text-gray-500">
+                      {stats.humanReviewVenues} {t('admin.needsAttention')}
+                    </p>
+                  </div>
+                </div>
+                <ArrowRightIcon className="w-5 h-5 text-gray-400" />
+              </Link>
+            )}
             <Link to="/business/dashboard" className="flex items-center justify-between bg-white rounded-2xl border border-gray-100 p-4 hover:shadow-sm transition-shadow">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center">

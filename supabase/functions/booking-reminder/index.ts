@@ -1,5 +1,6 @@
 // Booking reminder — run via cron: supabase functions deploy booking-reminder
 // Then: supabase cron create --schedule "0 */2 * * *" --function booking-reminder
+// NEVER throws — always returns 200. Failures are logged internally.
 import { serve } from 'https://deno.land/std@0.208.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
@@ -8,15 +9,25 @@ const SUPABASE_URL = Deno.env.get('SUPABASE_URL') || ''
 const SUPABASE_SERVICE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || ''
 
 const sendMessage = async (chatId: number, text: string) => {
-  await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ chat_id: chatId, text, parse_mode: 'HTML' }),
-  })
+  if (!BOT_TOKEN) return
+  try {
+    await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ chat_id: chatId, text, parse_mode: 'HTML' }),
+    })
+  } catch {
+    // never crash on send
+  }
 }
 
 serve(async () => {
   try {
+    if (!BOT_TOKEN) {
+      console.error('TELEGRAM_BOT_TOKEN not set')
+      return new Response('ok', { status: 200 })
+    }
+
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY)
     const now = new Date()
     const in2h = new Date(now.getTime() + 2 * 60 * 60 * 1000)
@@ -57,6 +68,6 @@ serve(async () => {
     return new Response(`reminded ${bookings.length} bookings`, { status: 200 })
   } catch (err) {
     console.error(err)
-    return new Response('error', { status: 500 })
+    return new Response('ok', { status: 200 })
   }
 })
