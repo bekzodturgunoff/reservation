@@ -15,7 +15,7 @@ const VenueBarChart = ({ data }: Props) => {
       {data.length === 0 ? (
         <p className="text-sm text-gray-400 text-center py-8">{t('business.analytics.noData')}</p>
       ) : (
-        <div className="h-64">
+        <div className="h-56 sm:h-64">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart
               data={data}
@@ -30,7 +30,7 @@ const VenueBarChart = ({ data }: Props) => {
                 tick={{ fontSize: 11, fill: '#64748b' }}
                 axisLine={false}
                 tickLine={false}
-                width={100}
+                width={84}
                 tickFormatter={(name: string) => name.length > 12 ? name.slice(0, 12) + '…' : name}
               />
               <Tooltip

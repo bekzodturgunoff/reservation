@@ -16,16 +16,16 @@ const StatusPieChart = ({ data }: Props) => {
       {total === 0 ? (
         <p className="text-sm text-gray-400 text-center py-8">{t('business.analytics.noData')}</p>
       ) : (
-        <div className="flex items-center gap-4">
-          <div className="h-48 w-48 flex-shrink-0">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+          <div className="h-40 w-full max-w-[240px] mx-auto flex-shrink-0 sm:h-48 sm:w-48 sm:max-w-none sm:mx-0">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
                   data={data.filter(d => d.value > 0)}
                   cx="50%"
                   cy="50%"
-                  innerRadius={50}
-                  outerRadius={80}
+                  innerRadius={40}
+                  outerRadius={70}
                   paddingAngle={4}
                   dataKey="value"
                 >

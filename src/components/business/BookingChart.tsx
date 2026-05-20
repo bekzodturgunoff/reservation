@@ -35,14 +35,14 @@ const BookingChart = ({ data, totalBookings, change }: Props) => {
 
   return (
     <AnalyticsCard title={t('business.analytics.bookingChart')}>
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex flex-col gap-3 mb-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <p className="text-2xl font-bold text-gray-900">{totalBookings}</p>
+          <p className="text-xl sm:text-2xl font-bold text-gray-900">{totalBookings}</p>
           <p className={`text-xs ${isUp ? 'text-emerald-600' : 'text-red-500'}`}>
             {isUp ? '↑' : '↓'} {Math.abs(change).toFixed(1)}% {t('business.analytics.bookingsChange')}
           </p>
         </div>
-        <div className="flex gap-1">
+        <div className="flex flex-wrap gap-1">
           {(['daily', 'weekly', 'monthly'] as const).map(p => (
             <button
               key={p}
@@ -59,9 +59,9 @@ const BookingChart = ({ data, totalBookings, change }: Props) => {
       {data.length === 0 ? (
         <p className="text-sm text-gray-400 text-center py-8">{t('business.analytics.noData')}</p>
       ) : (
-        <div className="h-64">
+        <div className="h-56 sm:h-64">
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={chartData} margin={{ top: 4, right: 4, bottom: 0, left: -16 }}>
+            <BarChart data={chartData} margin={{ top: 4, right: 4, bottom: 0, left: -8 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
               <XAxis dataKey="date" tick={{ fontSize: 11, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
               <YAxis tick={{ fontSize: 11, fill: '#94a3b8' }} axisLine={false} tickLine={false} allowDecimals={false} />

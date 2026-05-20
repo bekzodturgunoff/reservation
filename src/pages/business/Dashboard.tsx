@@ -31,19 +31,19 @@ const venueStatusConfig: Record<string, { label: string; description: string; co
   pending: {
     label: 'Tekshirilmoqda',
     description: 'Admin ko\'rib chiqmoqda. Odatda 24 soat ichida.',
-    color: 'bg-yellow-100 text-yellow-700',
+    color: 'border-yellow-200 text-yellow-800',
     icon: '⏳',
   },
   active: {
     label: 'Faol',
     description: 'Saytda ko\'rinmoqda. Mijozlar bron qila oladi.',
-    color: 'bg-emerald-100 text-emerald-700',
+    color: 'border-emerald-200 text-emerald-700',
     icon: '✅',
   },
   rejected: {
     label: 'Rad etildi',
     description: 'Admin tomonidan rad etildi. Tahrirlang va qayta yuboring.',
-    color: 'bg-red-100 text-red-700',
+    color: 'border-red-200 text-red-700',
     icon: '❌',
   },
 }
@@ -130,10 +130,25 @@ const BusinessDashboard = () => {
     return { monthBookingsCount: monthBookings.length, revenue, avgRating: 0 }
   }, [bookings, thisMonth, thisYear])
 
+  const getBookingStart = (booking: Booking) => {
+    if (!booking.slots?.date) return null
+    const date = booking.slots.date
+    const time = booking.slots.start_time || '00:00:00'
+    return new Date(`${date}T${time}`)
+  }
+
   const upcomingBookings = useMemo(() =>
     (bookings || [])
       .filter(b => b.status === 'confirmed' && b.slots?.date)
-      .sort((a, b) => (a.slots?.date || '').localeCompare(b.slots?.date || '')),
+      .filter(b => {
+        const start = getBookingStart(b)
+        return start ? start.getTime() >= Date.now() : false
+      })
+      .sort((a, b) => {
+        const aStart = getBookingStart(a)?.getTime() || 0
+        const bStart = getBookingStart(b)?.getTime() || 0
+        return aStart - bStart
+      }),
     [bookings]
   )
 
@@ -153,26 +168,26 @@ const BusinessDashboard = () => {
   const linkedVenueIds = useMemo(() => new Set(telegramLinks.map(l => l.venue_id)), [telegramLinks])
 
   return (
-    <div className="space-y-8">
-      <div className="flex items-start justify-between gap-4 flex-wrap">
+    <div className="space-y-6 sm:space-y-8 pb-4 sm:pb-0">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
         <div className="min-w-0 flex-1">
-          <h1 className="text-2xl font-bold text-gray-900">{t('business.dashboard')}</h1>
-          <p className="text-sm text-gray-500 mt-1 truncate">{profile?.full_name} {t('business.welcome')}</p>
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 leading-tight">{t('business.dashboard')}</h1>
+          <p className="text-sm text-gray-500 mt-1 break-words">{profile?.full_name} {t('business.welcome')}</p>
         </div>
-        <Link to="/business/venue/new" className="shrink-0">
-          <Button><PlusCircleIcon className="w-4 h-4" /> {t('business.addVenue')}</Button>
+        <Link to="/business/venue/new" className="shrink-0 w-full sm:w-auto">
+          <Button className="w-full sm:w-auto justify-center"><PlusCircleIcon className="w-4 h-4" /> {t('business.addVenue')}</Button>
         </Link>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-4">
         {[
           { icon: <CalendarDaysIcon className="w-5 h-5 text-emerald-600" />, label: t('business.statsBookings'), value: stats.monthBookingsCount.toString(), bg: 'bg-emerald-50' },
           { icon: <CurrencyDollarIcon className="w-5 h-5 text-blue-600" />, label: t('business.statsRevenue'), value: formatPrice(stats.revenue), bg: 'bg-blue-50' },
           { icon: <StarIcon className="w-5 h-5 text-yellow-500" />, label: t('business.statsRating'), value: stats.avgRating ? stats.avgRating.toFixed(1) : '—', bg: 'bg-yellow-50' },
         ].map(card => (
-          <div key={card.label} className={`${card.bg} rounded-2xl p-5 border border-gray-100`}>
+          <div key={card.label} className={`${card.bg} rounded-2xl p-4 sm:p-5 border border-gray-100`}>
             <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-sm mb-3">{card.icon}</div>
-            <p className="text-2xl font-bold text-gray-900">{card.value}</p>
+            <p className="text-xl sm:text-2xl font-bold text-gray-900 break-words">{card.value}</p>
             <p className="text-sm text-gray-500 mt-1">{card.label}</p>
           </div>
         ))}
@@ -184,11 +199,11 @@ const BusinessDashboard = () => {
             <ChartBarSquareIcon className="w-5 h-5 text-emerald-600" />
             <h2 className="text-lg font-semibold text-gray-900">{t('business.analytics.title')}</h2>
           </div>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-3 lg:grid-cols-2 lg:gap-4">
             <RevenueChart data={analytics.dailyRevenue} totalRevenue={analytics.totalRevenue} change={analytics.revenueChange} />
             <BookingChart data={analytics.dailyRevenue} totalBookings={analytics.totalBookings} change={analytics.bookingsChange} />
           </div>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-4">
+          <div className="grid grid-cols-1 gap-3 lg:grid-cols-2 lg:gap-4 mt-3 sm:mt-4">
             <StatusPieChart data={analytics.statusBreakdown} />
             <VenueBarChart data={analytics.venueStats} />
           </div>
@@ -196,16 +211,16 @@ const BusinessDashboard = () => {
       )}
 
       {venues.length === 0 && (
-        <div className="bg-gradient-to-r from-emerald-500 to-teal-600 rounded-2xl p-6 text-white mb-6">
+        <div className="bg-gradient-to-r from-emerald-500 to-teal-600 rounded-2xl p-5 sm:p-6 text-white mb-2 sm:mb-6">
           <h2 className="text-lg font-bold mb-1">Xush kelibsiz, biznes egasi! 👋</h2>
-          <p className="text-emerald-100 text-sm mb-4">
+          <p className="text-emerald-100 text-sm mb-4 leading-relaxed">
             Birinchi joyingizni qo'shing va mijozlar bron qila boshlashsin.
             Qo'shilgan joy admin tomonidan tekshirilgach, saytda ko'rinadi.
           </p>
-          <div className="flex gap-3">
+          <div className="flex flex-col sm:flex-row gap-3">
             <Link
               to="/business/venue/new"
-              className="bg-white text-emerald-700 px-4 py-2 rounded-xl text-sm font-semibold hover:bg-emerald-50 transition-colors"
+              className="bg-white text-emerald-700 px-4 py-2 rounded-xl text-sm font-semibold hover:bg-emerald-50 transition-colors text-center"
             >
               + Joy qo'shish
             </Link>
@@ -216,12 +231,12 @@ const BusinessDashboard = () => {
         </div>
       )}
 
-      <div className="flex gap-3 flex-wrap">
-        <Link to="/business/venue/new" className="flex items-center gap-2 px-4 py-2.5 bg-white rounded-xl border border-gray-200 text-sm font-medium text-gray-700 hover:border-emerald-300 transition-colors">
+      <div className="grid grid-cols-1 gap-3 sm:flex sm:flex-wrap">
+        <Link to="/business/venue/new" className="flex items-center justify-center gap-2 px-4 py-2.5 bg-white rounded-xl border border-gray-200 text-sm font-medium text-gray-700 hover:border-emerald-300 transition-colors w-full sm:w-auto">
           <PlusCircleIcon className="w-4 h-4 text-emerald-600" /> {t('business.addVenueLink')}
         </Link>
         {venues.length > 0 && (
-          <Link to={`/business/venue/${venues[0].id}/availability`} className="flex items-center gap-2 px-4 py-2.5 bg-white rounded-xl border border-gray-200 text-sm font-medium text-gray-700 hover:border-emerald-300 transition-colors">
+          <Link to={`/business/venue/${venues[0].id}/availability`} className="flex items-center justify-center gap-2 px-4 py-2.5 bg-white rounded-xl border border-gray-200 text-sm font-medium text-gray-700 hover:border-emerald-300 transition-colors w-full sm:w-auto">
             <Cog6ToothIcon className="w-4 h-4 text-emerald-600" /> {t('business.manageSlots')}
           </Link>
         )}
@@ -238,23 +253,27 @@ const BusinessDashboard = () => {
       )}
 
       {/* Telegram Connect */}
-      <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
-        <div className="flex items-center gap-2 mb-4">
+      <div className="bg-white rounded-2xl border border-gray-100 p-4 sm:p-6 shadow-sm">
+        <div className="flex flex-col gap-3 mb-4 sm:flex-row sm:items-center sm:gap-2">
+          <div className="flex items-center gap-2 min-w-0">
           <PaperAirplaneIcon className="w-5 h-5 text-blue-500" />
           <h2 className="text-lg font-semibold text-gray-900">{t('telegram.connect')}</h2>
+          </div>
           {telegramLinks.length > 0 && (
-            <span className="text-xs bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded-full font-medium">
-              {t('telegram.connected')} ({telegramLinks.length} {t('telegram.venues')})
+            <span className="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
+              <span className="w-2 h-2 rounded-full bg-emerald-500" />
+              <span>{t('telegram.connected')}</span>
+              <span className="text-emerald-600/80 font-medium">{telegramLinks.length} {t('telegram.venues')}</span>
             </span>
           )}
         </div>
-        <p className="text-sm text-gray-500 mb-4">{t('telegram.connectDesc')}</p>
+        <p className="text-sm text-gray-500 mb-4 leading-relaxed">{t('telegram.connectDesc')}</p>
 
         {venues.length === 0 ? (
           <p className="text-sm text-gray-400">{t('business.emptyVenues')}</p>
         ) : telegramLinks.length > 0 ? (
           <div>
-            <div className="flex items-center gap-2 mb-3">
+            <div className="flex flex-col gap-3 mb-3 sm:flex-row sm:items-center sm:justify-between">
               <span className="text-sm text-gray-600">{t('telegram.linkedVenues')}:</span>
               <Button
                 variant="danger"
@@ -265,16 +284,17 @@ const BusinessDashboard = () => {
                     telegramLinks.forEach(l => deleteLinkMutation.mutate(l.id))
                   }
                 }}
+                className="w-full sm:w-auto justify-center"
               >
                 <TrashIcon className="w-3.5 h-3.5" /> {t('telegram.disconnectAll')}
               </Button>
             </div>
             <div className="space-y-2">
               {venues.filter(v => linkedVenueIds.has(v.id)).map(v => (
-                <div key={v.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
-                  <div className="flex items-center gap-3">
+                <div key={v.id} className="flex flex-col gap-3 p-3 bg-gray-50 rounded-xl sm:flex-row sm:items-center sm:justify-between">
+                  <div className="flex items-center gap-3 min-w-0">
                     <span className="text-lg">{v.categories?.icon || '🏢'}</span>
-                    <p className="text-sm font-medium text-gray-900">{v.name}</p>
+                    <p className="text-sm font-medium text-gray-900 break-words">{v.name}</p>
                   </div>
                   <Button
                     variant="danger"
@@ -284,13 +304,14 @@ const BusinessDashboard = () => {
                       const link = telegramLinks.find(l => l.venue_id === v.id)
                       if (link) deleteLinkMutation.mutate(link.id)
                     }}
+                    className="w-full sm:w-auto justify-center"
                   >
                     <TrashIcon className="w-3.5 h-3.5" /> {t('telegram.disconnect')}
                   </Button>
                 </div>
               ))}
             </div>
-            <p className="text-xs text-gray-400 mt-3">{t('telegram.autoLinkHint')}</p>
+            <p className="text-xs text-gray-400 mt-3 leading-relaxed">{t('telegram.autoLinkHint')}</p>
           </div>
         ) : (
           <div>
@@ -301,7 +322,7 @@ const BusinessDashboard = () => {
               href={`https://t.me/bron_uzb_bot?start=${generateUserLinkCode(user?.id || '')}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 px-6 py-3 bg-emerald-600 text-white text-sm font-medium rounded-xl hover:bg-emerald-700 transition-colors"
+              className="inline-flex w-full sm:w-auto items-center justify-center gap-2 px-6 py-3 bg-emerald-600 text-white text-sm font-medium rounded-xl hover:bg-emerald-700 transition-colors"
             >
               <PaperAirplaneIcon className="w-4 h-4" /> {t('telegram.connectBot')}
             </a>
@@ -326,12 +347,12 @@ const BusinessDashboard = () => {
           <div className="grid gap-3">
             {venues.map(v => (
               <div key={v.id} className="bg-white rounded-2xl border border-gray-100 p-4 hover:shadow-sm transition-shadow">
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                   <Link to={`/business/venue/${v.id}/availability`} className="flex items-center gap-3 min-w-0 flex-1">
                     <div className="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center text-lg shrink-0">{v.categories?.icon || '🏢'}</div>
                     <div className="min-w-0">
-                      <p className="font-medium text-gray-900 text-sm truncate">{v.name}</p>
-                      <p className="text-xs text-gray-500 truncate">
+                      <p className="font-medium text-gray-900 text-sm break-words">{v.name}</p>
+                      <p className="text-xs text-gray-500 break-words">
                         {v.city} · {v.categories?.name_uz || t('common.other')}
                         {v.services && v.services.length > 0
                           ? ` · ${v.services.slice(0, 2).map(s => formatPrice(s.price) + '/' + t('common.pricing_units.' + s.unit)).join(', ')}${v.services.length > 2 ? ' +' + (v.services.length - 2) : ''}`
@@ -339,23 +360,32 @@ const BusinessDashboard = () => {
                       </p>
                     </div>
                   </Link>
-                  <div className="flex items-center gap-2 shrink-0 ml-3">
-                    <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium ${venueStatusConfig[v.status]?.color || 'bg-gray-100 text-gray-700'}`}>
+                  <div className="flex w-full flex-col gap-2 shrink-0 sm:w-auto sm:flex-row sm:flex-wrap sm:items-center sm:gap-2 sm:ml-3">
+                    <span className={`inline-flex min-h-[44px] items-center justify-center gap-2 rounded-xl border bg-white px-3 py-2 text-sm font-medium shadow-sm transition-colors self-start ${venueStatusConfig[v.status]?.color || 'border-gray-200 text-gray-700'}`}>
+                      <span className={`w-2.5 h-2.5 rounded-full ${
+                        v.status === 'active'
+                          ? 'bg-emerald-500'
+                          : v.status === 'pending'
+                            ? 'bg-yellow-500'
+                            : 'bg-red-500'
+                      }`} />
                       {venueStatusConfig[v.status]?.icon || '•'} {venueStatusConfig[v.status]?.label || v.status}
                     </span>
                     <Link
                       to={`/business/venue/${v.id}/availability`}
-                      className="p-2 text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-xl transition-colors"
+                      className="inline-flex items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-700 shadow-sm transition-colors hover:border-emerald-300 hover:text-emerald-600 hover:bg-emerald-50 sm:px-2 sm:py-2 sm:text-xs sm:font-normal sm:text-gray-500 sm:shadow-none"
                       title={t('business.setup.manageAvailability')}
                     >
                       <CalendarDaysIcon className="w-4 h-4" />
+                      <span>Vaqtlar</span>
                     </Link>
                     <Link
                       to={`/business/venue/${v.id}/edit`}
-                      className="p-2 text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-xl transition-colors"
+                      className="inline-flex items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-700 shadow-sm transition-colors hover:border-emerald-300 hover:text-emerald-600 hover:bg-emerald-50 sm:px-2 sm:py-2 sm:text-xs sm:font-normal sm:text-gray-500 sm:shadow-none"
                       title={t('business.editVenue')}
                     >
                       <PencilIcon className="w-4 h-4" />
+                      <span>Tahrirlash</span>
                     </Link>
                     <button
                       onClick={() => {
@@ -363,14 +393,15 @@ const BusinessDashboard = () => {
                           deleteVenueMutation.mutate(v.id)
                         }
                       }}
-                      className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-colors"
+                      className="inline-flex items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-700 shadow-sm transition-colors hover:border-red-300 hover:text-red-600 hover:bg-red-50 sm:px-2 sm:py-2 sm:text-xs sm:font-normal sm:text-gray-500 sm:shadow-none"
                       title={t('business.deleteVenue')}
                     >
                       <TrashIcon className="w-4 h-4" />
+                      <span>O'chirish</span>
                     </button>
                   </div>
                 </div>
-                <p className="text-[10px] text-gray-400 mt-1">{venueStatusConfig[v.status]?.description}</p>
+                <p className="text-[10px] text-gray-400 mt-1 leading-relaxed">{venueStatusConfig[v.status]?.description}</p>
               </div>
             ))}
           </div>
@@ -385,30 +416,50 @@ const BusinessDashboard = () => {
             <p className="text-gray-500 mt-2">{t('business.emptyBookings')}</p>
           </div>
         ) : (
-          <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
-            <div className="overflow-x-auto scrollbar-hide">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-gray-100 text-gray-500 text-xs">
-                    <th className="text-left py-3 px-4 font-medium">{t('business.user')}</th>
-                    <th className="text-left py-3 px-4 font-medium">{t('business.venue')}</th>
-                    <th className="text-left py-3 px-4 font-medium">{t('common.date')}</th>
-                    <th className="text-left py-3 px-4 font-medium">{t('common.time')}</th>
-                    <th className="text-left py-3 px-4 font-medium">{t('common.status')}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {upcomingBookings.map(b => (
-                    <tr key={b.id} className="border-b border-gray-50 hover:bg-gray-50">
-                      <td className="py-3 px-4">{(b as BookingWithProfile).profiles?.full_name || '—'}</td>
-                      <td className="py-3 px-4 font-medium text-gray-900">{b.venues?.name || '—'}</td>
-                      <td className="py-3 px-4">{formatDate(b.slots?.date || '')}</td>
-                      <td className="py-3 px-4">{formatTime(b.slots?.start_time || '')}</td>
-                      <td className="py-3 px-4"><Badge variant={statusVariant[b.status] || 'default'}>{statusLabel[b.status] || b.status}</Badge></td>
+          <div className="space-y-3">
+            <div className="hidden sm:block bg-white rounded-2xl border border-gray-100 overflow-hidden">
+              <div className="overflow-x-auto scrollbar-hide">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-gray-100 text-gray-500 text-xs">
+                      <th className="text-left py-3 px-4 font-medium">{t('business.user')}</th>
+                      <th className="text-left py-3 px-4 font-medium">{t('business.venue')}</th>
+                      <th className="text-left py-3 px-4 font-medium">{t('common.date')}</th>
+                      <th className="text-left py-3 px-4 font-medium">{t('common.time')}</th>
+                      <th className="text-left py-3 px-4 font-medium">{t('common.status')}</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {upcomingBookings.map(b => (
+                      <tr key={b.id} className="border-b border-gray-50 hover:bg-gray-50">
+                        <td className="py-3 px-4">{(b as BookingWithProfile).profiles?.full_name || '—'}</td>
+                        <td className="py-3 px-4 font-medium text-gray-900">{b.venues?.name || '—'}</td>
+                        <td className="py-3 px-4">{formatDate(b.slots?.date || '')}</td>
+                        <td className="py-3 px-4">{formatTime(b.slots?.start_time || '')}</td>
+                        <td className="py-3 px-4"><Badge variant={statusVariant[b.status] || 'default'}>{statusLabel[b.status] || b.status}</Badge></td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <div className="sm:hidden space-y-3">
+              {upcomingBookings.map(b => (
+                <div key={b.id} className="bg-white rounded-2xl border border-gray-100 p-4 shadow-sm">
+                  <div className="flex items-start justify-between gap-3 mb-3">
+                    <div className="min-w-0">
+                      <p className="font-semibold text-gray-900 text-sm break-words">{(b as BookingWithProfile).profiles?.full_name || '—'}</p>
+                      <p className="text-xs text-gray-500 break-words">{b.venues?.name || '—'}</p>
+                    </div>
+                    <Badge variant={statusVariant[b.status] || 'default'}>{statusLabel[b.status] || b.status}</Badge>
+                  </div>
+                  <div className="grid grid-cols-1 gap-2 text-sm text-gray-600">
+                    <p className="flex items-center justify-between gap-3"><span>{t('common.date')}</span><span className="font-medium text-gray-900">{formatDate(b.slots?.date || '')}</span></p>
+                    <p className="flex items-center justify-between gap-3"><span>{t('common.time')}</span><span className="font-medium text-gray-900">{formatTime(b.slots?.start_time || '')}</span></p>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         )}
@@ -464,13 +515,13 @@ const PromoCodeManager = ({ venues }: { venues: { id: string; name: string; cate
   })
 
   return (
-    <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-2">
+    <div className="bg-white rounded-2xl border border-gray-100 p-4 sm:p-6 shadow-sm">
+      <div className="flex flex-col gap-3 mb-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-center gap-2 min-w-0">
           <TagIcon className="w-5 h-5 text-emerald-600" />
           <h2 className="text-lg font-semibold text-gray-900">Promo Codes</h2>
         </div>
-        <Button size="sm" onClick={() => setShowForm(!showForm)}>
+        <Button size="sm" onClick={() => setShowForm(!showForm)} className="w-full sm:w-auto justify-center">
           <PlusCircleIcon className="w-4 h-4" /> {showForm ? 'Cancel' : 'Add'}
         </Button>
       </div>
@@ -480,7 +531,7 @@ const PromoCodeManager = ({ venues }: { venues: { id: string; name: string; cate
           <select
             value={selectedVenueId}
             onChange={e => setSelectedVenueId(e.target.value)}
-            className="w-full border border-gray-200 rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            className="w-full border border-gray-200 rounded-xl px-4 py-3 sm:py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
           >
             {venues.map(v => (
               <option key={v.id} value={v.id}>{v.categories?.icon || '🏢'} {v.name}</option>
@@ -495,13 +546,13 @@ const PromoCodeManager = ({ venues }: { venues: { id: string; name: string; cate
             value={newCode}
             onChange={e => setNewCode(e.target.value)}
             placeholder="Code (e.g. SUMMER20)"
-            className="w-full border border-gray-200 rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            className="w-full border border-gray-200 rounded-xl px-4 py-3 sm:py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
           />
-          <div className="flex gap-2">
+          <div className="flex flex-col sm:flex-row gap-2">
             <select
               value={newDiscountType}
               onChange={e => setNewDiscountType(e.target.value as 'percentage' | 'fixed')}
-              className="flex-1 border border-gray-200 rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              className="flex-1 border border-gray-200 rounded-xl px-4 py-3 sm:py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
             >
               <option value="percentage">Percentage (%)</option>
               <option value="fixed">Fixed (UZS)</option>
@@ -511,19 +562,20 @@ const PromoCodeManager = ({ venues }: { venues: { id: string; name: string; cate
               value={newDiscountValue}
               onChange={e => setNewDiscountValue(e.target.value)}
               placeholder="Value"
-              className="flex-1 border border-gray-200 rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              className="flex-1 border border-gray-200 rounded-xl px-4 py-3 sm:py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
             />
           </div>
           <input
             type="date"
             value={newExpiry}
             onChange={e => setNewExpiry(e.target.value)}
-            className="w-full border border-gray-200 rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            className="w-full border border-gray-200 rounded-xl px-4 py-3 sm:py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
           />
           <Button
             onClick={() => createMutation.mutate()}
             loading={createMutation.isPending}
             disabled={!newCode || !newDiscountValue}
+            className="w-full justify-center"
           >
             Create Promo Code
           </Button>
@@ -535,16 +587,16 @@ const PromoCodeManager = ({ venues }: { venues: { id: string; name: string; cate
       ) : (
         <div className="space-y-2">
           {promoCodes.map(pc => (
-            <div key={pc.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
+            <div key={pc.id} className="flex items-start justify-between gap-3 p-3 bg-gray-50 rounded-xl">
               <div>
                 <p className="text-sm font-medium text-gray-900">{pc.code}</p>
-                <p className="text-xs text-gray-500">
+                <p className="text-xs text-gray-500 leading-relaxed">
                   {pc.discount_type === 'percentage' ? `${pc.discount_value}% off` : `${formatPrice(pc.discount_value)} off`}
                   {pc.max_uses && ` · ${pc.used_count}/${pc.max_uses} used`}
                   {pc.expires_at && ` · Expires ${pc.expires_at.slice(0, 10)}`}
                 </p>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 shrink-0">
                 <span className={`text-xs px-2 py-0.5 rounded-full ${pc.is_active ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
                   {pc.is_active ? 'Active' : 'Inactive'}
                 </span>
