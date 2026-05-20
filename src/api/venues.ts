@@ -172,9 +172,6 @@ export const updateVenue = async (id: string, updates: Partial<Venue>): Promise<
 }
 
 export const deleteVenue = async (id: string): Promise<void> => {
-  // Delete telegram links for this venue first
-  await supabase.from('telegram_links').delete().eq('venue_id', id)
-  // Delete venue (cascade handles slots, services, bookings, reviews, etc.)
   const { error } = await supabase.from('venues').delete().eq('id', id)
   if (error) throw error
 }

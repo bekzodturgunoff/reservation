@@ -1,9 +1,4 @@
--- Migration 00019: Enable pg_net and fix AI review trigger to use actual project URL
-
--- Step 1: Enable pg_net extension (allows HTTP calls from triggers)
-create extension if not exists pg_net;
-
--- Step 2: Replace trigger function with working version using actual project URL
+-- Replace hardcoded anon key with runtime config setting
 create or replace function invoke_ai_venue_review()
 returns trigger
 language plpgsql

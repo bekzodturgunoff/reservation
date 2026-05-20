@@ -71,7 +71,7 @@ const Availability = () => {
       queryClient.invalidateQueries({ queryKey: ['slots'] })
       addToast({ type: 'success', message: t('business.availability.created') })
     },
-    onError: () => addToast({ type: 'error', message: t('common.error') }),
+    onError: (err: Error) => addToast({ type: 'error', message: err.message || t('common.error') }),
   })
 
   const toggleSlotMutation = useMutation({
@@ -88,7 +88,7 @@ const Availability = () => {
       queryClient.invalidateQueries({ queryKey: ['slots'] })
       addToast({ type: 'success', message: t('business.availability.dateClosed') })
     },
-    onError: () => addToast({ type: 'error', message: t('common.error') }),
+    onError: (err: Error) => addToast({ type: 'error', message: err.message || t('common.error') }),
   })
 
   const unblockDateMutation = useMutation({
@@ -97,7 +97,7 @@ const Availability = () => {
       queryClient.invalidateQueries({ queryKey: ['slots'] })
       addToast({ type: 'success', message: t('business.availability.dateOpened') })
     },
-    onError: () => addToast({ type: 'error', message: t('common.error') }),
+    onError: (err: Error) => addToast({ type: 'error', message: err.message || t('common.error') }),
   })
 
   const generateRangeMutation = useMutation({
@@ -126,7 +126,7 @@ const Availability = () => {
       queryClient.invalidateQueries({ queryKey: ['slots'] })
       addToast({ type: 'success', message: t('business.availability.bulkCreated') })
     },
-    onError: () => addToast({ type: 'error', message: t('common.error') }),
+    onError: (err: Error) => addToast({ type: 'error', message: err.message || t('common.error') }),
   })
 
   const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate()

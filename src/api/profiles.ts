@@ -11,6 +11,15 @@ export const getProfile = async (userId: string): Promise<Profile> => {
   return data
 }
 
+export const getProfiles = async (): Promise<Profile[]> => {
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('*')
+    .order('created_at', { ascending: false })
+  if (error) throw error
+  return data
+}
+
 export const updateProfile = async (userId: string, updates: Partial<Profile>): Promise<Profile> => {
   const { data, error } = await supabase
     .from('profiles')

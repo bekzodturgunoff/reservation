@@ -82,9 +82,17 @@ function heuristicReview(payload: ReviewPayload): ReviewResult {
   return { action: 'human_needed', confidence: 0.5, reasons, flags }
 }
 
-async function askGeminiWithFallback(prompt: string): Promise<string | null> {
-  if (!GEMINI_API_KEY) return null
+interface GeminiResult {
+  text: string | null
+  allQuota: boolean
+  lastError: string | null
+}
+
+async function askGeminiWithFallback(prompt: string): Promise<GeminiResult> {
+  if (!GEMINI_API_KEY) return { text: null, allQuota: false, lastError: 'GEMINI_API_KEY not set' }
   currentModel = null
+  let allQuota = true
+  let lastError: string | null = null
   for (const model of GEMINI_MODELS) {
     try {
       const res = await fetch(
@@ -99,13 +107,25 @@ async function askGeminiWithFallback(prompt: string): Promise<string | null> {
         },
       )
       if (res.status === 429) { console.warn(`Model ${model} quota exhausted, trying next...`); continue }
-      if (!res.ok) { console.error(`Model ${model} error:`, res.status, await res.text()); continue }
+      allQuota = false
+      if (!res.ok) {
+        const errText = await res.text()
+        lastError = `Model ${model} returned ${res.status}: ${errText.slice(0, 200)}`
+        console.error(lastError)
+        continue
+      }
       const data = await res.json()
       const text = data?.candidates?.[0]?.content?.parts?.[0]?.text
-      if (text) { currentModel = model; return text }
-    } catch (err) { console.warn(`Model ${model} failed:`, err); continue }
+      if (text) { currentModel = model; return { text, allQuota: false, lastError: null } }
+      lastError = `Model ${model} returned empty response`
+    } catch (err) {
+      lastError = `Model ${model} failed: ${err}`
+      console.warn(lastError)
+      allQuota = false
+      continue
+    }
   }
-  return null
+  return { text: null, allQuota, lastError }
 }
 
 async function aiReview(payload: ReviewPayload): Promise<ReviewResult> {
@@ -126,32 +146,31 @@ Rules:
 
 Respond JSON: {"action": "approve"|"human_needed"|"reject", "confidence": 0.0-1.0, "reasons": ["reason1", ...]}`
 
-  const resultText = await askGeminiWithFallback(prompt)
+  const geminiResult = await askGeminiWithFallback(prompt)
 
-  if (!resultText && currentModel === null) {
-    return {
-      action: 'human_needed',
-      confidence: 0,
-      reasons: ['All AI models quota exhausted, flagging for human review'],
-      flags: [{ type: 'quota_ended', message: 'All Gemini models quota exhausted' }],
+  if (!geminiResult.text) {
+    if (geminiResult.allQuota) {
+      return {
+        action: 'human_needed',
+        confidence: 0,
+        reasons: ['All AI models quota exhausted, flagging for human review'],
+        flags: [{ type: 'quota_ended', message: 'All Gemini models quota exhausted' }],
+      }
     }
-  }
-
-  if (!resultText) {
     const h = heuristicReview(payload)
-    h.flags.unshift({ type: 'ai_error', message: 'All AI models failed to respond' })
+    h.flags.unshift({ type: 'ai_error', message: geminiResult.lastError || 'AI models failed to respond' })
     return h
   }
 
   try {
-    const result: ReviewResult = JSON.parse(resultText)
+    const result: ReviewResult = JSON.parse(geminiResult.text)
     if (result.action && ['approve', 'human_needed', 'reject'].includes(result.action)) {
       result.flags = result.flags || []
       return result
     }
   } catch {}
   const h = heuristicReview(payload)
-  h.flags.unshift({ type: 'ai_error', message: 'AI returned invalid response' })
+  h.flags.unshift({ type: 'ai_error', message: 'AI returned invalid JSON response' })
   return h
 }
 

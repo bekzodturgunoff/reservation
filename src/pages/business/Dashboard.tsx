@@ -17,6 +17,7 @@ import RevenueChart from '../../components/business/RevenueChart'
 import BookingChart from '../../components/business/BookingChart'
 import StatusPieChart from '../../components/business/StatusPieChart'
 import VenueBarChart from '../../components/business/VenueBarChart'
+import BusinessTips from '../../components/business/BusinessTips'
 import type { Booking } from '../../types'
 import { useTranslation } from 'react-i18next'
 
@@ -208,14 +209,9 @@ const BusinessDashboard = () => {
             >
               + Joy qo'shish
             </Link>
-            <a
-              href="https://t.me/bronuz_support"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="border border-white/40 text-white px-4 py-2 rounded-xl text-sm hover:bg-white/10 transition-colors"
-            >
-              Yordam kerakmi?
-            </a>
+          </div>
+          <div className="mt-4">
+            <BusinessTips />
           </div>
         </div>
       )}

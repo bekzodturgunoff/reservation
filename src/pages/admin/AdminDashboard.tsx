@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { BuildingOffice2Icon, UsersIcon, CalendarDaysIcon, ClockIcon, CheckIcon, XMarkIcon, ArrowRightIcon, ShieldExclamationIcon } from '@heroicons/react/24/outline'
+import { BuildingOffice2Icon, UsersIcon, CalendarDaysIcon, ClockIcon, CheckIcon, XMarkIcon, ArrowRightIcon, ShieldExclamationIcon, UserGroupIcon } from '@heroicons/react/24/outline'
 import { useTitle } from '../../hooks/useTitle'
 import { getAdminStats, getPendingVenues, approveVenue, rejectVenue } from '../../api/admin'
 import { formatDate } from '../../lib/utils'
@@ -184,6 +184,18 @@ const AdminDashboard = () => {
                   <p className="text-xs text-gray-500">
                     {stats?.totalVenues ?? '—'} {t('admin.venueCount')}
                   </p>
+                </div>
+              </div>
+              <ArrowRightIcon className="w-5 h-5 text-gray-400" />
+            </Link>
+            <Link to="/admin/manage-admins" className="flex items-center justify-between bg-white rounded-2xl border border-gray-100 p-4 hover:shadow-sm transition-shadow">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-purple-50 flex items-center justify-center">
+                  <UserGroupIcon className="w-5 h-5 text-purple-600" />
+                </div>
+                <div>
+                  <p className="font-medium text-gray-900 text-sm">Manage Admins</p>
+                  <p className="text-xs text-gray-500">Add or remove administrators</p>
                 </div>
               </div>
               <ArrowRightIcon className="w-5 h-5 text-gray-400" />

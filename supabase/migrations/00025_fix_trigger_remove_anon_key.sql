@@ -1,9 +1,7 @@
--- Migration 00019: Enable pg_net and fix AI review trigger to use actual project URL
+-- Migration 00025: Remove Authorization header from AI review trigger
+-- The edge function is deployed with --no-verify-jwt, so no auth header is needed.
+-- current_setting('supabase_anon_key') was never set in the database, causing the trigger to silently fail.
 
--- Step 1: Enable pg_net extension (allows HTTP calls from triggers)
-create extension if not exists pg_net;
-
--- Step 2: Replace trigger function with working version using actual project URL
 create or replace function invoke_ai_venue_review()
 returns trigger
 language plpgsql
@@ -13,10 +11,7 @@ begin
   begin
     perform net.http_post(
       url := 'https://pydsqvslcjnytgebwtpo.functions.supabase.co/ai-venue-review',
-      headers := jsonb_build_object(
-        'Content-Type', 'application/json',
-        'Authorization', 'Bearer ' || current_setting('supabase_anon_key')
-      ),
+      headers := jsonb_build_object('Content-Type', 'application/json'),
       body := jsonb_build_object(
         'venue_id', NEW.id,
         'name', NEW.name,

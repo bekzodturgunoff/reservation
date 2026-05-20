@@ -16,6 +16,7 @@ import Availability from '../pages/business/Availability'
 
 import AdminDashboard from '../pages/admin/AdminDashboard'
 import VenueApprovals from '../pages/admin/VenueApprovals'
+import AdminManagement from '../pages/admin/AdminManagement'
 
 import PageWrapper from '../components/layout/PageWrapper'
 import ProtectedRoute from './ProtectedRoute'
@@ -69,6 +70,10 @@ export const router = createBrowserRouter([
       {
         path: 'admin/approvals',
         element: <ProtectedRoute><AdminRoute><VenueApprovals /></AdminRoute></ProtectedRoute>,
+      },
+      {
+        path: 'admin/manage-admins',
+        element: <ProtectedRoute><AdminRoute><AdminManagement /></AdminRoute></ProtectedRoute>,
       },
 
       { path: '*', element: <NotFound /> },

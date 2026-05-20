@@ -4,8 +4,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet'
 import L from 'leaflet'
+import 'leaflet/dist/leaflet.css'
 import { CameraIcon, PlusCircleIcon, TrashIcon } from '@heroicons/react/24/outline'
 import { getCategories } from '../../api/categories'
 import { createVenue, updateVenue, getVenueById, createVenueService, deleteVenueService } from '../../api/venues'
@@ -17,14 +17,7 @@ import { supabase } from '../../lib/supabase'
 import { UZBEKISTAN_REGIONS } from '../../lib/constants'
 import { useTranslation } from 'react-i18next'
 import { getVenueStaff, createStaff, deleteStaff } from '../../api/staff'
-import type { PricingUnit, CancellationPolicy, StaffMember } from '../../types'
-
-delete (L.Icon.Default.prototype as unknown as Record<string, unknown>)._getIconUrl
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
-  iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
-  shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
-})
+import type { PricingUnit, StaffMember } from '../../types'
 
 const CITIES = Object.values(UZBEKISTAN_REGIONS).flat()
 
@@ -36,11 +29,6 @@ const PRICING_UNITS: { value: PricingUnit; labelKey: string; exampleKey: string 
   { value: 'per_person', labelKey: 'common.pricing_units.per_person', exampleKey: 'business.setup.pricingUnit_per_person' },
   { value: 'fixed', labelKey: 'common.pricing_units.fixed', exampleKey: 'business.setup.pricingUnit_fixed' },
 ]
-
-const ClickMarker = ({ onMove }: { onMove: (lat: number, lng: number) => void }) => {
-  useMapEvents({ click(e) { onMove(e.latlng.lat, e.latlng.lng) } })
-  return null
-}
 
 const VenueSetup = () => {
   const { t } = useTranslation()
@@ -56,16 +44,19 @@ const VenueSetup = () => {
   const [photos, setPhotos] = useState<string[]>([])
   const [uploading, setUploading] = useState(false)
   const [submitting, setSubmitting] = useState(false)
-  const [pricingUnit, setPricingUnit] = useState<PricingUnit>('per_hour')
-  const [cancellationPolicy, setCancellationPolicy] = useState<CancellationPolicy>('flexible')
-  const [staffList, setStaffList] = useState<StaffMember[]>([])
   const [newStaffName, setNewStaffName] = useState('')
   const [newStaffTitle, setNewStaffTitle] = useState('')
   const [newServiceName, setNewServiceName] = useState('')
   const [newServicePrice, setNewServicePrice] = useState('')
   const [newServiceDesc, setNewServiceDesc] = useState('')
   const [newServiceDuration, setNewServiceDuration] = useState('')
+  const [newServiceUnit, setNewServiceUnit] = useState<PricingUnit>('per_hour')
+  const [localServices, setLocalServices] = useState<{ name: string; price: number; unit: PricingUnit; description: string; duration_minutes: number | null }[]>([])
+  const [staffList, setStaffList] = useState<StaffMember[]>([])
   const fileRef = useRef<HTMLInputElement>(null)
+  const mapRef = useRef<HTMLDivElement>(null)
+  const mapInstance = useRef<L.Map | null>(null)
+  const mapMarker = useRef<L.Marker | null>(null)
 
   const { data: categories = [] } = useQuery({ queryKey: ['categories'], queryFn: getCategories })
 
@@ -85,6 +76,52 @@ const VenueSetup = () => {
     if (existingStaff.length > 0) setStaffList(existingStaff)
   }, [existingStaff])
 
+  const position: [number, number] = userPosition ?? (
+    existingVenue?.lat && existingVenue?.lng
+      ? [existingVenue.lat, existingVenue.lng]
+      : [41.2995, 69.2401]
+  )
+
+  useEffect(() => {
+    if (!mapRef.current || mapInstance.current) return
+    const map = L.map(mapRef.current, {
+      center: position,
+      zoom: 13,
+      zoomControl: true,
+    })
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap',
+    }).addTo(map)
+    const icon = L.divIcon({
+      html: '<div style="width:24px;height:24px;background:#10b981;border:3px solid #fff;border-radius:50%;box-shadow:0 2px 6px rgba(0,0,0,.3)"></div>',
+      iconSize: [24, 24],
+      iconAnchor: [12, 12],
+      className: '',
+    })
+    const marker = L.marker(position, { icon, draggable: true }).addTo(map)
+    marker.on('dragend', () => {
+      const { lat, lng } = marker.getLatLng()
+      setPosition([lat, lng])
+    })
+    map.on('click', (e: L.LeafletMouseEvent) => {
+      const { lat, lng } = e.latlng
+      marker.setLatLng([lat, lng])
+      setPosition([lat, lng])
+    })
+    mapInstance.current = map
+    mapMarker.current = marker
+    return () => { map.remove(); mapInstance.current = null; mapMarker.current = null }
+  }, [])
+
+  useEffect(() => {
+    if (mapMarker.current) {
+      mapMarker.current.setLatLng(position)
+    }
+    if (mapInstance.current) {
+      mapInstance.current.flyTo(position, mapInstance.current.getZoom())
+    }
+  }, [position])
+
   const addServiceMutation = useMutation({
     mutationFn: (data: { venue_id: string; name: string; price: number; unit: PricingUnit; description: string; duration_minutes: number | null }) =>
       createVenueService(data),
@@ -94,6 +131,7 @@ const VenueSetup = () => {
       setNewServicePrice('')
       setNewServiceDesc('')
       setNewServiceDuration('')
+      setNewServiceUnit('per_hour')
       addToast({ type: 'success', message: t('business.setup.serviceAdded') })
     },
   })
@@ -125,12 +163,6 @@ const VenueSetup = () => {
     },
   })
 
-  const position: [number, number] = userPosition ?? (
-    existingVenue?.lat && existingVenue?.lng
-      ? [existingVenue.lat, existingVenue.lng]
-      : [41.2995, 69.2401]
-  )
-
   const schema = z.object({
     name: z.string().min(2, t('business.setup.nameMin')),
     category_id: z.string().min(1, t('business.setup.categoryRequired')),
@@ -138,7 +170,6 @@ const VenueSetup = () => {
     address: z.string().min(3, t('business.setup.addressRequired')),
     city: z.string().min(2, t('business.setup.cityRequired')),
     phone: z.string().optional(),
-    price_per_slot: z.string().min(1, t('business.setup.priceRequired')),
   })
 
   type FormData = z.infer<typeof schema>
@@ -156,11 +187,8 @@ const VenueSetup = () => {
         address: existingVenue.address || '',
         city: existingVenue.city,
         phone: existingVenue.phone || '',
-        price_per_slot: existingVenue.price_per_slot.toString(),
       })
       if (existingVenue.photos?.length) setPhotos(existingVenue.photos)
-      if (existingVenue.pricing_unit) setPricingUnit(existingVenue.pricing_unit)
-      if (existingVenue.cancellation_policy) setCancellationPolicy(existingVenue.cancellation_policy)
     }
   }, [existingVenue])
 
@@ -219,11 +247,8 @@ const VenueSetup = () => {
         phone: data.phone || undefined,
         lat: position[0],
         lng: position[1],
-        price_per_slot: Number(data.price_per_slot),
         currency: 'UZS',
         category_id: Number(data.category_id),
-        pricing_unit: pricingUnit,
-        cancellation_policy: cancellationPolicy,
         photos,
       }
 
@@ -231,7 +256,20 @@ const VenueSetup = () => {
         await updateVenue(id, payload)
         addToast({ type: 'success', message: 'Venue updated successfully' })
       } else {
-        await createVenue(payload)
+        const created = await createVenue(payload)
+        const newId = created?.id
+        if (newId && localServices.length > 0) {
+          await Promise.all(
+            localServices.map(sv => createVenueService({
+              venue_id: newId,
+              name: sv.name,
+              price: sv.price,
+              unit: sv.unit,
+              description: sv.description,
+              duration_minutes: sv.duration_minutes,
+            }))
+          )
+        }
         addToast({ type: 'success', message: 'Venue submitted for approval' })
       }
 
@@ -246,6 +284,7 @@ const VenueSetup = () => {
   }
 
   const services = existingVenue?.services || []
+  const allServices = isEdit ? services : [...localServices]
 
   return (
     <div className="max-w-2xl mx-auto">
@@ -276,39 +315,6 @@ const VenueSetup = () => {
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Input label={t('business.setup.phone')} placeholder={t('business.setup.phonePlaceholder')} {...register('phone')} />
-            <Input label={t('business.setup.price')} placeholder={t('business.setup.pricePlaceholder')} error={errors.price_per_slot?.message} {...register('price_per_slot')} />
-          </div>
-
-          {/* Pricing unit */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">{t('business.setup.pricingUnit')}</label>
-            <select
-              value={pricingUnit}
-              onChange={e => setPricingUnit(e.target.value as PricingUnit)}
-              className="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
-            >
-              <option value="">{t('business.setup.pricingUnitPlaceholder')}</option>
-              {PRICING_UNITS.map(u => (
-                <option key={u.value} value={u.value}>
-                  {t(u.labelKey)}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* Cancellation policy */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">{t('business.setup.cancellationPolicy')}</label>
-            <select
-              value={cancellationPolicy}
-              onChange={e => setCancellationPolicy(e.target.value as CancellationPolicy)}
-              className="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
-            >
-              <option value="flexible">{t('business.setup.cancellationFlexible')}</option>
-              <option value="standard">{t('business.setup.cancellationStandard')}</option>
-              <option value="strict">{t('business.setup.cancellationStrict')}</option>
-            </select>
-            <p className="text-xs text-gray-400 mt-1.5">{t('business.setup.cancellationDesc')}</p>
           </div>
         </div>
 
@@ -330,13 +336,7 @@ const VenueSetup = () => {
               📍 {t('business.setup.useMyLocation')}
             </button>
           </div>
-          <div className="h-[300px] rounded-xl overflow-hidden border border-gray-200">
-            <MapContainer center={position} zoom={13} style={{ height: '100%', width: '100%' }}>
-              <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-              <ClickMarker onMove={(lat, lng) => setPosition([lat, lng])} />
-              <Marker position={position} />
-            </MapContainer>
-          </div>
+          <div ref={mapRef} className="h-[300px] rounded-xl overflow-hidden border border-gray-200" />
           <p className="text-xs text-gray-400 mt-2">{position[0].toFixed(4)}, {position[1].toFixed(4)}</p>
         </div>
 
@@ -358,99 +358,119 @@ const VenueSetup = () => {
         </div>
 
         {/* Services/Pricing options */}
-        {pricingUnit !== 'per_hour' && (
-          <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
-            <label className="block text-sm font-medium text-gray-700 mb-3">{t('business.setup.services')}</label>
+        <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
+          <label className="block text-sm font-medium text-gray-700 mb-3">{t('business.setup.services')}</label>
 
-            {services.length > 0 && (
-              <div className="space-y-2 mb-4">
-                {services.map(s => (
-                  <div key={s.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-gray-900">{s.name}</p>
-                      <p className="text-xs text-gray-500">
-                        {s.price.toLocaleString()} so'm / {t(`common.pricing_units.${s.unit}`)}
-                        {s.duration_minutes && ` · ${s.duration_minutes} min`}
-                      </p>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => deleteServiceMutation.mutate(s.id)}
-                      className="p-1.5 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                    >
-                      <TrashIcon className="w-4 h-4" />
-                    </button>
+          {allServices.length > 0 && (
+            <div className="space-y-2 mb-4">
+              {allServices.map((s, i) => (
+                <div key={s.id ?? `local-${i}`} className="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-gray-900">{s.name}</p>
+                    <p className="text-xs text-gray-500">
+                      {s.price.toLocaleString()} so'm / {t(`common.pricing_units.${s.unit}`)}
+                      {s.duration_minutes && ` · ${s.duration_minutes} min`}
+                    </p>
                   </div>
-                ))}
-              </div>
-            )}
-
-            {id ? (
-              <>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
-                  <div>
-                    <label className="block text-xs font-medium text-gray-500 mb-1">{t('business.setup.serviceName')}</label>
-                    <input
-                      value={newServiceName}
-                      onChange={e => setNewServiceName(e.target.value)}
-                      className="w-full border border-gray-300 rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                      placeholder={t('business.setup.serviceName')}
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-medium text-gray-500 mb-1">{t('business.setup.servicePrice')}</label>
-                    <input
-                      type="number"
-                      value={newServicePrice}
-                      onChange={e => setNewServicePrice(e.target.value)}
-                      className="w-full border border-gray-300 rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                      placeholder={t('business.setup.servicePrice')}
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-medium text-gray-500 mb-1">{t('business.setup.serviceDescription')}</label>
-                    <input
-                      value={newServiceDesc}
-                      onChange={e => setNewServiceDesc(e.target.value)}
-                      className="w-full border border-gray-300 rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                      placeholder={t('business.setup.serviceDescription')}
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-medium text-gray-500 mb-1">{t('business.setup.serviceDuration')}</label>
-                    <input
-                      type="number"
-                      value={newServiceDuration}
-                      onChange={e => setNewServiceDuration(e.target.value)}
-                      className="w-full border border-gray-300 rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                      placeholder={t('business.setup.serviceDuration')}
-                    />
-                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (isEdit) {
+                        deleteServiceMutation.mutate(s.id)
+                      } else {
+                        setLocalServices(prev => prev.filter((_, idx) => idx !== i))
+                      }
+                    }}
+                    className="p-1.5 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                  >
+                    <TrashIcon className="w-4 h-4" />
+                  </button>
                 </div>
-                <Button
-                  type="button"
-                  variant="secondary"
-                  size="sm"
-                  disabled={!newServiceName || !newServicePrice}
-                  onClick={() => {
-                    addServiceMutation.mutate({
-                      venue_id: id,
-                      name: newServiceName,
-                      price: Number(newServicePrice),
-                      unit: pricingUnit,
-                      description: newServiceDesc,
-                      duration_minutes: newServiceDuration ? Number(newServiceDuration) : null,
-                    })
-                  }}
-                >
-                  <PlusCircleIcon className="w-4 h-4" /> {t('business.setup.addService')}
-                </Button>
-              </>
-            ) : (
-              <p className="text-sm text-gray-400">{t('business.setup.create')} — {t('business.setup.services')}</p>
-            )}
+              ))}
+            </div>
+          )}
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
+            <div>
+              <label className="block text-xs font-medium text-gray-500 mb-1">{t('business.setup.serviceName')}</label>
+              <input
+                value={newServiceName}
+                onChange={e => setNewServiceName(e.target.value)}
+                className="w-full border border-gray-300 rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                placeholder={t('business.setup.serviceName')}
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-500 mb-1">{t('business.setup.servicePrice')}</label>
+              <input
+                type="number"
+                value={newServicePrice}
+                onChange={e => setNewServicePrice(e.target.value)}
+                className="w-full border border-gray-300 rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                placeholder={t('business.setup.servicePrice')}
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-500 mb-1">Unit</label>
+              <select
+                value={newServiceUnit}
+                onChange={e => setNewServiceUnit(e.target.value as PricingUnit)}
+                className="w-full border border-gray-300 rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              >
+                {PRICING_UNITS.map(u => (
+                  <option key={u.value} value={u.value}>{t(u.labelKey)}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-500 mb-1">{t('business.setup.serviceDescription')}</label>
+              <input
+                value={newServiceDesc}
+                onChange={e => setNewServiceDesc(e.target.value)}
+                className="w-full border border-gray-300 rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                placeholder={t('business.setup.serviceDescription')}
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-500 mb-1">{t('business.setup.serviceDuration')}</label>
+              <input
+                type="number"
+                value={newServiceDuration}
+                onChange={e => setNewServiceDuration(e.target.value)}
+                className="w-full border border-gray-300 rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                placeholder={t('business.setup.serviceDuration')}
+              />
+            </div>
           </div>
-        )}
+          <Button
+            type="button"
+            variant="secondary"
+            size="sm"
+            disabled={!newServiceName || !newServicePrice}
+            onClick={() => {
+              if (isEdit && id) {
+                addServiceMutation.mutate({
+                  venue_id: id,
+                  name: newServiceName,
+                  price: Number(newServicePrice),
+                  unit: newServiceUnit,
+                  description: newServiceDesc,
+                  duration_minutes: newServiceDuration ? Number(newServiceDuration) : null,
+                })
+              } else {
+                setLocalServices(prev => [...prev, {
+                  name: newServiceName,
+                  price: Number(newServicePrice),
+                  unit: newServiceUnit,
+                  description: newServiceDesc,
+                  duration_minutes: newServiceDuration ? Number(newServiceDuration) : null,
+                }])
+              }
+            }}
+          >
+            <PlusCircleIcon className="w-4 h-4" /> {t('business.setup.addService')}
+          </Button>
+        </div>
 
         {/* Staff management */}
         {id && (
