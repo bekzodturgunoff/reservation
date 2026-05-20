@@ -14,7 +14,7 @@ const PageWrapper = () => {
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: 'var(--color-bg)' }}>
       <Navbar />
-      <main style={{ flex: 1, width: '100%', maxWidth: '1280px', margin: '0 auto', padding: '0 24px' }}>
+      <main className="mx-auto w-full max-w-[1280px] flex-1 px-4 py-4 sm:px-6 sm:py-6 lg:px-8 lg:py-8">
         <ErrorBoundary>
           <div className="page-enter">
             <Outlet />

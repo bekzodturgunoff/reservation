@@ -71,18 +71,18 @@ const Home = () => {
     i18n.language === 'uz' ? uz : ru
 
   return (
-    <div className="-mx-4 sm:-mx-6 lg:-mx-8 overflow-hidden">
-      <div className="px-4 sm:px-6 lg:px-8 pt-8 sm:pt-14 pb-10 sm:pb-20 text-white" style={{ background: '#0A0A0A' }}>
+    <div className="-mx-4 sm:-mx-6 lg:-mx-8 overflow-x-visible">
+      <div className="relative left-1/2 right-1/2 w-screen -translate-x-1/2 px-4 sm:px-6 lg:px-8 pt-8 sm:pt-14 pb-10 sm:pb-20 text-white" style={{ background: 'var(--color-brand)' }}>
         <div className="max-w-3xl mx-auto text-center">
           <div className="inline-flex items-center gap-1.5 rounded-full px-3 sm:px-4 py-1 sm:py-1.5 text-xs sm:text-sm mb-4 sm:mb-6" style={{ background: 'rgba(255,255,255,0.1)', backdropFilter: 'blur(8px)' }}>
             <span>🇺🇿</span>
-            <span className="truncate" style={{ color: '#A8A8A8' }}>{t('home.title')}</span>
+            <span className="truncate" style={{ color: 'rgba(255,255,255,0.82)' }}>{t('home.title')}</span>
           </div>
           <h1 className="text-2xl sm:text-4xl lg:text-5xl font-bold mb-3 sm:mb-4 leading-tight px-1">
             {t('home.hero1')}<br />
-            <span style={{ color: '#00A86B' }}>{t('home.hero2')}</span>
+            <span style={{ color: '#FFFFFF' }}>{t('home.hero2')}</span>
           </h1>
-          <p className="text-sm sm:text-lg mb-6 sm:mb-10 max-w-xl mx-auto px-2" style={{ color: '#6B6B6B' }}>
+          <p className="text-sm sm:text-lg mb-6 sm:mb-10 max-w-xl mx-auto px-2" style={{ color: 'rgba(255,255,255,0.82)' }}>
             {t('home.subtitle')}
           </p>
 
