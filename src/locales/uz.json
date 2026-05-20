@@ -247,6 +247,7 @@
   },
   "auth": {
     "welcome": "Xush kelibsiz!",
+    "welcomeName": "Xush kelibsiz, {{name}}!",
     "loginTitle": "BronUz ga xush kelibsiz",
     "loginSubtitle": "Hisobingizga kiring",
     "emailPlaceholder": "email@example.com",
@@ -273,7 +274,9 @@
   },
   "business": {
     "dashboard": "Biznes panel",
-    "welcome": "uchun xush kelibsiz",
+    "welcome": "Xush kelibsiz, {{name}}!",
+    "ownerWelcome": "Xush kelibsiz, {{name}}! 👋",
+    "friend": "do'stim",
     "addVenue": "Yangi joy",
     "statsBookings": "Bu oy bronlar",
     "statsRevenue": "Daromad (bu oy)",

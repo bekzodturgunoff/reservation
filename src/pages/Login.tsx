@@ -57,12 +57,16 @@ const Login = () => {
       try {
         const profile = await getProfile(authData.session.user.id)
         setProfile(profile)
+        const firstName = profile?.full_name?.trim().split(/\s+/)[0]
+        addToast({
+          type: 'success',
+          message: firstName ? t('auth.welcomeName', { name: firstName }) : t('auth.welcome'),
+        })
       } catch {
         setProfile(null)
+        addToast({ type: 'success', message: t('auth.welcome') })
       }
     }
-
-    addToast({ type: 'success', message: t('auth.welcome') })
     navigate(from, { replace: true })
   }
 

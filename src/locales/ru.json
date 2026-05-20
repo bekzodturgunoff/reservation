@@ -247,6 +247,7 @@
   },
   "auth": {
     "welcome": "Добро пожаловать!",
+    "welcomeName": "Добро пожаловать, {{name}}!",
     "loginTitle": "Добро пожаловать на BronUz",
     "loginSubtitle": "Войдите в аккаунт",
     "emailPlaceholder": "email@example.com",
@@ -273,7 +274,9 @@
   },
   "business": {
     "dashboard": "Бизнес панель",
-    "welcome": "Добро пожаловать",
+    "welcome": "Добро пожаловать, {{name}}!",
+    "ownerWelcome": "Добро пожаловать, {{name}}! 👋",
+    "friend": "друг",
     "addVenue": "Новое место",
     "statsBookings": "Броней за месяц",
     "statsRevenue": "Доход (за месяц)",

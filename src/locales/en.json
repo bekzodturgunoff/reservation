@@ -247,6 +247,7 @@
   },
   "auth": {
     "welcome": "Welcome!",
+    "welcomeName": "Welcome, {{name}}!",
     "loginTitle": "Welcome to BronUz",
     "loginSubtitle": "Sign in to your account",
     "emailPlaceholder": "email@example.com",
@@ -273,7 +274,9 @@
   },
   "business": {
     "dashboard": "Business dashboard",
-    "welcome": "Welcome",
+    "welcome": "Welcome, {{name}}!",
+    "ownerWelcome": "Welcome, {{name}}! 👋",
+    "friend": "friend",
     "addVenue": "New venue",
     "statsBookings": "Bookings this month",
     "statsRevenue": "Revenue (this month)",

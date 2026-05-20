@@ -166,13 +166,14 @@ const BusinessDashboard = () => {
   )
 
   const linkedVenueIds = useMemo(() => new Set(telegramLinks.map(l => l.venue_id)), [telegramLinks])
+  const firstName = profile?.full_name?.trim().split(/\s+/)[0] || t('business.friend')
 
   return (
     <div className="space-y-6 sm:space-y-8 pb-4 sm:pb-0">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
         <div className="min-w-0 flex-1">
           <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 leading-tight">{t('business.dashboard')}</h1>
-          <p className="text-sm text-gray-500 mt-1 break-words">{profile?.full_name} {t('business.welcome')}</p>
+          <p className="text-sm text-gray-500 mt-1 break-words">{t('business.welcome', { name: firstName })}</p>
         </div>
         <Link to="/business/venue/new" className="shrink-0 w-full sm:w-auto">
           <Button className="w-full sm:w-auto justify-center"><PlusCircleIcon className="w-4 h-4" /> {t('business.addVenue')}</Button>
@@ -212,7 +213,7 @@ const BusinessDashboard = () => {
 
       {venues.length === 0 && (
         <div className="bg-gradient-to-r from-emerald-500 to-teal-600 rounded-2xl p-5 sm:p-6 text-white mb-2 sm:mb-6">
-          <h2 className="text-lg font-bold mb-1">Xush kelibsiz, biznes egasi! 👋</h2>
+          <h2 className="text-lg font-bold mb-1">{t('business.ownerWelcome', { name: firstName })}</h2>
           <p className="text-emerald-100 text-sm mb-4 leading-relaxed">
             Birinchi joyingizni qo'shing va mijozlar bron qila boshlashsin.
             Qo'shilgan joy admin tomonidan tekshirilgach, saytda ko'rinadi.
