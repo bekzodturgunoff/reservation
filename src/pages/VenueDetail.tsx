@@ -118,17 +118,18 @@ const VenueDetail = () => {
         <div className="lg:col-span-5 relative">
           <div className="sticky top-24">
             <VenueDetailSidebar
-            venue={venue}
-            effectivePrice={effectivePrice}
-            effectiveUnit={effectiveUnit}
-            selectedService={selectedService}
-            selectedSlot={selectedSlot}
-            selectedStaff={selectedStaff}
-            staff={staff}
-            user={user}
-            onBook={handleBook}
-            onStaffSelect={setSelectedStaff}
-          />
+              venue={venue}
+              effectivePrice={effectivePrice}
+              effectiveUnit={effectiveUnit}
+              selectedService={selectedService}
+              selectedSlot={selectedSlot}
+              selectedStaff={selectedStaff}
+              staff={staff}
+              user={user}
+              onBook={handleBook}
+              onStaffSelect={setSelectedStaff}
+            />
+          </div>
         </div>
       </div>
     </div>
