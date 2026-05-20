@@ -32,6 +32,13 @@
     "action": "Action",
     "confirmDelete": "Are you sure you want to delete",
     "noData": "No data found",
+    "verified": "Verified",
+    "at": "at",
+    "callCenter": "Call center",
+    "location": "Location",
+    "businessDashboard": "Business dashboard",
+    "tashkentUzbekistan": "Tashkent, Uzbekistan",
+    "tashkentUzbekistanEmoji": "Tashkent, Uzbekistan 🇺🇿",
     "perHour": "/ hour",
     "perSession": "session",
     "perDay": "day",
@@ -189,8 +196,16 @@
     "telegramNote": "📱 You'll receive a confirmation via Telegram. If the notification hasn't arrived, contact the admin.",
     "myBookings": "My bookings"
   },
+  "footer": {
+    "site": "Site",
+    "categories": "Categories",
+    "businessFor": "For business",
+    "addVenue": "Add your venue",
+    "copyright": "© 2026 BronUz. All rights reserved."
+  },
   "profile": {
     "title": "My profile",
+    "welcome": "Welcome, {{name}}!",
     "fullName": "Name must be at least 2 characters",
     "phoneRequired": "Enter your phone number",
     "updated": "Profile updated",
@@ -202,6 +217,22 @@
     "cancel": "Cancel",
     "cancelConfirm": "Are you sure you want to cancel this booking?",
     "email": "Email:",
+    "totalPoints": "Total points",
+    "lifetimeEarned": "Lifetime earned: {{count}} points",
+    "pointsReward": "Earn 1 point for every 1 UZS spent. Redeem 100 points for 1 UZS off.",
+    "historyTitle": "History",
+    "noPointsHistory": "No points history yet",
+    "completeBookings": "Complete bookings to earn points",
+    "noWaitlistEntries": "No waitlist entries",
+    "joinWaitlistHint": "Join a waitlist when a slot is full",
+    "leaveWaitlist": "Leave waitlist",
+    "partyOf": "Party of {{count}}",
+    "waitlistStatuses": {
+      "waiting": "Waiting",
+      "notified": "Notified",
+      "expired": "Expired",
+      "cancelled": "Cancelled"
+    },
     "tabs": {
       "upcoming": "Upcoming",
       "past": "Past",

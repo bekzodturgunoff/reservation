@@ -32,6 +32,13 @@
     "action": "Amal",
     "confirmDelete": "ni o'chirishni xohlaysizmi?",
     "noData": "Ma'lumot topilmadi",
+    "verified": "Tekshirilgan",
+    "at": "soat",
+    "callCenter": "Qo'ng'iroqlar markazi",
+    "location": "Joylashuv",
+    "businessDashboard": "Biznes panel",
+    "tashkentUzbekistan": "Toshkent, O'zbekiston",
+    "tashkentUzbekistanEmoji": "Toshkent, O'zbekiston 🇺🇿",
     "perHour": "/ soat",
     "perSession": "martaba",
     "perDay": "kun",
@@ -189,8 +196,16 @@
     "telegramNote": "📱 Telegram orqali tasdiq xabari olasiz. Agar bildirishnoma kelmagan bo'lsa, admin bilan bog'laning.",
     "myBookings": "Mening bronlarim"
   },
+  "footer": {
+    "site": "Sayt",
+    "categories": "Kategoriyalar",
+    "businessFor": "Biznes uchun",
+    "addVenue": "Joyingizni qo'shing",
+    "copyright": "© 2026 BronUz. Barcha huquqlar himoyalangan."
+  },
   "profile": {
     "title": "Mening profilim",
+    "welcome": "Xush kelibsiz, {{name}}!",
     "fullName": "Ism kamida 2 ta belgi",
     "phoneRequired": "Telefon raqam kiriting",
     "updated": "Profil yangilandi",
@@ -202,6 +217,22 @@
     "cancel": "Bekor qilish",
     "cancelConfirm": "Bronni bekor qilishni xohlaysizmi?",
     "email": "Email:",
+    "totalPoints": "Jami ballar",
+    "lifetimeEarned": "Umumiy topilgan: {{count}} ball",
+    "pointsReward": "Sarf qilingan har 1 so'm uchun 1 ball oling. 100 ballni 1 so'm chegirma uchun ishlating.",
+    "historyTitle": "Tarix",
+    "noPointsHistory": "Ballar tarixi yo'q",
+    "completeBookings": "Ball olish uchun bronlarni yakunlang",
+    "noWaitlistEntries": "Kutish ro'yxati yozuvlari yo'q",
+    "joinWaitlistHint": "Bo'sh joy to'lsa, kutish ro'yxatiga qo'shiling",
+    "leaveWaitlist": "Kutish ro'yxatidan chiqish",
+    "partyOf": "{{count}} kishi",
+    "waitlistStatuses": {
+      "waiting": "Kutilmoqda",
+      "notified": "Xabardor qilindi",
+      "expired": "Muddati o'tgan",
+      "cancelled": "Bekor qilindi"
+    },
     "tabs": {
       "upcoming": "Kelgusi",
       "past": "O'tgan",

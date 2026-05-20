@@ -19,17 +19,22 @@ const Input = forwardRef<HTMLInputElement, InputProps>(({
     )}
     <div className="relative">
       {leftIcon && (
-        <span className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: 'var(--color-text-tertiary)' }}>
+        <span className="absolute left-5 top-1/2 -translate-y-1/2" style={{ color: 'var(--color-text-tertiary)' }}>
           {leftIcon}
         </span>
       )}
       <input
         ref={ref}
-        className={`input-field ${leftIcon ? 'pl-10' : ''} ${rightIcon ? 'pr-10' : ''} ${error ? '!border-[var(--color-danger)] focus:!shadow-[0_0_0_3px_rgba(255,77,77,0.12)]' : ''} ${className}`}
+        className={`input-field ${error ? '!border-[var(--color-danger)] focus:!shadow-[0_0_0_3px_rgba(255,77,77,0.12)]' : ''} ${className}`}
+        style={{
+          ...props.style,
+          paddingLeft: leftIcon ? '3.5rem' : props.style?.paddingLeft,
+          paddingRight: rightIcon ? '3.5rem' : props.style?.paddingRight,
+        }}
         {...props}
       />
       {rightIcon && (
-        <span className="absolute right-3 top-1/2 -translate-y-1/2" style={{ color: 'var(--color-text-tertiary)' }}>
+        <span className="absolute right-5 top-1/2 -translate-y-1/2" style={{ color: 'var(--color-text-tertiary)' }}>
           {rightIcon}
         </span>
       )}

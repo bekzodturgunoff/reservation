@@ -7,7 +7,9 @@ import { EnvelopeIcon, LockClosedIcon, CalendarDaysIcon, ShieldCheckIcon, BoltIc
 import { useTranslation } from 'react-i18next'
 import { supabase } from '../lib/supabase'
 import { useToastStore } from '../store/toastStore'
+import { useAuthStore } from '../store/authStore'
 import { useTitle } from '../hooks/useTitle'
+import { getProfile } from '../api/profiles'
 import Input from '../components/ui/Input'
 import Button from '../components/ui/Button'
 
@@ -17,6 +19,7 @@ const Login = () => {
   const navigate = useNavigate()
   const location = useLocation()
   const { addToast } = useToastStore()
+  const { setUser, setProfile } = useAuthStore()
   const [loading, setLoading] = useState(false)
   const [rememberMe, setRememberMe] = useState(true)
 
@@ -38,7 +41,7 @@ const Login = () => {
 
   const onSubmit = async (data: FormData) => {
     setLoading(true)
-    const { error } = await supabase.auth.signInWithPassword({
+    const { data: authData, error } = await supabase.auth.signInWithPassword({
       email: data.email,
       password: data.password,
     })
@@ -49,12 +52,22 @@ const Login = () => {
       return
     }
 
+    if (authData.session?.user) {
+      setUser(authData.session.user)
+      try {
+        const profile = await getProfile(authData.session.user.id)
+        setProfile(profile)
+      } catch {
+        setProfile(null)
+      }
+    }
+
     addToast({ type: 'success', message: t('auth.welcome') })
     navigate(from, { replace: true })
   }
 
   return (
-    <div className="-mx-6 flex min-h-[calc(100vh-64px)]">
+    <div className="-mx-4 sm:-mx-6 flex min-h-[calc(100vh-64px)]">
       <div className="hidden lg:flex lg:w-1/2 items-center justify-center p-12" style={{ background: '#0A0A0A' }}>
         <div className="max-w-sm">
           <div className="mb-8">
@@ -84,20 +97,20 @@ const Login = () => {
         </div>
       </div>
 
-      <div className="w-full lg:w-1/2 flex items-center justify-center p-4 sm:p-12 overflow-y-auto">
-        <div className="w-full max-w-md">
-          <div className="text-center mb-8 lg:hidden mt-8">
+      <div className="w-full lg:w-1/2 flex items-center justify-center px-4 py-8 sm:px-12 sm:py-12 overflow-y-auto">
+        <div className="w-full max-w-[440px]">
+          <div className="text-center mb-6 lg:hidden mt-2 sm:mt-8">
             <div className="flex justify-center mb-4">
               <div className="w-12 h-12 rounded-2xl flex items-center justify-center" style={{ background: 'var(--color-brand)' }}>
                 <CalendarDaysIcon className="w-7 h-7 text-white" />
               </div>
             </div>
-            <h1 className="text-2xl font-bold" style={{ color: 'var(--color-text-primary)' }}>{t('auth.loginTitle')}</h1>
-            <p className="text-sm mt-1" style={{ color: 'var(--color-text-secondary)' }}>{t('auth.loginSubtitle')}</p>
+            <h1 className="text-2xl font-bold leading-tight" style={{ color: 'var(--color-text-primary)' }}>{t('auth.loginTitle')}</h1>
+            <p className="text-sm mt-1 leading-relaxed" style={{ color: 'var(--color-text-secondary)' }}>{t('auth.loginSubtitle')}</p>
           </div>
 
-          <div className="p-5 sm:p-8" style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '14px' }}>
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+          <div className="p-5 sm:p-8" style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '20px', boxShadow: 'var(--shadow-card)' }}>
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 sm:space-y-5">
               <Input
                 label={t('common.email')}
                 type="email"
@@ -114,12 +127,12 @@ const Login = () => {
                 error={errors.password?.message}
                 {...register('password')}
               />
-              <label className="flex items-center gap-2 cursor-pointer select-none">
+              <label className="flex items-center gap-2 cursor-pointer select-none rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)] px-3 py-2.5">
                 <input
                   type="checkbox"
                   checked={rememberMe}
                   onChange={() => setRememberMe(r => !r)}
-                  className="w-4 h-4 rounded cursor-pointer"
+                  className="w-4 h-4 rounded cursor-pointer shrink-0"
                   style={{ accentColor: 'var(--color-brand)' }}
                 />
                 <span className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>{t('auth.rememberMe')}</span>
@@ -128,8 +141,8 @@ const Login = () => {
                 {t('common.login')}
               </Button>
             </form>
-            <div className="mt-6 text-center">
-              <p className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>
+            <div className="mt-5 text-center">
+              <p className="text-sm leading-relaxed" style={{ color: 'var(--color-text-secondary)' }}>
                 {t('auth.noAccount')}{' '}
                 <Link to="/register" className="font-medium hover:underline" style={{ color: 'var(--color-brand)' }}>
                   {t('auth.registerLink')}
@@ -138,8 +151,8 @@ const Login = () => {
             </div>
           </div>
 
-          <div className="mt-4 p-4 rounded-xl" style={{ background: 'var(--color-info-light)', border: '1px solid var(--color-info-light)' }}>
-            <p className="text-xs text-center" style={{ color: 'var(--color-info)' }}>
+          <div className="mt-4 p-4 rounded-2xl" style={{ background: 'var(--color-info-light)', border: '1px solid var(--color-info-light)' }}>
+            <p className="text-xs text-center leading-relaxed" style={{ color: 'var(--color-info)' }}>
               {t('auth.testHint')}
             </p>
           </div>

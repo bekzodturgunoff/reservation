@@ -32,6 +32,13 @@
     "action": "Действие",
     "confirmDelete": "Вы уверены, что хотите удалить",
     "noData": "Данные не найдены",
+    "verified": "Проверено",
+    "at": "в",
+    "callCenter": "Колл-центр",
+    "location": "Местоположение",
+    "businessDashboard": "Бизнес панель",
+    "tashkentUzbekistan": "Ташкент, Узбекистан",
+    "tashkentUzbekistanEmoji": "Ташкент, Узбекистан 🇺🇿",
     "perHour": "/ час",
     "perSession": "сеанс",
     "perDay": "день",
@@ -189,8 +196,16 @@
     "telegramNote": "📱 Вы получите уведомление в Telegram. Если уведомление не пришло, свяжитесь с администратором.",
     "myBookings": "Мои брони"
   },
+  "footer": {
+    "site": "Сайт",
+    "categories": "Категории",
+    "businessFor": "Для бизнеса",
+    "addVenue": "Добавить заведение",
+    "copyright": "© 2026 BronUz. Все права защищены."
+  },
   "profile": {
     "title": "Мой профиль",
+    "welcome": "Добро пожаловать, {{name}}!",
     "fullName": "Имя должно содержать минимум 2 символа",
     "phoneRequired": "Введите номер телефона",
     "updated": "Профиль обновлён",
@@ -202,6 +217,22 @@
     "cancel": "Отменить",
     "cancelConfirm": "Вы уверены, что хотите отменить бронь?",
     "email": "Email:",
+    "totalPoints": "Всего баллов",
+    "lifetimeEarned": "Всего заработано: {{count}} баллов",
+    "pointsReward": "Получайте 1 балл за каждые 1 сум, потраченные на брони. Используйте 100 баллов, чтобы получить скидку 1 сум.",
+    "historyTitle": "История",
+    "noPointsHistory": "История баллов отсутствует",
+    "completeBookings": "Завершите брони, чтобы получать баллы",
+    "noWaitlistEntries": "Нет записей в листе ожидания",
+    "joinWaitlistHint": "Добавьтесь в лист ожидания, когда слот занят",
+    "leaveWaitlist": "Покинуть лист ожидания",
+    "partyOf": "Группа из {{count}} чел.",
+    "waitlistStatuses": {
+      "waiting": "Ожидание",
+      "notified": "Уведомлён",
+      "expired": "Истёк",
+      "cancelled": "Отменён"
+    },
     "tabs": {
       "upcoming": "Предстоящие",
       "past": "Прошедшие",

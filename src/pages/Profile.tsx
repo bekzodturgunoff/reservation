@@ -197,6 +197,16 @@ const Profile = () => {
 
   const totalPoints = (loyaltyPoints ?? []).reduce((sum, p) => sum + p.balance, 0)
   const totalEarned = (loyaltyPoints ?? []).reduce((sum, p) => sum + p.lifetime_earned, 0)
+  const firstName = profile?.full_name?.trim().split(/\s+/)[0] || user?.email?.split('@')[0] || ''
+  const waitlistStatusLabel = (status: string) => {
+    const labels: Record<string, string> = {
+      waiting: t('profile.waitlistStatuses.waiting'),
+      notified: t('profile.waitlistStatuses.notified'),
+      expired: t('profile.waitlistStatuses.expired'),
+      cancelled: t('profile.waitlistStatuses.cancelled'),
+    }
+    return labels[status] || status
+  }
 
   const BookingCard = ({ booking }: { booking: Booking }) => (
     <div className="rounded-2xl border p-4 shadow-sm" style={{background: 'var(--color-surface)', borderColor: 'var(--color-border)'}}>
@@ -263,7 +273,7 @@ const Profile = () => {
           </div>
           {review.booking_id && (
             <span className="ml-1 text-[10px] px-1.5 py-0.5 rounded-full font-medium border" style={{color: 'var(--color-brand)', background: 'var(--color-brand-light)', borderColor: 'var(--color-brand)'}}>
-              ✔ Verified
+              {t('common.verified')}
             </span>
           )}
         </div>
@@ -274,7 +284,12 @@ const Profile = () => {
 
   return (
     <div className="max-w-3xl mx-auto space-y-8">
-      <h1 className="text-2xl font-bold" style={{color: 'var(--color-text-primary)'}}>{t('profile.title')}</h1>
+      <div className="space-y-1">
+        <h1 className="text-2xl font-bold" style={{color: 'var(--color-text-primary)'}}>
+          {firstName ? t('profile.welcome', { name: firstName }) : t('profile.title')}
+        </h1>
+        <p className="text-sm" style={{color: 'var(--color-text-secondary)'}}>{t('profile.title')}</p>
+      </div>
 
       {/* Profile edit card */}
       <div className="rounded-2xl border p-6 shadow-sm" style={{background: 'var(--color-surface)', borderColor: 'var(--color-border)'}}>
@@ -432,22 +447,22 @@ const Profile = () => {
                 <span className="text-3xl">🪙</span>
                 <div>
                   <p className="text-2xl font-bold" style={{color: 'var(--color-text-primary)'}}>{totalPoints}</p>
-                  <p className="text-sm" style={{color: 'var(--color-text-secondary)'}}>Total points</p>
+                  <p className="text-sm" style={{color: 'var(--color-text-secondary)'}}>{t('profile.totalPoints')}</p>
                 </div>
               </div>
               <div className="text-sm" style={{color: 'var(--color-text-secondary)'}}>
-                Lifetime earned: <span className="font-medium" style={{color: 'var(--color-text-primary)'}}>{totalEarned} points</span>
+                {t('profile.lifetimeEarned', { count: totalEarned })}
               </div>
               <div className="mt-3 p-3 bg-amber-50 rounded-xl border border-amber-100">
                 <p className="text-xs text-amber-800">
-                  Earn 1 point for every 1 UZS spent. Redeem 100 points for 1 UZS off.
+                  {t('profile.pointsReward')}
                 </p>
               </div>
             </div>
 
-            <h3 className="font-semibold" style={{color: 'var(--color-text-primary)'}}>History</h3>
+            <h3 className="font-semibold" style={{color: 'var(--color-text-primary)'}}>{t('profile.historyTitle')}</h3>
             {loyaltyHistory.length === 0 ? (
-              <EmptyState text="No points history yet" sub="Complete bookings to earn points" />
+              <EmptyState text={t('profile.noPointsHistory')} sub={t('profile.completeBookings')} />
             ) : (
               loyaltyHistory.map(h => (
                 <div key={h.id} className="rounded-2xl border p-4 shadow-sm" style={{background: 'var(--color-surface)', borderColor: 'var(--color-border)'}}>
@@ -469,17 +484,17 @@ const Profile = () => {
 
         {activeTab === 'waitlist' && (
           waitlist.length === 0
-            ? <EmptyState text="No waitlist entries" sub="Join a waitlist when a slot is full" />
+            ? <EmptyState text={t('profile.noWaitlistEntries')} sub={t('profile.joinWaitlistHint')} />
             : waitlist.map(w => (
                 <div key={w.id} className="rounded-2xl border p-4 shadow-sm" style={{background: 'var(--color-surface)', borderColor: 'var(--color-border)'}}>
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0 flex-1">
-                      <p className="font-medium text-sm" style={{color: 'var(--color-text-primary)'}}>{(w as any).venues?.name || 'Venue'}</p>
+                      <p className="font-medium text-sm" style={{color: 'var(--color-text-primary)'}}>{(w as any).venues?.name || t('profile.venue')}</p>
                       <p className="text-xs mt-1" style={{color: 'var(--color-text-secondary)'}}>
-                        {w.slot_time ? formatDate(w.slot_time) : '—'} at {w.slot_time?.slice(11, 16) || '—'}
-                        {w.party_size > 1 && ` · Party of ${w.party_size}`}
+                        {w.slot_time ? formatDate(w.slot_time) : '—'} {t('common.at')} {w.slot_time?.slice(11, 16) || '—'}
+                        {w.party_size > 1 && ` · ${t('profile.partyOf', { count: w.party_size })}`}
                       </p>
-                      <Badge variant={waitlistStatusVariant[w.status] || 'default'}>{w.status}</Badge>
+                      <Badge variant={waitlistStatusVariant[w.status] || 'default'}>{waitlistStatusLabel(w.status)}</Badge>
                     </div>
                     {w.status === 'waiting' && (
                       <Button
@@ -488,7 +503,7 @@ const Profile = () => {
                         loading={leaveWaitlistMutation.isPending}
                         onClick={() => leaveWaitlistMutation.mutate(w.id)}
                       >
-                        Leave
+                        {t('profile.leaveWaitlist')}
                       </Button>
                     )}
                   </div>

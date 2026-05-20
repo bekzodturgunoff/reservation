@@ -85,7 +85,7 @@ const Register = () => {
   }
 
   return (
-    <div className="-mx-6 flex min-h-[calc(100vh-64px)]">
+    <div className="-mx-4 sm:-mx-6 flex min-h-[calc(100vh-64px)]">
       <div className="hidden lg:flex lg:w-1/2 items-center justify-center p-12" style={{ background: '#0A0A0A' }}>
         <div className="max-w-sm">
           <div className="mb-8">
@@ -115,29 +115,29 @@ const Register = () => {
         </div>
       </div>
 
-      <div className="w-full lg:w-1/2 flex items-center justify-center p-4 sm:p-12 overflow-y-auto">
-        <div className="w-full max-w-md">
-          <div className="text-center mb-8 lg:hidden mt-8">
+      <div className="w-full lg:w-1/2 flex items-center justify-center px-4 py-8 sm:px-12 sm:py-12 overflow-y-auto">
+        <div className="w-full max-w-[480px]">
+          <div className="text-center mb-6 lg:hidden mt-2 sm:mt-8">
             <div className="flex justify-center mb-4">
               <div className="w-12 h-12 rounded-2xl flex items-center justify-center" style={{ background: 'var(--color-brand)' }}>
                 <CalendarDaysIcon className="w-7 h-7 text-white" />
               </div>
             </div>
-            <h1 className="text-2xl font-bold" style={{ color: 'var(--color-text-primary)' }}>{t('auth.registerTitle')}</h1>
-            <p className="text-sm mt-1" style={{ color: 'var(--color-text-secondary)' }}>{t('auth.registerSubtitle')}</p>
+            <h1 className="text-2xl font-bold leading-tight" style={{ color: 'var(--color-text-primary)' }}>{t('auth.registerTitle')}</h1>
+            <p className="text-sm mt-1 leading-relaxed" style={{ color: 'var(--color-text-secondary)' }}>{t('auth.registerSubtitle')}</p>
           </div>
 
-          <div className="p-5 sm:p-8" style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '14px' }}>
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+          <div className="p-5 sm:p-8" style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '20px', boxShadow: 'var(--shadow-card)' }}>
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 sm:space-y-5">
               <div>
                 <label className="block text-sm font-medium mb-2" style={{ color: 'var(--color-text-secondary)' }}>
                   {t('auth.accountType')}
                 </label>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <button
                     type="button"
                     onClick={() => setValue('role', 'user')}
-                    className="flex items-center gap-2 p-3 rounded-xl border-2 text-sm font-medium transition-all"
+                    className="flex items-center justify-center gap-2 min-h-[48px] p-3 rounded-xl border-2 text-sm font-medium transition-all"
                     style={selectedRole === 'user' ? activeRoleStyle : inactiveRoleStyle}
                   >
                     <UserIcon className="w-4 h-4" />
@@ -146,7 +146,7 @@ const Register = () => {
                   <button
                     type="button"
                     onClick={() => setValue('role', 'business')}
-                    className="flex items-center gap-2 p-3 rounded-xl border-2 text-sm font-medium transition-all"
+                    className="flex items-center justify-center gap-2 min-h-[48px] p-3 rounded-xl border-2 text-sm font-medium transition-all"
                     style={selectedRole === 'business' ? activeRoleStyle : inactiveRoleStyle}
                   >
                     <BriefcaseIcon className="w-4 h-4" />
@@ -199,8 +199,8 @@ const Register = () => {
               </Button>
             </form>
 
-            <div className="mt-6 text-center">
-              <p className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>
+            <div className="mt-5 text-center">
+              <p className="text-sm leading-relaxed" style={{ color: 'var(--color-text-secondary)' }}>
                 {t('auth.haveAccount')}{' '}
                 <Link to="/login" className="font-medium hover:underline" style={{ color: 'var(--color-brand)' }}>
                   {t('auth.loginLink')}
