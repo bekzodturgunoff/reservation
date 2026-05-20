@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { useQuery } from '@tanstack/react-query'
 import {
   Bars3Icon, XMarkIcon, GlobeAltIcon, ChevronDownIcon,
   UserIcon, CalendarDaysIcon, ArrowRightStartOnRectangleIcon,
@@ -11,6 +12,7 @@ import { useAuthStore } from '../../store/authStore'
 import { useThemeStore } from '../../store/themeStore'
 import { useToastStore } from '../../store/toastStore'
 import { supabase } from '../../lib/supabase'
+import { getMyPoints } from '../../api/loyalty'
 
 const LANGUAGES = [
   { code: 'uz', label: "O'zbek" },
@@ -61,6 +63,15 @@ const Navbar = () => {
     localStorage.setItem('lang', code)
     setLangMenuOpen(false)
   }
+
+  const { data: loyaltyPoints } = useQuery({
+    queryKey: ['loyalty', 'points', user?.id],
+    queryFn: () => getMyPoints(),
+    enabled: !!user,
+    staleTime: 30_000,
+  })
+
+  const totalPoints = (loyaltyPoints ?? []).reduce((sum, p) => sum + p.balance, 0)
 
   const handleLogout = async () => {
     await supabase.auth.signOut()
@@ -147,6 +158,11 @@ const Navbar = () => {
                   onClick={() => setUserMenuOpen(!userMenuOpen)}
                   className="flex items-center gap-1.5 sm:gap-2 text-sm text-gray-700 hover:text-emerald-600 transition-colors px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg hover:bg-gray-100"
                 >
+                  {totalPoints > 0 && (
+                    <span className="flex items-center gap-1 text-xs bg-amber-50 text-amber-700 px-1.5 py-0.5 rounded-full font-medium border border-amber-200">
+                      🪙 {totalPoints}
+                    </span>
+                  )}
                   <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-700 font-semibold text-xs">
                     {profile.full_name?.charAt(0)?.toUpperCase() || 'U'}
                   </div>

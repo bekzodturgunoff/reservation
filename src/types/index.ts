@@ -17,6 +17,8 @@ export interface Category {
 
 export type PricingUnit = 'per_hour' | 'per_session' | 'per_day' | 'per_month' | 'per_person' | 'fixed'
 
+export type CancellationPolicy = 'flexible' | 'standard' | 'strict'
+
 export interface VenueService {
   id: string
   venue_id: string
@@ -38,6 +40,7 @@ export interface Venue {
   description: string
   address: string
   city: string
+  district: string | null
   lat: number | null
   lng: number | null
   phone: string
@@ -46,6 +49,11 @@ export interface Venue {
   currency: string
   pricing_unit: PricingUnit
   status: 'pending' | 'active' | 'rejected'
+  opening_hours: Record<string, { open: string; close: string; closed: boolean }> | null
+  min_notice_hours: number
+  max_advance_days: number
+  max_group_size: number | null
+  cancellation_policy: CancellationPolicy
   created_at: string
   categories?: Category
   services?: VenueService[]
@@ -60,6 +68,7 @@ export interface Slot {
   start_time: string
   end_time: string
   is_available: boolean
+  staff_capacity: number | null
 }
 
 export interface Booking {
@@ -73,16 +82,33 @@ export interface Booking {
   status: 'confirmed' | 'cancelled' | 'completed'
   total_price: number
   note: string | null
+  recurring_pattern: RecurringPattern | null
+  group_size: number
+  promo_code_id: string | null
+  staff_id: string | null
+  checked_in: boolean
+  checked_in_at: string | null
+  no_show: boolean
   created_at: string
   venues?: Venue
   slots?: Slot
+}
+
+export interface RecurringPattern {
+  frequency: 'weekly' | 'bi-weekly' | 'monthly'
+  occurrences: number
+}
+
+export interface BookingWithDetails extends Booking {
+  promo_codes?: PromoCode
+  staff?: StaffMember
 }
 
 export interface Review {
   id: string
   user_id: string
   venue_id: string
-  booking_id: string
+  booking_id: string | null
   rating: number
   comment: string
   photos: string[]
@@ -106,6 +132,82 @@ export interface TelegramLink {
   chat_id: number
   created_at: string
   venues?: Venue
+}
+
+export interface NoShowBooking {
+  id: string
+  booking_id: string
+  venue_id: string
+  user_id: string
+  marked_by: string
+  reason: string | null
+  created_at: string
+}
+
+export interface WaitlistBooking {
+  id: string
+  venue_id: string
+  user_id: string
+  slot_time: string
+  party_size: number
+  status: 'waiting' | 'notified' | 'expired' | 'cancelled'
+  created_at: string
+  venues?: Venue
+}
+
+export interface PromoCode {
+  id: string
+  venue_id: string
+  code: string
+  discount_type: 'percentage' | 'fixed'
+  discount_value: number
+  max_uses: number | null
+  used_count: number
+  min_amount: number | null
+  max_discount: number | null
+  starts_at: string
+  expires_at: string | null
+  is_active: boolean
+  created_at: string
+}
+
+export interface StaffMember {
+  id: string
+  venue_id: string
+  name: string
+  title: string
+  services: string[]
+  photo: string | null
+  is_active: boolean
+  sort_order: number
+  created_at: string
+}
+
+export interface LoyaltyPoints {
+  id: string
+  user_id: string
+  venue_id: string
+  balance: number
+  lifetime_earned: number
+  created_at: string
+  updated_at: string
+}
+
+export interface LoyaltyHistory {
+  id: string
+  user_id: string
+  venue_id: string
+  points: number
+  type: 'earned' | 'redeemed' | 'expired' | 'adjusted'
+  description: string
+  booking_id: string | null
+  created_at: string
+}
+
+export interface SocialProof {
+  recommendationPercent: number
+  recentReviews: { text: string; name: string }[]
+  bookingCount: number
 }
 
 export interface ToastMessage {

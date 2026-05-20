@@ -1,64 +1,27 @@
-import { useState } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
-import { useQuery } from '@tanstack/react-query'
-import {
-  MapPinIcon, PhoneIcon, StarIcon, ChevronLeftIcon, ChevronRightIcon,
-  ClockIcon, TagIcon, ArrowLeftIcon, CalendarDaysIcon, ChatBubbleLeftRightIcon,
-} from '@heroicons/react/24/outline'
-import { getVenueById } from '../api/venues'
-import { getReviewsByVenue } from '../api/reviews'
-import { useAuthStore } from '../store/authStore'
+import { ArrowLeftIcon, StarIcon, MapPinIcon, PhoneIcon, CalendarDaysIcon, TagIcon } from '@heroicons/react/24/outline'
+import { useTranslation } from 'react-i18next'
+import { useVenueDetail } from '../hooks/useVenueDetail'
 import { useTitle } from '../hooks/useTitle'
-import { formatPrice, formatDate as fmtDate } from '../lib/utils'
+import { formatPrice } from '../lib/utils'
 import Badge from '../components/ui/Badge'
 import Button from '../components/ui/Button'
 import SlotPicker from '../components/venue/SlotPicker'
-import ReviewForm from '../components/venue/ReviewForm'
-import type { Slot, VenueService } from '../types'
-import { useTranslation } from 'react-i18next'
+import VenueDetailHeader from './venue-detail/VenueDetailHeader'
+import VenueDetailServices from './venue-detail/VenueDetailServices'
+import VenueDetailReviews from './venue-detail/VenueDetailReviews'
+import VenueDetailSidebar from './venue-detail/VenueDetailSidebar'
 
 const VenueDetail = () => {
-  const { id } = useParams<{ id: string }>()
-  const navigate = useNavigate()
-  const user = useAuthStore(state => state.user)
   const { t } = useTranslation()
-
-  const [selectedSlot, setSelectedSlot] = useState<Slot | null>(null)
-  const [selectedService, setSelectedService] = useState<VenueService | null>(null)
-  const [photoIndex, setPhotoIndex] = useState(0)
-
-  const { data: venue, isLoading } = useQuery({
-    queryKey: ['venue', id],
-    queryFn: () => getVenueById(id!),
-    enabled: !!id,
-  })
-
-  const { data: reviews = [] } = useQuery({
-    queryKey: ['reviews', id],
-    queryFn: () => getReviewsByVenue(id!),
-    enabled: !!id,
-  })
+  const {
+    venue, reviews, staff, isLoading,
+    selectedSlot, selectedService, selectedStaff,
+    effectivePrice, effectiveUnit, services, user,
+    setSelectedSlot, setSelectedService, setSelectedStaff, setPhotoIndex, photoIndex,
+    handleBook,
+  } = useVenueDetail()
 
   useTitle(venue?.name || t('venue.about'))
-
-  const services = venue?.services || []
-
-  const effectivePrice = selectedService ? selectedService.price : (venue?.price_per_slot || 0)
-  const effectiveUnit = selectedService
-    ? selectedService.unit
-    : venue?.pricing_unit || 'per_hour'
-
-  const unitLabel = (unit: string) => {
-    const map: Record<string, string> = {
-      per_hour: t('venue.perHour'),
-      per_session: '/ ' + t('common.perSession'),
-      per_day: '/ ' + t('common.perDay'),
-      per_month: '/ ' + t('common.perMonth'),
-      per_person: '/ ' + t('common.perPerson'),
-      fixed: '',
-    }
-    return map[unit] || ''
-  }
 
   if (isLoading) {
     return (
@@ -77,88 +40,26 @@ const VenueDetail = () => {
         <span className="text-5xl mb-4">🔍</span>
         <h2 className="text-xl font-semibold text-gray-900 mb-2">{t('venue.notFound')}</h2>
         <p className="text-gray-500 mb-6">{t('venue.notFoundDesc')}</p>
-        <Button onClick={() => navigate('/search')}>{t('venue.backToSearch')}</Button>
+        <Button onClick={() => window.history.back()}>{t('venue.backToSearch')}</Button>
       </div>
     )
   }
 
-  const photos = venue.photos?.length ? venue.photos : []
   const categoryName = venue.categories?.name_uz || t('common.other')
-
   const avgRating = reviews.length
     ? (reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length).toFixed(1)
     : null
 
-  const handleBook = () => {
-    if (!user) {
-      navigate('/login', { state: { from: { pathname: `/venues/${venue.id}` } } })
-      return
-    }
-    if (selectedSlot) {
-      const params = selectedService ? `?serviceId=${selectedService.id}` : ''
-      navigate(`/booking/${venue.id}/${selectedSlot.id}${params}`)
-    }
-  }
-
   return (
     <div className="max-w-6xl mx-auto">
-      <button
-        onClick={() => navigate(-1)}
-        className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-emerald-600 mb-4 transition-colors"
-      >
+      <button onClick={() => window.history.back()} className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-emerald-600 mb-4 transition-colors">
         <ArrowLeftIcon className="w-4 h-4" /> {t('common.back')}
       </button>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-
-        {/* Main content */}
         <div className="lg:col-span-2 space-y-8">
+          <VenueDetailHeader venue={venue} photoIndex={photoIndex} onPhotoIndexChange={setPhotoIndex} />
 
-          {/* Photo gallery */}
-          <div className="relative rounded-2xl overflow-hidden bg-gray-100">
-            {photos.length > 0 ? (
-              <>
-                <img
-                  src={photos[photoIndex]}
-                  alt={`${venue.name} ${photoIndex + 1}`}
-                  className="w-full h-64 sm:h-80 object-cover"
-                />
-                {photos.length > 1 && (
-                  <>
-                    <button
-                      onClick={() => setPhotoIndex(i => (i - 1 + photos.length) % photos.length)}
-                      className="absolute left-3 top-1/2 -translate-y-1/2 w-11 h-11 bg-white/90 rounded-full flex items-center justify-center shadow hover:bg-white transition-colors"
-                    >
-                      <ChevronLeftIcon className="w-5 h-5" />
-                    </button>
-                    <button
-                      onClick={() => setPhotoIndex(i => (i + 1) % photos.length)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 w-11 h-11 bg-white/90 rounded-full flex items-center justify-center shadow hover:bg-white transition-colors"
-                    >
-                      <ChevronRightIcon className="w-5 h-5" />
-                    </button>
-                    <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5">
-                      {photos.map((_, i) => (
-                        <button
-                          key={i}
-                          onClick={() => setPhotoIndex(i)}
-                          className={`w-2 h-2 rounded-full transition-colors ${
-                            i === photoIndex ? 'bg-white' : 'bg-white/50'
-                          }`}
-                        />
-                      ))}
-                    </div>
-                  </>
-                )}
-              </>
-            ) : (
-              <div className="h-64 sm:h-80 flex items-center justify-center text-6xl bg-gradient-to-br from-emerald-50 to-emerald-100">
-                {venue.categories?.icon || '🏢'}
-              </div>
-            )}
-          </div>
-
-          {/* Venue info */}
           <div>
             <div className="flex items-start justify-between gap-4 flex-wrap">
               <div>
@@ -175,7 +76,6 @@ const VenueDetail = () => {
               <div className="flex items-center gap-1.5 text-lg font-semibold text-emerald-600">
                 <TagIcon className="w-5 h-5" />
                 {formatPrice(effectivePrice)}
-                {effectiveUnit && <span className="text-sm text-gray-400 font-normal">{unitLabel(effectiveUnit)}</span>}
               </div>
             </div>
 
@@ -202,190 +102,32 @@ const VenueDetail = () => {
             )}
           </div>
 
-          {/* Pricing / Services */}
-          {services.length > 0 && (
-            <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
-              <div className="flex items-center gap-2 mb-4">
-                <TagIcon className="w-5 h-5 text-emerald-600" />
-                <h2 className="text-lg font-semibold text-gray-900">{t('venue.pricing')}</h2>
-              </div>
-              <p className="text-sm text-gray-500 mb-4">{t('venue.selectService')}</p>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {services.map(s => {
-                  const isSelected = selectedService?.id === s.id
-                  return (
-                    <button
-                      key={s.id}
-                      type="button"
-                      onClick={() => setSelectedService(isSelected ? null : s)}
-                      className={`text-left rounded-xl border-2 p-4 transition-all ${
-                        isSelected
-                          ? 'border-emerald-500 bg-emerald-50'
-                          : 'border-gray-200 bg-white hover:border-emerald-300'
-                      }`}
-                    >
-                      <p className="font-semibold text-gray-900">{s.name}</p>
-                      <p className="text-lg font-bold text-emerald-600 mt-1">
-                        {formatPrice(s.price)}
-                        {s.unit !== 'fixed' && (
-                          <span className="text-sm font-normal text-gray-400">
-                            {' '}{unitLabel(s.unit)}
-                          </span>
-                        )}
-                      </p>
-                      {s.description && (
-                        <p className="text-xs text-gray-500 mt-1">{s.description}</p>
-                      )}
-                      {s.duration_minutes && (
-                        <p className="text-xs text-gray-400 mt-0.5">
-                          {s.duration_minutes} {t('common.minute')}
-                        </p>
-                      )}
-                      {isSelected && (
-                        <div className="mt-2 text-xs text-emerald-600 font-medium flex items-center gap-1">
-                          ✓ {t('venue.selectedService')}
-                        </div>
-                      )}
-                    </button>
-                  )
-                })}
-              </div>
-            </div>
-          )}
+          <VenueDetailServices services={services} selectedService={selectedService} onSelect={setSelectedService} />
 
-          {/* Slot picker */}
           <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
             <div className="flex items-center gap-2 mb-4">
               <CalendarDaysIcon className="w-5 h-5 text-emerald-600" />
               <h2 className="text-lg font-semibold text-gray-900">{t('venue.selectTime')}</h2>
             </div>
-            <SlotPicker
-              venueId={venue.id}
-              selectedSlot={selectedSlot?.id || null}
-              onSelect={setSelectedSlot}
-            />
+            <SlotPicker venueId={venue.id} selectedSlot={selectedSlot?.id || null} onSelect={setSelectedSlot} />
           </div>
 
-          {/* Reviews */}
-          <div>
-            <div className="flex items-center gap-2 mb-5">
-              <ChatBubbleLeftRightIcon className="w-5 h-5 text-emerald-600" />
-              <h2 className="text-lg font-semibold text-gray-900">
-                {t('venue.reviewsTitle')} ({reviews.length})
-              </h2>
-            </div>
-
-            {user && (
-              <div className="mb-6">
-                <ReviewForm venueId={venue.id} />
-              </div>
-            )}
-
-            {reviews.length === 0 ? (
-              <div className="text-center py-10 bg-gray-50 rounded-2xl">
-                <span className="text-4xl">💬</span>
-                <p className="text-gray-500 mt-2">{t('venue.noReviews')}</p>
-                <p className="text-sm text-gray-400">{t('venue.beFirst')}</p>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {reviews.map(review => (
-                  <div key={review.id} className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
-                    <div className="flex items-start justify-between mb-2">
-                      <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-700 font-semibold text-sm">
-                          {review.profiles?.full_name?.charAt(0)?.toUpperCase() || 'U'}
-                        </div>
-                        <div>
-                          <p className="font-medium text-gray-900 text-sm">
-                            {review.profiles?.full_name || t('venue.user')}
-                          </p>
-                          <p className="text-xs text-gray-400">
-                            {fmtDate(review.created_at)}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-0.5">
-                        {Array.from({ length: 5 }).map((_, i) => (
-                          <StarIcon
-                            key={i}
-                            className={`w-3.5 h-3.5 ${i < review.rating ? 'text-yellow-400' : 'text-gray-200'}`}
-                          />
-                        ))}
-                      </div>
-                    </div>
-                    {review.comment && (
-                      <p className="text-sm text-gray-600 leading-relaxed">{review.comment}</p>
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
+          <VenueDetailReviews reviews={reviews} venueId={venue.id} hasUser={!!user} />
         </div>
 
-        {/* Booking sidebar */}
         <div className="lg:col-span-1">
-          <div className="sticky top-24 bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
-            <h3 className="font-semibold text-gray-900 mb-1">{t('common.book')}</h3>
-            <p className="text-sm text-gray-500 mb-4">{venue.name}</p>
-
-            <div className="space-y-3 text-sm">
-              <div className="flex items-center gap-2 text-gray-600">
-                <MapPinIcon className="w-4 h-4 text-gray-400" />
-                {venue.city}
-              </div>
-              <div className="flex items-center gap-2 text-gray-600">
-                <TagIcon className="w-4 h-4 text-gray-400" />
-                <span className="font-medium text-emerald-600">{formatPrice(effectivePrice)}</span>
-                {effectiveUnit !== 'fixed' && (
-                  <span className="text-gray-400">{unitLabel(effectiveUnit)}</span>
-                )}
-              </div>
-              {selectedService && (
-                <div className="flex items-center gap-2 text-gray-600">
-                  <StarIcon className="w-4 h-4 text-gray-400" />
-                  <span className="text-gray-700">{selectedService.name}</span>
-                </div>
-              )}
-              {selectedSlot && (
-                <div className="flex items-center gap-2 text-gray-600">
-                  <ClockIcon className="w-4 h-4 text-gray-400" />
-                  {selectedSlot.start_time.slice(0, 5)} — {selectedSlot.end_time.slice(0, 5)}
-                </div>
-              )}
-            </div>
-
-            <div className="border-t border-gray-100 my-4 pt-4">
-              <div className="flex items-center justify-between mb-4">
-                <span className="text-sm text-gray-600">{t('venue.total')}:</span>
-                <span className="text-xl font-bold text-gray-900">
-                  {selectedSlot ? formatPrice(effectivePrice) : '—'}
-                </span>
-              </div>
-
-              <Button
-                className="w-full"
-                size="lg"
-                disabled={!selectedSlot}
-                onClick={handleBook}
-              >
-                {user ? (selectedSlot ? t('common.book') : t('venue.selectTime')) : t('venue.loginToBook')}
-              </Button>
-
-              {!user && (
-                <p className="text-xs text-gray-400 text-center mt-3">
-                  {t('venue.loginToBookDesc')}
-                </p>
-              )}
-            </div>
-
-            <div className="mt-4 p-3 bg-yellow-50 rounded-xl border border-yellow-100">
-              <p className="text-xs text-yellow-700 text-center">
-                {t('venue.paymentNote')}
-              </p>
-            </div>
-          </div>
+          <VenueDetailSidebar
+            venue={venue}
+            effectivePrice={effectivePrice}
+            effectiveUnit={effectiveUnit}
+            selectedService={selectedService}
+            selectedSlot={selectedSlot}
+            selectedStaff={selectedStaff}
+            staff={staff}
+            user={user}
+            onBook={handleBook}
+            onStaffSelect={setSelectedStaff}
+          />
         </div>
       </div>
     </div>

@@ -5,7 +5,7 @@ import {
   MagnifyingGlassIcon as SearchIcon, AdjustmentsHorizontalIcon as SlidersHorizontalIcon, MapIcon, Squares2X2Icon,
   XMarkIcon, ChevronDownIcon, ChevronUpIcon,
 } from '@heroicons/react/24/outline'
-import { getVenues, type VenueFilters } from '../api/venues'
+import { getVenues, getDistricts, type VenueFilters } from '../api/venues'
 import { getCategories } from '../api/categories'
 import VenueGrid from '../components/venue/VenueGrid'
 import VenueMap from '../components/venue/VenueMap'
@@ -27,6 +27,7 @@ const Search = () => {
   const [search, setSearch] = useState(searchParams.get('search') || '')
   const [city, setCity] = useState(searchParams.get('city') || 'Tashkent')
   const [category, setCategory] = useState(searchParams.get('category') || '')
+  const [district, setDistrict] = useState(searchParams.get('district') || '')
   const [minPrice, setMinPrice] = useState(searchParams.get('minPrice') || '')
   const [maxPrice, setMaxPrice] = useState(searchParams.get('maxPrice') || '')
 
@@ -38,10 +39,16 @@ const Search = () => {
     queryFn: getCategories,
   })
 
+  const { data: districts = [] } = useQuery({
+    queryKey: ['venues', 'districts'],
+    queryFn: getDistricts,
+  })
+
   const filters: VenueFilters = {
     search: search || undefined,
     city: city || undefined,
     category: category || undefined,
+    district: district || undefined,
     minPrice: minPrice ? Number(minPrice) : undefined,
     maxPrice: maxPrice ? Number(maxPrice) : undefined,
   }
@@ -57,10 +64,11 @@ const Search = () => {
     if (search) params.search = search
     if (city) params.city = city
     if (category) params.category = category
+    if (district) params.district = district
     if (minPrice) params.minPrice = minPrice
     if (maxPrice) params.maxPrice = maxPrice
     setSearchParams(params, { replace: true })
-  }, [search, city, category, minPrice, maxPrice, setSearchParams])
+  }, [search, city, category, district, minPrice, maxPrice, setSearchParams])
 
   useEffect(() => {
     const timeout = setTimeout(syncToUrl, 400)
@@ -71,11 +79,12 @@ const Search = () => {
     setSearch('')
     setCity('Tashkent')
     setCategory('')
+    setDistrict('')
     setMinPrice('')
     setMaxPrice('')
   }
 
-  const hasActiveFilters = !!(search || category || minPrice || maxPrice)
+  const hasActiveFilters = !!(search || category || district || minPrice || maxPrice)
 
   const activeCategory = categories.find(c => c.slug === category)
 
@@ -229,6 +238,34 @@ const Search = () => {
           </button>
         ))}
       </div>
+
+      {districts.length > 0 && (
+        <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide mb-4">
+          <button
+            onClick={() => setDistrict('')}
+            className={`flex-shrink-0 flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium transition-all border ${
+              district === ''
+                ? 'bg-emerald-600 text-white border-emerald-600'
+                : 'bg-white text-gray-600 border-gray-200 hover:border-emerald-300'
+            }`}
+          >
+            {t('search.allDistricts')}
+          </button>
+          {districts.map(d => (
+            <button
+              key={d}
+              onClick={() => setDistrict(d === district ? '' : d)}
+              className={`flex-shrink-0 flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium transition-all border ${
+                district === d
+                  ? 'bg-emerald-600 text-white border-emerald-600'
+                  : 'bg-white text-gray-600 border-gray-200 hover:border-emerald-300'
+              }`}
+            >
+              {d}
+            </button>
+          ))}
+        </div>
+      )}
 
       <div className="flex items-center justify-between mb-5">
         <div>

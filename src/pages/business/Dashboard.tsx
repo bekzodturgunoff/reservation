@@ -1,13 +1,14 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { CalendarDaysIcon, CurrencyDollarIcon, StarIcon, Cog6ToothIcon, PlusCircleIcon, PaperAirplaneIcon, TrashIcon, ChartBarSquareIcon } from '@heroicons/react/24/outline'
+import { CalendarDaysIcon, CurrencyDollarIcon, StarIcon, Cog6ToothIcon, PlusCircleIcon, PaperAirplaneIcon, TrashIcon, ChartBarSquareIcon, TagIcon } from '@heroicons/react/24/outline'
 import { useAuthStore } from '../../store/authStore'
 import { useTitle } from '../../hooks/useTitle'
 import { useToastStore } from '../../store/toastStore'
 import { getVenuesByOwner } from '../../api/venues'
 import { getBookingsForVenueIds } from '../../api/bookings'
 import { getTelegramLinks, deleteTelegramLink, generateLinkCode } from '../../api/telegram'
+import { getVenuePromoCodes, createPromoCode, deletePromoCode } from '../../api/promoCodes'
 import { computeAnalytics } from '../../api/analytics'
 import { formatPrice, formatDate, formatTime } from '../../lib/utils'
 import Badge, { type BadgeVariant } from '../../components/ui/Badge'
@@ -23,6 +24,27 @@ const statusVariant: Record<string, BadgeVariant> = {
   confirmed: 'success',
   completed: 'info',
   cancelled: 'danger',
+}
+
+const venueStatusConfig: Record<string, { label: string; description: string; color: string; icon: string }> = {
+  pending: {
+    label: 'Tekshirilmoqda',
+    description: 'Admin ko\'rib chiqmoqda. Odatda 24 soat ichida.',
+    color: 'bg-yellow-100 text-yellow-700',
+    icon: '⏳',
+  },
+  active: {
+    label: 'Faol',
+    description: 'Saytda ko\'rinmoqda. Mijozlar bron qila oladi.',
+    color: 'bg-emerald-100 text-emerald-700',
+    icon: '✅',
+  },
+  rejected: {
+    label: 'Rad etildi',
+    description: 'Admin tomonidan rad etildi. Tahrirlang va qayta yuboring.',
+    color: 'bg-red-100 text-red-700',
+    icon: '❌',
+  },
 }
 
 interface BookingWithProfile extends Booking {
@@ -151,6 +173,32 @@ const BusinessDashboard = () => {
         </div>
       )}
 
+      {venues.length === 0 && (
+        <div className="bg-gradient-to-r from-emerald-500 to-teal-600 rounded-2xl p-6 text-white mb-6">
+          <h2 className="text-lg font-bold mb-1">Xush kelibsiz, biznes egasi! 👋</h2>
+          <p className="text-emerald-100 text-sm mb-4">
+            Birinchi joyingizni qo'shing va mijozlar bron qila boshlashsin.
+            Qo'shilgan joy admin tomonidan tekshirilgach, saytda ko'rinadi.
+          </p>
+          <div className="flex gap-3">
+            <Link
+              to="/business/venue/new"
+              className="bg-white text-emerald-700 px-4 py-2 rounded-xl text-sm font-semibold hover:bg-emerald-50 transition-colors"
+            >
+              + Joy qo'shish
+            </Link>
+            <a
+              href="https://t.me/bronuz_support"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="border border-white/40 text-white px-4 py-2 rounded-xl text-sm hover:bg-white/10 transition-colors"
+            >
+              Yordam kerakmi?
+            </a>
+          </div>
+        </div>
+      )}
+
       <div className="flex gap-3 flex-wrap">
         <Link to="/business/venue/new" className="flex items-center gap-2 px-4 py-2.5 bg-white rounded-xl border border-gray-200 text-sm font-medium text-gray-700 hover:border-emerald-300 transition-colors">
           <PlusCircleIcon className="w-4 h-4 text-emerald-600" /> {t('business.addVenueLink')}
@@ -233,6 +281,11 @@ const BusinessDashboard = () => {
         )}
       </div>
 
+      {/* Promo Codes Manager */}
+      {venues.length > 0 && (
+        <PromoCodeManager venueId={venues[0].id} />
+      )}
+
       <div>
         <h2 className="text-lg font-semibold text-gray-900 mb-4">{t('business.myVenues')} ({venues.length})</h2>
         {venues.length === 0 ? (
@@ -257,9 +310,12 @@ const BusinessDashboard = () => {
                     </p>
                   </div>
                 </div>
-                <Badge variant={v.status === 'active' ? 'success' : v.status === 'pending' ? 'warning' : 'danger'}>
-                  {v.status === 'active' ? t('common.active') : v.status === 'pending' ? t('common.pending') : t('common.rejected')}
-                </Badge>
+                <div className="text-right shrink-0">
+                  <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium ${venueStatusConfig[v.status]?.color || 'bg-gray-100 text-gray-700'}`}>
+                    {venueStatusConfig[v.status]?.icon || '•'} {venueStatusConfig[v.status]?.label || v.status}
+                  </span>
+                  <p className="text-[10px] text-gray-400 mt-1 max-w-[180px]">{venueStatusConfig[v.status]?.description}</p>
+                </div>
               </Link>
             ))}
           </div>
@@ -302,6 +358,134 @@ const BusinessDashboard = () => {
           </div>
         )}
       </div>
+    </div>
+  )
+}
+
+const PromoCodeManager = ({ venueId }: { venueId: string }) => {
+  const { addToast } = useToastStore()
+  const queryClient = useQueryClient()
+  const [newCode, setNewCode] = useState('')
+  const [newDiscountType, setNewDiscountType] = useState<'percentage' | 'fixed'>('percentage')
+  const [newDiscountValue, setNewDiscountValue] = useState('')
+  const [newExpiry, setNewExpiry] = useState('')
+  const [showForm, setShowForm] = useState(false)
+
+  const { data: promoCodes = [] } = useQuery({
+    queryKey: ['promo', venueId],
+    queryFn: () => getVenuePromoCodes(venueId),
+  })
+
+  const createMutation = useMutation({
+    mutationFn: () => createPromoCode({
+      venue_id: venueId,
+      code: newCode.toUpperCase(),
+      discount_type: newDiscountType,
+      discount_value: Number(newDiscountValue),
+      expires_at: newExpiry || null,
+    }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['promo', venueId] })
+      setNewCode('')
+      setNewDiscountValue('')
+      setNewExpiry('')
+      setShowForm(false)
+      addToast({ type: 'success', message: 'Promo code created' })
+    },
+    onError: () => addToast({ type: 'error', message: 'Failed to create promo code' }),
+  })
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => deletePromoCode(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['promo', venueId] })
+      addToast({ type: 'success', message: 'Promo code deleted' })
+    },
+    onError: () => addToast({ type: 'error', message: 'Failed to delete' }),
+  })
+
+  return (
+    <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-2">
+          <TagIcon className="w-5 h-5 text-emerald-600" />
+          <h2 className="text-lg font-semibold text-gray-900">Promo Codes</h2>
+        </div>
+        <Button size="sm" onClick={() => setShowForm(!showForm)}>
+          <PlusCircleIcon className="w-4 h-4" /> {showForm ? 'Cancel' : 'Add'}
+        </Button>
+      </div>
+
+      {showForm && (
+        <div className="p-4 bg-gray-50 rounded-xl mb-4 space-y-3">
+          <input
+            value={newCode}
+            onChange={e => setNewCode(e.target.value)}
+            placeholder="Code (e.g. SUMMER20)"
+            className="w-full border border-gray-200 rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+          />
+          <div className="flex gap-2">
+            <select
+              value={newDiscountType}
+              onChange={e => setNewDiscountType(e.target.value as 'percentage' | 'fixed')}
+              className="flex-1 border border-gray-200 rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            >
+              <option value="percentage">Percentage (%)</option>
+              <option value="fixed">Fixed (UZS)</option>
+            </select>
+            <input
+              type="number"
+              value={newDiscountValue}
+              onChange={e => setNewDiscountValue(e.target.value)}
+              placeholder="Value"
+              className="flex-1 border border-gray-200 rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            />
+          </div>
+          <input
+            type="date"
+            value={newExpiry}
+            onChange={e => setNewExpiry(e.target.value)}
+            className="w-full border border-gray-200 rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+          />
+          <Button
+            onClick={() => createMutation.mutate()}
+            loading={createMutation.isPending}
+            disabled={!newCode || !newDiscountValue}
+          >
+            Create Promo Code
+          </Button>
+        </div>
+      )}
+
+      {promoCodes.length === 0 ? (
+        <p className="text-sm text-gray-400">No promo codes yet</p>
+      ) : (
+        <div className="space-y-2">
+          {promoCodes.map(pc => (
+            <div key={pc.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
+              <div>
+                <p className="text-sm font-medium text-gray-900">{pc.code}</p>
+                <p className="text-xs text-gray-500">
+                  {pc.discount_type === 'percentage' ? `${pc.discount_value}% off` : `${formatPrice(pc.discount_value)} off`}
+                  {pc.max_uses && ` · ${pc.used_count}/${pc.max_uses} used`}
+                  {pc.expires_at && ` · Expires ${pc.expires_at.slice(0, 10)}`}
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className={`text-xs px-2 py-0.5 rounded-full ${pc.is_active ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                  {pc.is_active ? 'Active' : 'Inactive'}
+                </span>
+                <button
+                  onClick={() => deleteMutation.mutate(pc.id)}
+                  className="text-red-400 hover:text-red-600 p-1"
+                >
+                  <TrashIcon className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   )
 }

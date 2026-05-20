@@ -1,11 +1,13 @@
 import { useState } from 'react'
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom'
-import { useQuery } from '@tanstack/react-query'
-import { CalendarDaysIcon, ClockIcon, MapPinIcon, TagIcon, CreditCardIcon, ArrowLeftIcon } from '@heroicons/react/24/outline'
-import { getVenueById } from '../api/venues'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { CalendarDaysIcon, ClockIcon, MapPinIcon, TagIcon, CreditCardIcon, ArrowLeftIcon, UsersIcon, ArrowPathIcon } from '@heroicons/react/24/outline'
+import { getVenueById, getVenueServices } from '../api/venues'
 import { getSlotById, updateSlotAvailability } from '../api/slots'
-import { getVenueServices } from '../api/venues'
+import { getVenueStaff } from '../api/staff'
 import { createBooking } from '../api/bookings'
+import { validatePromoCode, incrementPromoUsage } from '../api/promoCodes'
+import { checkRedeemable, getMyPoints } from '../api/loyalty'
 import { useAuthStore } from '../store/authStore'
 import { useToastStore } from '../store/toastStore'
 import { useTitle } from '../hooks/useTitle'
@@ -13,18 +15,36 @@ import { formatPrice, formatDate } from '../lib/utils'
 import { sendTelegramNotification } from '../api/telegram'
 import Button from '../components/ui/Button'
 import { useTranslation } from 'react-i18next'
+import type { RecurringPattern } from '../types'
 
 const Booking = () => {
   const { venueId, slotId } = useParams<{ venueId: string; slotId: string }>()
   const [searchParams] = useSearchParams()
   const serviceId = searchParams.get('serviceId')
+  const staffIdParam = searchParams.get('staffId')
   const navigate = useNavigate()
   const { user, profile } = useAuthStore()
   const { addToast } = useToastStore()
   const { t } = useTranslation()
 
+  const queryClient = useQueryClient()
   const [note, setNote] = useState('')
   const [confirming, setConfirming] = useState(false)
+
+  const [promoCode, setPromoCode] = useState('')
+  const [promoDiscount, setPromoDiscount] = useState(0)
+  const [promoCodeId, setPromoCodeId] = useState<string | null>(null)
+  const [promoError, setPromoError] = useState('')
+  const [promoLoading, setPromoLoading] = useState(false)
+
+  const [selectedStaff, setSelectedStaff] = useState<string | null>(staffIdParam || null)
+  const [groupSize, setGroupSize] = useState(1)
+  const [enableRecurring, setEnableRecurring] = useState(false)
+  const [recurringFreq, setRecurringFreq] = useState<RecurringPattern['frequency']>('weekly')
+  const [recurringOccurrences, setRecurringOccurrences] = useState(4)
+
+  const [redeemPoints, setRedeemPoints] = useState(0)
+  const [redeemDiscount, setRedeemDiscount] = useState(0)
 
   useTitle(t('booking.title'))
 
@@ -46,16 +66,64 @@ const Booking = () => {
     enabled: !!venueId && !!serviceId,
   })
 
+  const { data: staff = [] } = useQuery({
+    queryKey: ['staff', venueId],
+    queryFn: () => getVenueStaff(venueId!),
+    enabled: !!venueId,
+  })
+
+  const { data: loyaltyPoints } = useQuery({
+    queryKey: ['loyalty', 'points', user?.id],
+    queryFn: () => getMyPoints(),
+    enabled: !!user,
+  })
+
+  const totalLoyaltyPoints = (loyaltyPoints ?? []).reduce((sum, p) => sum + p.balance, 0)
+  const { canRedeem, value: maxRedeemValue } = checkRedeemable(totalLoyaltyPoints)
+
   const selectedService = services.find(s => s.id === serviceId) || null
-  const effectivePrice = selectedService ? selectedService.price : (venue?.price_per_slot || 0)
+  const basePrice = selectedService ? selectedService.price : (venue?.price_per_slot || 0)
+  const effectivePrice = basePrice - promoDiscount - redeemDiscount
 
   const loading = venueLoading || slotLoading
+
+  const handleValidatePromo = async () => {
+    if (!promoCode.trim() || !venueId) return
+    setPromoLoading(true)
+    setPromoError('')
+    try {
+      const result = await validatePromoCode(promoCode.trim(), venueId, basePrice)
+      if (result.valid) {
+        setPromoDiscount(result.discount)
+        setPromoCodeId(result.promoCode.id)
+        addToast({ type: 'success', message: `Promo code applied! Discount: ${formatPrice(result.discount)}` })
+      } else {
+        setPromoError('Invalid or expired promo code')
+        setPromoDiscount(0)
+        setPromoCodeId(null)
+      }
+    } catch {
+      setPromoError('Failed to validate promo code')
+    }
+    setPromoLoading(false)
+  }
+
+  const handleRedeemPoints = () => {
+    if (!canRedeem) return
+    setRedeemPoints(totalLoyaltyPoints)
+    setRedeemDiscount(maxRedeemValue)
+    addToast({ type: 'info', message: `Redeeming ${totalLoyaltyPoints} points for ${formatPrice(maxRedeemValue)} off` })
+  }
 
   const handleConfirm = async () => {
     if (!user || !venue || !slot) return
 
     setConfirming(true)
     try {
+      const recurringPattern = enableRecurring
+        ? { frequency: recurringFreq, occurrences: recurringOccurrences }
+        : null
+
       const booking = await createBooking({
         user_id: user.id,
         venue_id: venue.id,
@@ -64,11 +132,25 @@ const Booking = () => {
         service_name: selectedService?.name || '',
         service_price: selectedService?.price || 0,
         total_price: effectivePrice,
+        promo_code_id: promoCodeId,
+        staff_id: selectedStaff,
+        group_size: groupSize,
+        recurring_pattern: recurringPattern as unknown as RecurringPattern,
         note: note || null,
         status: 'confirmed',
       })
 
       await updateSlotAvailability(slot.id, false)
+
+      if (promoCodeId) {
+        await incrementPromoUsage(promoCodeId).catch(() => {})
+      }
+
+      queryClient.setQueryData(
+        ['slots', venue.id, slot.date],
+        (old: any[] = []) =>
+          old.map((s: any) => s.id === slot.id ? { ...s, is_available: false } : s)
+      )
 
       sendTelegramNotification({
         venue_id: venue.id,
@@ -81,6 +163,9 @@ const Booking = () => {
         note: note || undefined,
         booking_id: booking.id,
       })
+
+      queryClient.invalidateQueries({ queryKey: ['slots'] })
+      queryClient.invalidateQueries({ queryKey: ['bookings'] })
 
       addToast({ type: 'success', message: t('booking.success') })
       navigate(`/confirmation/${booking.id}`)
@@ -158,8 +243,6 @@ const Booking = () => {
                 {slot.start_time.slice(0, 5)} — {slot.end_time.slice(0, 5)}
               </span>
             </div>
-
-            {/* Selected service info */}
             {selectedService && (
               <div className="flex items-center gap-3 text-sm">
                 <TagIcon className="w-4 h-4 text-gray-400" />
@@ -168,10 +251,9 @@ const Booking = () => {
                 </span>
               </div>
             )}
-
             <div className="flex items-center gap-3 text-sm">
               <TagIcon className="w-4 h-4 text-gray-400" />
-              <span className="font-semibold text-emerald-600">{formatPrice(effectivePrice)}</span>
+              <span className="font-semibold text-emerald-600">{formatPrice(basePrice)}</span>
               {venue.pricing_unit !== 'fixed' && (
                 <span className="text-gray-400">
                   {t(`common.pricing_units.${venue.pricing_unit}`)}
@@ -179,6 +261,168 @@ const Booking = () => {
               )}
             </div>
           </div>
+        </div>
+
+        {/* Group size */}
+        <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
+          <div className="flex items-center gap-2 mb-3">
+            <UsersIcon className="w-5 h-5 text-emerald-600" />
+            <h3 className="font-semibold text-gray-900">Party Size</h3>
+          </div>
+          <select
+            value={groupSize}
+            onChange={e => setGroupSize(Number(e.target.value))}
+            className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+          >
+            {Array.from({ length: venue.max_group_size || 20 }).map((_, i) => (
+              <option key={i + 1} value={i + 1}>{i + 1} {i === 0 ? 'person' : 'people'}</option>
+            ))}
+          </select>
+        </div>
+
+        {/* Staff selection */}
+        {staff.filter(s => s.is_active).length > 0 && (
+          <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
+            <h3 className="font-semibold text-gray-900 mb-3">Choose Staff (optional)</h3>
+            <div className="space-y-2">
+              <button
+                onClick={() => setSelectedStaff(null)}
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm transition-colors border ${
+                  selectedStaff === null
+                    ? 'border-emerald-300 bg-emerald-50 text-emerald-700'
+                    : 'border-gray-200 text-gray-600 hover:border-gray-300'
+                }`}
+              >
+                <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-sm">🤖</div>
+                <span>No preference</span>
+              </button>
+              {staff.filter(s => s.is_active).map(s => (
+                <button
+                  key={s.id}
+                  onClick={() => setSelectedStaff(s.id)}
+                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm transition-colors border ${
+                    selectedStaff === s.id
+                      ? 'border-emerald-300 bg-emerald-50 text-emerald-700'
+                      : 'border-gray-200 text-gray-600 hover:border-gray-300'
+                  }`}
+                >
+                  <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center text-sm font-semibold text-emerald-700">
+                    {s.name.charAt(0)}
+                  </div>
+                  <div className="text-left">
+                    <p className="font-medium">{s.name}</p>
+                    {s.title && <p className="text-xs text-gray-400">{s.title}</p>}
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Promo code */}
+        <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
+          <h3 className="font-semibold text-gray-900 mb-3">Promo Code</h3>
+          <div className="flex gap-2">
+            <input
+              type="text"
+              value={promoCode}
+              onChange={e => { setPromoCode(e.target.value); setPromoError('') }}
+              placeholder="Enter promo code"
+              className="flex-1 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            />
+            <Button
+              variant="secondary"
+              onClick={handleValidatePromo}
+              loading={promoLoading}
+              disabled={!promoCode.trim()}
+            >
+              Apply
+            </Button>
+          </div>
+          {promoError && <p className="text-xs text-red-500 mt-1.5">{promoError}</p>}
+          {promoDiscount > 0 && (
+            <p className="text-xs text-emerald-600 mt-1.5 font-medium">
+              Discount applied: -{formatPrice(promoDiscount)}
+            </p>
+          )}
+        </div>
+
+        {/* Loyalty points redeem */}
+        {canRedeem && (
+          <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="font-semibold text-gray-900">Loyalty Points</h3>
+                <p className="text-sm text-gray-500 mt-0.5">
+                  🪙 {totalLoyaltyPoints} points available
+                </p>
+                {redeemPoints > 0 ? (
+                  <p className="text-xs text-emerald-600 mt-1">
+                    Redeeming for {formatPrice(redeemDiscount)} off
+                  </p>
+                ) : (
+                  <p className="text-xs text-gray-400 mt-1">
+                    Redeem {totalLoyaltyPoints} pts for {formatPrice(maxRedeemValue)} off
+                  </p>
+                )}
+              </div>
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={handleRedeemPoints}
+                disabled={redeemPoints > 0}
+              >
+                {redeemPoints > 0 ? 'Applied' : 'Redeem'}
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {/* Recurring booking */}
+        <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <ArrowPathIcon className="w-5 h-5 text-emerald-600" />
+              <h3 className="font-semibold text-gray-900">Repeat Booking</h3>
+            </div>
+            <label className="relative inline-flex items-center cursor-pointer">
+              <input
+                type="checkbox"
+                checked={enableRecurring}
+                onChange={e => setEnableRecurring(e.target.checked)}
+                className="sr-only peer"
+              />
+              <div className="w-9 h-5 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-emerald-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-600" />
+            </label>
+          </div>
+          {enableRecurring && (
+            <div className="space-y-3">
+              <div>
+                <label className="block text-xs font-medium text-gray-500 mb-1">Frequency</label>
+                <select
+                  value={recurringFreq}
+                  onChange={e => setRecurringFreq(e.target.value as RecurringPattern['frequency'])}
+                  className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                >
+                  <option value="weekly">Weekly</option>
+                  <option value="bi-weekly">Bi-weekly</option>
+                  <option value="monthly">Monthly</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-500 mb-1">Occurrences</label>
+                <select
+                  value={recurringOccurrences}
+                  onChange={e => setRecurringOccurrences(Number(e.target.value))}
+                  className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                >
+                  {Array.from({ length: 12 }).map((_, i) => (
+                    <option key={i + 1} value={i + 1}>{i + 1} {i === 0 ? 'time' : 'times'}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Note field */}
@@ -227,17 +471,49 @@ const Booking = () => {
 
         {/* Total + Confirm */}
         <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
-          <div className="flex items-center justify-between mb-4">
-            <span className="text-gray-600">{t('booking.total')}</span>
-            <div className="text-right">
-              <p className="text-2xl font-bold text-gray-900">{formatPrice(effectivePrice)}</p>
-              {venue.pricing_unit !== 'fixed' && (
-                <p className="text-xs text-gray-400">
-                  {t('common.pricing_units.' + venue.pricing_unit)}
-                </p>
-              )}
+          <div className="space-y-1 mb-4">
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-gray-500">Base price</span>
+              <span className="text-gray-700">{formatPrice(basePrice)}</span>
+            </div>
+            {promoDiscount > 0 && (
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-green-600">Promo discount</span>
+                <span className="text-green-600">-{formatPrice(promoDiscount)}</span>
+              </div>
+            )}
+            {redeemDiscount > 0 && (
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-green-600">Points discount</span>
+                <span className="text-green-600">-{formatPrice(redeemDiscount)}</span>
+              </div>
+            )}
+            {groupSize > 1 && (
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-gray-500">Party size</span>
+                <span className="text-gray-700">×{groupSize}</span>
+              </div>
+            )}
+            <div className="border-t border-gray-100 pt-2 flex items-center justify-between">
+              <span className="text-gray-600">{t('booking.total')}</span>
+              <div className="text-right">
+                <p className="text-2xl font-bold text-gray-900">{formatPrice(effectivePrice)}</p>
+                {venue.pricing_unit !== 'fixed' && (
+                  <p className="text-xs text-gray-400">
+                    {t('common.pricing_units.' + venue.pricing_unit)}
+                  </p>
+                )}
+              </div>
             </div>
           </div>
+
+          {enableRecurring && (
+            <div className="p-3 bg-blue-50 rounded-xl border border-blue-100 mb-4">
+              <p className="text-xs text-blue-700">
+                This booking will repeat {recurringFreq} for {recurringOccurrences} occurrences.
+              </p>
+            </div>
+          )}
 
           <Button
             className="w-full"

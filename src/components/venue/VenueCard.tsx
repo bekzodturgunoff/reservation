@@ -1,13 +1,14 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
+import { useQuery } from '@tanstack/react-query'
 import { MapPinIcon, StarIcon, TagIcon, HeartIcon } from '@heroicons/react/24/outline'
 import { HeartIcon as HeartIconSolid } from '@heroicons/react/24/solid'
 import { useTranslation } from 'react-i18next'
-import { useQuery } from '@tanstack/react-query'
 import type { Venue, VenueService } from '../../types'
 import { formatPrice } from '../../lib/utils'
 import { useAuthStore } from '../../store/authStore'
 import { isFavorited, addFavorite, removeFavorite } from '../../api/favorites'
+import { getVenueSocialProof } from '../../api/venues'
 import { useToastStore } from '../../store/toastStore'
 import Badge from '../ui/Badge'
 
@@ -36,6 +37,7 @@ const VenueCard = ({ venue }: VenueCardProps) => {
   const rating = venue.avg_rating ?? null
   const reviewCount = venue.review_count ?? 0
   const [fav, setFav] = useState(false)
+  const [quoteIndex, setQuoteIndex] = useState(0)
 
   const services: VenueService[] = venue.services || []
   const unit = venue.pricing_unit || 'per_hour'
@@ -47,15 +49,34 @@ const VenueCard = ({ venue }: VenueCardProps) => {
     enabled: !!user,
   })
 
+  const { data: socialProof } = useQuery({
+    queryKey: ['venues', venue.id, 'socialProof'],
+    queryFn: () => getVenueSocialProof(venue.id),
+    staleTime: 120_000,
+  })
+
   useEffect(() => { if (favorited !== undefined) setFav(favorited) }, [favorited])
+
+  useEffect(() => {
+    if (!socialProof?.recentReviews?.length) return
+    const interval = setInterval(() => {
+      setQuoteIndex(prev => (prev + 1) % socialProof.recentReviews.length)
+    }, 2000)
+    return () => clearInterval(interval)
+  }, [socialProof])
 
   const toggleFav = async (e: React.MouseEvent) => {
     e.preventDefault()
     if (!user) { addToast({ type: 'info', message: t('auth.loginTitle') }); return }
+    const wasFav = fav
+    setFav(!fav)
     try {
-      if (fav) { await removeFavorite(user.id, venue.id); setFav(false) }
-      else { await addFavorite(user.id, venue.id); setFav(true) }
-    } catch { addToast({ type: 'error', message: t('common.error') }) }
+      if (wasFav) { await removeFavorite(user.id, venue.id) }
+      else { await addFavorite(user.id, venue.id) }
+    } catch {
+      setFav(wasFav)
+      addToast({ type: 'error', message: t('common.error') })
+    }
   }
 
   return (
@@ -124,6 +145,32 @@ const VenueCard = ({ venue }: VenueCardProps) => {
                 <span className="text-sm font-semibold">{formatPrice(venue.price_per_slot, venue.currency)}</span>
                 {unit !== 'fixed' && <span className="text-xs text-gray-400">{unitLabel(unit, t)}</span>}
               </div>
+            </div>
+          )}
+
+          {/* Social proof footer */}
+          {socialProof && (
+            <div className="mt-3 pt-3 border-t border-gray-100 space-y-1.5">
+              {socialProof.recommendationPercent > 0 && (
+                <div className="flex items-center gap-1.5">
+                  <span className="text-xs">👍</span>
+                  <div className="flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-emerald-500 rounded-full transition-all"
+                      style={{ width: `${socialProof.recommendationPercent}%` }}
+                    />
+                  </div>
+                  <span className="text-xs font-medium text-gray-600">{socialProof.recommendationPercent}%</span>
+                </div>
+              )}
+              {socialProof.recentReviews.length > 0 && (
+                <div className="flex items-center gap-1.5 text-xs text-gray-500 overflow-hidden">
+                  <span>🗣️</span>
+                  <span className="truncate italic">
+                    "{socialProof.recentReviews[quoteIndex % socialProof.recentReviews.length]?.text?.slice(0, 60)}"
+                  </span>
+                </div>
+              )}
             </div>
           )}
         </div>

@@ -9,14 +9,14 @@ import L from 'leaflet'
 import { CameraIcon, PlusCircleIcon, TrashIcon } from '@heroicons/react/24/outline'
 import { getCategories } from '../../api/categories'
 import { createVenue, updateVenue, getVenueById, createVenueService, deleteVenueService } from '../../api/venues'
-import { useAuthStore } from '../../store/authStore'
 import { useToastStore } from '../../store/toastStore'
 import { useTitle } from '../../hooks/useTitle'
 import Button from '../../components/ui/Button'
 import Input from '../../components/ui/Input'
 import { supabase } from '../../lib/supabase'
 import { useTranslation } from 'react-i18next'
-import type { PricingUnit } from '../../types'
+import { getVenueStaff, createStaff, deleteStaff } from '../../api/staff'
+import type { PricingUnit, CancellationPolicy, StaffMember } from '../../types'
 
 delete (L.Icon.Default.prototype as unknown as Record<string, unknown>)._getIconUrl
 L.Icon.Default.mergeOptions({
@@ -47,7 +47,6 @@ const VenueSetup = () => {
   const isEdit = !!id
   useTitle(isEdit ? t('business.setup.editTitle') : t('business.setup.newTitle'))
   const navigate = useNavigate()
-  const user = useAuthStore(state => state.user)
   const { addToast } = useToastStore()
   const queryClient = useQueryClient()
 
@@ -57,6 +56,10 @@ const VenueSetup = () => {
   const [uploading, setUploading] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [pricingUnit, setPricingUnit] = useState<PricingUnit>('per_hour')
+  const [cancellationPolicy, setCancellationPolicy] = useState<CancellationPolicy>('flexible')
+  const [staffList, setStaffList] = useState<StaffMember[]>([])
+  const [newStaffName, setNewStaffName] = useState('')
+  const [newStaffTitle, setNewStaffTitle] = useState('')
   const [newServiceName, setNewServiceName] = useState('')
   const [newServicePrice, setNewServicePrice] = useState('')
   const [newServiceDesc, setNewServiceDesc] = useState('')
@@ -70,6 +73,16 @@ const VenueSetup = () => {
     queryFn: () => getVenueById(id!),
     enabled: isEdit,
   })
+
+  const { data: existingStaff = [] } = useQuery({
+    queryKey: ['staff', id],
+    queryFn: () => getVenueStaff(id!),
+    enabled: isEdit,
+  })
+
+  useEffect(() => {
+    if (existingStaff.length > 0) setStaffList(existingStaff)
+  }, [existingStaff])
 
   const addServiceMutation = useMutation({
     mutationFn: (data: { venue_id: string; name: string; price: number; unit: PricingUnit; description: string; duration_minutes: number | null }) =>
@@ -89,6 +102,25 @@ const VenueSetup = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['venue', id] })
       addToast({ type: 'success', message: t('business.setup.serviceDeleted') })
+    },
+  })
+
+  const addStaffMutation = useMutation({
+    mutationFn: (data: { venue_id: string; name: string; title?: string }) =>
+      createStaff(data),
+    onSuccess: (data) => {
+      setStaffList(prev => [...prev, data])
+      setNewStaffName('')
+      setNewStaffTitle('')
+      addToast({ type: 'success', message: 'Staff added' })
+    },
+  })
+
+  const deleteStaffMutation = useMutation({
+    mutationFn: deleteStaff,
+    onSuccess: (_, deletedId) => {
+      setStaffList(prev => prev.filter(s => s.id !== deletedId))
+      addToast({ type: 'success', message: 'Staff removed' })
     },
   })
 
@@ -127,52 +159,89 @@ const VenueSetup = () => {
       })
       if (existingVenue.photos?.length) setPhotos(existingVenue.photos)
       if (existingVenue.pricing_unit) setPricingUnit(existingVenue.pricing_unit)
+      if (existingVenue.cancellation_policy) setCancellationPolicy(existingVenue.cancellation_policy)
     }
   }, [existingVenue])
 
+  const uploadPhoto = async (file: File): Promise<string> => {
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) throw new Error('Not authenticated')
+
+    const fileExt = file.name.split('.').pop()?.toLowerCase() || 'jpg'
+    const fileName = `${user.id}/${Date.now()}-${Math.random().toString(36).slice(2)}.${fileExt}`
+
+    const { error: uploadError } = await supabase.storage
+      .from('venue-photos')
+      .upload(fileName, file, {
+        cacheControl: '3600',
+        upsert: false,
+        contentType: file.type,
+      })
+
+    if (uploadError) {
+      console.error('Upload error:', uploadError)
+      throw new Error(`Photo upload failed: ${uploadError.message}`)
+    }
+
+    const { data } = supabase.storage
+      .from('venue-photos')
+      .getPublicUrl(fileName)
+
+    return data.publicUrl
+  }
+
   const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
-    if (!file || !user) return
+    if (!file) return
     setUploading(true)
     try {
-      const ext = file.name.split('.').pop()
-      const path = `${user.id}/${Date.now()}.${ext}`
-      const { error: uploadError } = await supabase.storage.from('venue-photos').upload(path, file)
-      if (uploadError) throw uploadError
-      const { data } = supabase.storage.from('venue-photos').getPublicUrl(path)
-      setPhotos(prev => [...prev, data.publicUrl])
+      const url = await uploadPhoto(file)
+      setPhotos(prev => [...prev, url])
       addToast({ type: 'success', message: t('business.setup.photoUploaded') })
-    } catch { addToast({ type: 'error', message: t('business.setup.photoError') }) }
+    } catch (err: any) {
+      addToast({ type: 'error', message: err.message || t('business.setup.photoError') })
+      console.error('Photo upload error:', err)
+    }
     setUploading(false)
   }
 
   const removePhoto = (index: number) => setPhotos(prev => prev.filter((_, i) => i !== index))
 
   const onSubmit = async (data: FormData) => {
-    if (!user) return
     setSubmitting(true)
-    const venueData = {
-      owner_id: user.id,
-      name: data.name,
-      category_id: Number(data.category_id),
-      description: data.description || undefined,
-      address: data.address,
-      city: data.city,
-      lat: position[0],
-      lng: position[1],
-      phone: data.phone || undefined,
-      photos,
-      price_per_slot: Number(data.price_per_slot),
-      currency: 'UZS',
-      pricing_unit: pricingUnit,
-      status: 'pending' as const,
-    }
     try {
-      if (isEdit && id) { await updateVenue(id, venueData); addToast({ type: 'success', message: t('business.setup.updated') }) }
-      else { await createVenue(venueData); addToast({ type: 'success', message: t('business.setup.created') }) }
+      const payload = {
+        name: data.name,
+        description: data.description,
+        address: data.address,
+        city: data.city,
+        phone: data.phone || undefined,
+        lat: position[0],
+        lng: position[1],
+        price_per_slot: Number(data.price_per_slot),
+        currency: 'UZS',
+        category_id: Number(data.category_id),
+        pricing_unit: pricingUnit,
+        cancellation_policy: cancellationPolicy,
+        photos,
+      }
+
+      if (isEdit && id) {
+        await updateVenue(id, payload)
+        addToast({ type: 'success', message: 'Venue updated successfully' })
+      } else {
+        await createVenue(payload)
+        addToast({ type: 'success', message: 'Venue submitted for approval' })
+      }
+
+      await queryClient.invalidateQueries({ queryKey: ['venues'] })
       navigate('/business/dashboard')
-    } catch { addToast({ type: 'error', message: t('common.error') }) }
-    setSubmitting(false)
+    } catch (err: any) {
+      addToast({ type: 'error', message: err.message || 'Failed to save venue' })
+      console.error('VenueSetup submit error:', err)
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   const services = existingVenue?.services || []
@@ -224,6 +293,21 @@ const VenueSetup = () => {
                 </option>
               ))}
             </select>
+          </div>
+
+          {/* Cancellation policy */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">{t('business.setup.cancellationPolicy')}</label>
+            <select
+              value={cancellationPolicy}
+              onChange={e => setCancellationPolicy(e.target.value as CancellationPolicy)}
+              className="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            >
+              <option value="flexible">{t('business.setup.cancellationFlexible')}</option>
+              <option value="standard">{t('business.setup.cancellationStandard')}</option>
+              <option value="strict">{t('business.setup.cancellationStrict')}</option>
+            </select>
+            <p className="text-xs text-gray-400 mt-1.5">{t('business.setup.cancellationDesc')}</p>
           </div>
         </div>
 
@@ -348,6 +432,66 @@ const VenueSetup = () => {
             ) : (
               <p className="text-sm text-gray-400">{t('business.setup.create')} — {t('business.setup.services')}</p>
             )}
+          </div>
+        )}
+
+        {/* Staff management */}
+        {id && (
+          <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
+            <label className="block text-sm font-medium text-gray-700 mb-3">Staff</label>
+
+            {staffList.length > 0 && (
+              <div className="space-y-2 mb-4">
+                {staffList.map(s => (
+                  <div key={s.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center text-sm font-semibold text-emerald-700">
+                        {s.name.charAt(0)}
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-gray-900">{s.name}</p>
+                        {s.title && <p className="text-xs text-gray-500">{s.title}</p>}
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => deleteStaffMutation.mutate(s.id)}
+                      className="p-1.5 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                    >
+                      <TrashIcon className="w-4 h-4" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <div className="flex gap-2">
+              <input
+                value={newStaffName}
+                onChange={e => setNewStaffName(e.target.value)}
+                placeholder="Name"
+                className="flex-1 border border-gray-300 rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              />
+              <input
+                value={newStaffTitle}
+                onChange={e => setNewStaffTitle(e.target.value)}
+                placeholder="Title (optional)"
+                className="flex-1 border border-gray-300 rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              />
+              <Button
+                type="button"
+                variant="secondary"
+                size="sm"
+                disabled={!newStaffName}
+                loading={addStaffMutation.isPending}
+                onClick={() => addStaffMutation.mutate({
+                  venue_id: id,
+                  name: newStaffName,
+                  title: newStaffTitle || undefined,
+                })}
+              >
+                <PlusCircleIcon className="w-4 h-4" /> Add
+              </Button>
+            </div>
           </div>
         )}
 

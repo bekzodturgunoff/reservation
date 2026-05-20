@@ -13,17 +13,27 @@ import { updateProfile, uploadAvatar } from '../api/profiles'
 import { getBookingsByUser, cancelBookingWithSlot } from '../api/bookings'
 import { getReviewsByUser } from '../api/reviews'
 import { getFavorites, removeFavorite } from '../api/favorites'
+import { getMyPoints, getPointsHistory } from '../api/loyalty'
+import { getMyWaitlist, leaveWaitlist } from '../api/waitlist'
 import { formatDate, formatTime } from '../lib/utils'
+import { queryKeys } from '../lib/queryKeys'
 import Button from '../components/ui/Button'
 import Input from '../components/ui/Input'
 import Badge from '../components/ui/Badge'
 import type { Booking, Review } from '../types'
 
-type Tab = 'upcoming' | 'past' | 'reviews' | 'calendar' | 'favorites'
+type Tab = 'upcoming' | 'past' | 'reviews' | 'calendar' | 'favorites' | 'loyalty' | 'waitlist'
 
 const statusVariant: Record<string, 'success' | 'warning' | 'danger' | 'default' | 'info'> = {
   confirmed: 'success',
   completed: 'info',
+  cancelled: 'danger',
+}
+
+const waitlistStatusVariant: Record<string, 'warning' | 'success' | 'default' | 'danger'> = {
+  waiting: 'warning',
+  notified: 'success',
+  expired: 'default',
   cancelled: 'danger',
 }
 
@@ -50,7 +60,7 @@ const Profile = () => {
   })
 
   const { data: bookings = [] } = useQuery({
-    queryKey: ['bookings', user?.id],
+    queryKey: queryKeys.bookings.byUser(user?.id ?? ''),
     queryFn: () => getBookingsByUser(user!.id),
     enabled: !!user,
   })
@@ -62,8 +72,26 @@ const Profile = () => {
   })
 
   const { data: favorites = [] } = useQuery({
-    queryKey: ['favorites', user?.id],
+    queryKey: queryKeys.favorites.byUser(user?.id ?? ''),
     queryFn: () => getFavorites(user!.id),
+    enabled: !!user,
+  })
+
+  const { data: loyaltyPoints } = useQuery({
+    queryKey: queryKeys.loyalty.points(user?.id ?? ''),
+    queryFn: () => getMyPoints(),
+    enabled: !!user,
+  })
+
+  const { data: loyaltyHistory = [] } = useQuery({
+    queryKey: queryKeys.loyalty.history(user?.id ?? ''),
+    queryFn: () => getPointsHistory(),
+    enabled: !!user,
+  })
+
+  const { data: waitlist = [] } = useQuery({
+    queryKey: queryKeys.waitlist.byUser(user?.id ?? ''),
+    queryFn: () => getMyWaitlist(),
     enabled: !!user,
   })
 
@@ -88,7 +116,19 @@ const Profile = () => {
 
   const removeFavMutation = useMutation({
     mutationFn: (venueId: string) => removeFavorite(user!.id, venueId),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['favorites'] }),
+    onMutate: async (venueId: string) => {
+      await queryClient.cancelQueries({ queryKey: queryKeys.favorites.byUser(user!.id) })
+      const previous = queryClient.getQueryData(queryKeys.favorites.byUser(user!.id))
+      queryClient.setQueryData(queryKeys.favorites.byUser(user!.id), (old: any[] = []) =>
+        old.filter((f: any) => f.venue_id !== venueId)
+      )
+      return { previous }
+    },
+    onError: (_err, _venueId, context) => {
+      if (context?.previous) queryClient.setQueryData(queryKeys.favorites.byUser(user!.id), context.previous)
+      addToast({ type: 'error', message: t('common.error') })
+    },
+    onSettled: () => queryClient.invalidateQueries({ queryKey: queryKeys.favorites.byUser(user!.id) }),
   })
 
   const profileMutation = useMutation({
@@ -103,11 +143,31 @@ const Profile = () => {
   const cancelMutation = useMutation({
     mutationFn: ({ bookingId, slotId }: { bookingId: string; slotId: string }) =>
       cancelBookingWithSlot(bookingId, slotId),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['bookings'] })
-      addToast({ type: 'success', message: t('profile.bookingCancelled') })
+    onMutate: async ({ bookingId }) => {
+      await queryClient.cancelQueries({ queryKey: queryKeys.bookings.byUser(user!.id) })
+      const previous = queryClient.getQueryData(queryKeys.bookings.byUser(user!.id))
+      queryClient.setQueryData(queryKeys.bookings.byUser(user!.id), (old: Booking[] = []) =>
+        old.map(b => b.id === bookingId ? { ...b, status: 'cancelled' as const } : b)
+      )
+      return { previous }
     },
-    onError: () => addToast({ type: 'error', message: t('profile.bookingCancelError') }),
+    onError: (_err, _vars, context) => {
+      if (context?.previous) queryClient.setQueryData(queryKeys.bookings.byUser(user!.id), context.previous)
+      addToast({ type: 'error', message: t('profile.bookingCancelError') })
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.bookings.byUser(user!.id) })
+      queryClient.invalidateQueries({ queryKey: ['slots'] })
+    },
+  })
+
+  const leaveWaitlistMutation = useMutation({
+    mutationFn: (id: string) => leaveWaitlist(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.waitlist.byUser(user!.id) })
+      addToast({ type: 'success', message: 'Left waitlist' })
+    },
+    onError: () => addToast({ type: 'error', message: t('common.error') }),
   })
 
   const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -135,6 +195,9 @@ const Profile = () => {
     return labels[status] || status
   }
 
+  const totalPoints = (loyaltyPoints ?? []).reduce((sum, p) => sum + p.balance, 0)
+  const totalEarned = (loyaltyPoints ?? []).reduce((sum, p) => sum + p.lifetime_earned, 0)
+
   const BookingCard = ({ booking }: { booking: Booking }) => (
     <div className="bg-white rounded-2xl border border-gray-100 p-4 shadow-sm">
       <div className="flex items-start justify-between gap-3">
@@ -154,6 +217,11 @@ const Profile = () => {
               {booking.venues?.address && (
                 <span className="flex items-center gap-1">
                   <MapPinIcon className="w-3 h-3" /> {booking.venues.address}
+                </span>
+              )}
+              {booking.group_size > 1 && (
+                <span className="flex items-center gap-1">
+                  👥 ×{booking.group_size}
                 </span>
               )}
             </div>
@@ -187,10 +255,17 @@ const Profile = () => {
           <p className="font-medium text-gray-900 text-sm">{review.venues?.name || t('profile.venue')}</p>
           <p className="text-xs text-gray-400 mt-0.5">{formatDate(review.created_at)}</p>
         </div>
-        <div className="flex items-center gap-0.5">
-          {Array.from({ length: 5 }).map((_, i) => (
-            <StarIcon key={i} className={`w-3.5 h-3.5 ${i < review.rating ? 'text-yellow-400' : 'text-gray-200'}`} />
-          ))}
+        <div className="flex items-center gap-1">
+          <div className="flex items-center gap-0.5">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <StarIcon key={i} className={`w-3.5 h-3.5 ${i < review.rating ? 'text-yellow-400' : 'text-gray-200'}`} />
+            ))}
+          </div>
+          {review.booking_id && (
+            <span className="ml-1 text-[10px] bg-emerald-50 text-emerald-600 px-1.5 py-0.5 rounded-full font-medium border border-emerald-200">
+              ✔ Verified
+            </span>
+          )}
         </div>
       </div>
       {review.comment && <p className="text-sm text-gray-600">{review.comment}</p>}
@@ -249,18 +324,20 @@ const Profile = () => {
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 bg-gray-100 rounded-xl p-1">
+      <div className="flex gap-1 bg-gray-100 rounded-xl p-1 overflow-x-auto">
         {([
           { key: 'upcoming', label: `${t('profile.tabs.upcoming')} (${upcomingBookings.length})` },
           { key: 'calendar', label: '📅' },
           { key: 'past', label: `${t('profile.tabs.past')} (${pastBookings.length})` },
           { key: 'reviews', label: `${t('profile.tabs.reviews')} (${reviews.length})` },
           { key: 'favorites', label: `❤️ (${favorites.length})` },
+          { key: 'loyalty', label: `🪙 (${totalPoints})` },
+          { key: 'waitlist', label: `⏳ (${waitlist.length})` },
         ] as { key: Tab; label: string }[]).map(tab => (
           <button
             key={tab.key}
             onClick={() => setActiveTab(tab.key)}
-            className={`flex-1 py-2.5 text-sm font-medium rounded-lg transition-colors ${
+            className={`flex-1 py-2.5 text-sm font-medium rounded-lg transition-colors whitespace-nowrap px-2 ${
               activeTab === tab.key ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'
             }`}
           >
@@ -316,6 +393,7 @@ const Profile = () => {
             )}
           </div>
         )}
+
         {activeTab === 'favorites' && (
           favorites.length === 0
             ? <EmptyState text="Sevimli joylar yo'q" sub="Yoqtirgan venue laringizni saqlang" />
@@ -334,10 +412,81 @@ const Profile = () => {
               </div>
             ))}</div>
         )}
+
         {activeTab === 'reviews' && (
           reviews.length === 0
             ? <EmptyState text={t('profile.emptyReviews')} sub={t('profile.emptyReviewsDesc')} />
             : reviews.map(r => <ReviewCard key={r.id} review={r} />)
+        )}
+
+        {activeTab === 'loyalty' && (
+          <div className="space-y-4">
+            <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
+              <div className="flex items-center gap-3 mb-4">
+                <span className="text-3xl">🪙</span>
+                <div>
+                  <p className="text-2xl font-bold text-gray-900">{totalPoints}</p>
+                  <p className="text-sm text-gray-500">Total points</p>
+                </div>
+              </div>
+              <div className="text-sm text-gray-500">
+                Lifetime earned: <span className="font-medium text-gray-700">{totalEarned} points</span>
+              </div>
+              <div className="mt-3 p-3 bg-amber-50 rounded-xl border border-amber-100">
+                <p className="text-xs text-amber-800">
+                  Earn 1 point for every 1 UZS spent. Redeem 100 points for 1 UZS off.
+                </p>
+              </div>
+            </div>
+
+            <h3 className="font-semibold text-gray-900">History</h3>
+            {loyaltyHistory.length === 0 ? (
+              <EmptyState text="No points history yet" sub="Complete bookings to earn points" />
+            ) : (
+              loyaltyHistory.map(h => (
+                <div key={h.id} className="bg-white rounded-2xl border border-gray-100 p-4 shadow-sm">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-gray-900">{h.description || h.type}</p>
+                      <p className="text-xs text-gray-400 mt-0.5">{formatDate(h.created_at)}</p>
+                    </div>
+                    <span className={`text-sm font-semibold ${h.type === 'earned' ? 'text-emerald-600' : 'text-red-500'}`}>
+                      {h.type === 'earned' ? '+' : '-'}{h.points}
+                    </span>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        )}
+
+        {activeTab === 'waitlist' && (
+          waitlist.length === 0
+            ? <EmptyState text="No waitlist entries" sub="Join a waitlist when a slot is full" />
+            : waitlist.map(w => (
+                <div key={w.id} className="bg-white rounded-2xl border border-gray-100 p-4 shadow-sm">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0 flex-1">
+                      <p className="font-medium text-gray-900 text-sm">{(w as any).venues?.name || 'Venue'}</p>
+                      <p className="text-xs text-gray-500 mt-1">
+                        {w.slot_time ? formatDate(w.slot_time) : '—'} at {w.slot_time?.slice(11, 16) || '—'}
+                        {w.party_size > 1 && ` · Party of ${w.party_size}`}
+                      </p>
+                      <Badge variant={waitlistStatusVariant[w.status] || 'default'}>{w.status}</Badge>
+                    </div>
+                    {w.status === 'waiting' && (
+                      <Button
+                        variant="danger"
+                        size="sm"
+                        loading={leaveWaitlistMutation.isPending}
+                        onClick={() => leaveWaitlistMutation.mutate(w.id)}
+                      >
+                        Leave
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              ))
         )}
       </div>
     </div>
