@@ -25,6 +25,7 @@ function Skeleton({
   if (variant === 'circle') {
     return (
       <div
+        aria-hidden="true"
         style={{ ...style, ...(width ? {} : { width: '2.5rem' }), ...(height ? {} : { height: '2.5rem' }) }}
         className={`${base} rounded-full shrink-0 ${className}`}
       />
@@ -34,6 +35,7 @@ function Skeleton({
   if (variant === 'rect') {
     return (
       <div
+        aria-hidden="true"
         style={style}
         className={`${base} ${className}`}
       />
@@ -42,6 +44,7 @@ function Skeleton({
 
   return (
     <div
+      aria-hidden="true"
       style={{ ...style, ...(height ? {} : { height: '1rem' }) }}
       className={`${base} w-full ${className}`}
     />

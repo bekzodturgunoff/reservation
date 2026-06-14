@@ -7,6 +7,7 @@ import { useQuery } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
 import { useTitle } from '@/hooks/useTitle'
 import { MapPin, Star, ChevronLeft, CalendarDays, Clock, Wifi, Car, Tv, Fan, Copy, Check } from 'lucide-react'
+import toast from 'react-hot-toast'
 import type { Venue } from '@/types'
 
 const VenueDetailPage = () => {
@@ -256,7 +257,7 @@ const VenueDetailPage = () => {
                 onClick={(e) => {
                   if (!date || !startTime || !endTime) {
                     e.preventDefault()
-                    toast('Iltimos, sana va vaqtni tanlang')
+                    toast.error('Iltimos, sana va vaqtni tanlang')
                   }
                 }}
               >
@@ -272,15 +273,6 @@ const VenueDetailPage = () => {
       </div>
     </div>
   )
-}
-
-function toast(message: string) {
-  // Simple inline toast fallback
-  const el = document.createElement('div')
-  el.className = 'fixed top-4 right-4 bg-error-bg text-error border border-error/20 rounded-xl px-4 py-3 text-sm z-50 shadow-modal animate-slide-in'
-  el.textContent = message
-  document.body.appendChild(el)
-  setTimeout(() => el.remove(), 3000)
 }
 
 export default VenueDetailPage

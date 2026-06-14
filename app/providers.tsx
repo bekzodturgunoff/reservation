@@ -10,8 +10,7 @@ import i18n from '@/lib/i18n'
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      retry: 2,
-      retryDelay: 1000,
+      retry: 0,
       refetchOnWindowFocus: false,
       staleTime: 30000,
     },

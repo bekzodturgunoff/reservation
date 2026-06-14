@@ -15,13 +15,28 @@ export const Navbar = () => {
   const pathname = usePathname()
 
   const [mobileOpen, setMobileOpen] = useState(false)
+  const [userMenuOpen, setUserMenuOpen] = useState(false)
   const userRef = useRef<HTMLDivElement>(null)
 
-  // Close mobile menu on route change
+  // Close menus on route change
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setMobileOpen(false)
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setUserMenuOpen(false)
   }, [pathname])
+
+  // Close user menu on outside click
+  useEffect(() => {
+    if (!userMenuOpen) return
+    const handleClick = (e: MouseEvent) => {
+      if (userRef.current && !userRef.current.contains(e.target as Node)) {
+        setUserMenuOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClick)
+    return () => document.removeEventListener('mousedown', handleClick)
+  }, [userMenuOpen])
 
   const handleLogout = async () => {
     await supabase.auth.signOut()
@@ -64,35 +79,31 @@ export const Navbar = () => {
           <div className="flex items-center gap-3">
             {/* Language Switcher */}
             <div className="hidden md:flex items-center bg-surface-subtle rounded-lg p-0.5 gap-0.5">
-              {[
-                { code: 'uz', label: "O'Z" },
-                { code: 'ru', label: 'RU' },
-              ].map((l) => (
-                <button
-                  key={l.code}
-                  onClick={() => { i18n.changeLanguage(l.code); localStorage.setItem('lang', l.code) }}
-                  className={`px-2.5 py-1 rounded-md text-[11px] font-semibold transition-all ${
-                    i18n.language === l.code
-                      ? 'bg-white text-ink shadow-sm'
-                      : 'text-ink-muted hover:text-ink-secondary'
-                  }`}
-                >
-                  {l.label}
-                </button>
-              ))}
+                {[
+                  { code: 'uz', label: "O'Z" },
+                  { code: 'ru', label: 'RU' },
+                  { code: 'en', label: 'EN' },
+                ].map((l) => (
+                  <button
+                    key={l.code}
+                    onClick={() => { i18n.changeLanguage(l.code); localStorage.setItem('lang', l.code) }}
+                    className={`px-2.5 py-1 rounded-md text-[11px] font-semibold transition-all ${
+                      i18n.language === l.code
+                        ? 'bg-white text-ink shadow-sm'
+                        : 'text-ink-muted hover:text-ink-secondary'
+                    }`}
+                  >
+                    {l.label}
+                  </button>
+                ))}
             </div>
 
             {user && profile ? (
               <div ref={userRef} className="relative">
                 <button
-                  onClick={(e) => {
-                    const el = document.getElementById('user-menu')
-                    const isHidden = el?.classList.contains('hidden')
-                    el?.classList.toggle('hidden')
-                    e.currentTarget.setAttribute('aria-expanded', String(!!isHidden))
-                  }}
+                  onClick={() => setUserMenuOpen(!userMenuOpen)}
                   aria-haspopup="true"
-                  aria-expanded="false"
+                  aria-expanded={userMenuOpen}
                   className="flex items-center gap-2 bg-white border border-border rounded-xl px-3 py-1.5 hover:border-border-strong transition-colors"
                 >
                   <div className="w-7 h-7 rounded-full bg-brand-light flex items-center justify-center text-xs font-bold text-brand">
@@ -104,9 +115,9 @@ export const Navbar = () => {
                   <ChevronDown className="w-3.5 h-3.5 text-ink-muted" />
                 </button>
 
+                {userMenuOpen && (
                 <div
-                  id="user-menu"
-                  className="hidden absolute top-full right-0 mt-2 w-56 bg-white rounded-2xl shadow-modal border border-border overflow-hidden z-50"
+                  className="absolute top-full right-0 mt-2 w-56 bg-white rounded-2xl shadow-modal border border-border overflow-hidden z-50"
                 >
                   <div className="px-4 py-3 border-b border-border">
                     <p className="text-sm font-semibold text-ink">{profile.full_name}</p>
@@ -140,23 +151,24 @@ export const Navbar = () => {
                     </button>
                   </div>
                 </div>
-              </div>
-            ) : (
-              <div className="hidden md:flex items-center gap-2">
-                <Link
-                  href="/login"
-                  className="text-sm font-medium text-ink-secondary px-4 py-2 rounded-xl hover:bg-surface-subtle transition-colors"
-                >
-                  {t('common.login')}
-                </Link>
-                <Link
-                  href="/register"
-                  className="text-sm font-semibold text-white bg-brand hover:bg-brand-dark px-5 py-2 rounded-xl transition-colors shadow-button"
-                >
-                  {t('common.register')}
-                </Link>
-              </div>
-            )}
+              )}
+            </div>
+          ) : (
+            <div className="hidden md:flex items-center gap-2">
+              <Link
+                href="/login"
+                className="text-sm font-medium text-ink-secondary px-4 py-2 rounded-xl hover:bg-surface-subtle transition-colors"
+              >
+                {t('common.login')}
+              </Link>
+              <Link
+                href="/register"
+                className="text-sm font-semibold text-white bg-brand hover:bg-brand-dark px-5 py-2 rounded-xl transition-colors shadow-button"
+              >
+                {t('common.register')}
+              </Link>
+            </div>
+          )}
 
             <button
               onClick={() => setMobileOpen(!mobileOpen)}
@@ -181,6 +193,7 @@ export const Navbar = () => {
                 {[
                   { code: 'uz', label: "O'Z" },
                   { code: 'ru', label: 'RU' },
+                  { code: 'en', label: 'EN' },
                 ].map((l) => (
                   <button
                     key={l.code}

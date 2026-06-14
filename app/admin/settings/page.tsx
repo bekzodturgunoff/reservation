@@ -5,6 +5,7 @@ import { Card } from '@/components/ui/Card'
 import { Input } from '@/components/ui/Input'
 import { Button } from '@/components/ui/Button'
 import { Skeleton } from '@/components/ui/Skeleton'
+import toast from 'react-hot-toast'
 
 interface ToggleSwitchProps {
   label: string
@@ -58,9 +59,28 @@ export default function AdminSettingsPage() {
   }, [])
 
   const handleSave = async () => {
+    if (!form.support_email?.trim()) {
+      toast.error('Qo\'llab-quvvatlash emaili majburiy')
+      return
+    }
+    if (!/^\+998\d{9}$/.test(form.support_phone.replace(/\s/g, ''))) {
+      toast.error('Telefon raqam noto\'g\'ri formatda')
+      return
+    }
+    const rate = parseFloat(form.commission_rate)
+    if (isNaN(rate) || rate < 0 || rate > 100) {
+      toast.error('Komissiya foizi 0-100 oralig\'ida bo\'lishi kerak')
+      return
+    }
+    const payout = parseInt(form.min_payout)
+    if (isNaN(payout) || payout < 0) {
+      toast.error('Minimal to\'lov miqdori noto\'g\'ri')
+      return
+    }
     setSaving(true)
     await new Promise((r) => setTimeout(r, 1000))
     setSaving(false)
+    toast.success('Sozlamalar saqlandi')
   }
 
   const handleFormChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -107,6 +127,10 @@ export default function AdminSettingsPage() {
               label="Komissiya foizi (%)"
               name="commission_rate"
               type="number"
+              min="0"
+              max="100"
+              step="0.1"
+              inputMode="decimal"
               value={form.commission_rate}
               onChange={handleFormChange}
             />
@@ -114,6 +138,8 @@ export default function AdminSettingsPage() {
               label="Minimal to'lov miqdori (so'm)"
               name="min_payout"
               type="number"
+              min="0"
+              inputMode="numeric"
               value={form.min_payout}
               onChange={handleFormChange}
             />

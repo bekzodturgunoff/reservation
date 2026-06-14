@@ -2,12 +2,15 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { Plus, Edit3, Eye, Trash2, MapPin, Star, ImageIcon, Building2 } from 'lucide-react'
 import { Card } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
+import { Modal } from '@/components/ui/Modal'
 import { Skeleton } from '@/components/ui/Skeleton'
 import { EmptyState } from '@/components/ui/EmptyState'
+import toast from 'react-hot-toast'
 import type { BadgeVariant } from '@/components/ui/Badge'
 
 interface MockVenue {
@@ -71,8 +74,10 @@ const mockVenues: MockVenue[] = [
 ]
 
 export default function VenuesPage() {
+  const router = useRouter()
   const [loading, setLoading] = useState(true)
   const [venues, setVenues] = useState<MockVenue[]>([])
+  const [deleteId, setDeleteId] = useState<string | null>(null)
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -81,6 +86,12 @@ export default function VenuesPage() {
     }, 600)
     return () => clearTimeout(timer)
   }, [])
+
+  const handleDelete = (id: string) => {
+    setVenues((prev) => prev.filter((v) => v.id !== id))
+    setDeleteId(null)
+    toast.success("Joy o'chirildi")
+  }
 
   if (loading) {
     return (
@@ -113,7 +124,7 @@ export default function VenuesPage() {
         description="Biznesingizni boshlash uchun birinchi joyni qo'shing."
         action={{
           label: "Yangi joy qo'shish",
-          onClick: () => window.location.href = '/business/venues/add',
+          onClick: () => router.push('/business/venues/add'),
         }}
       />
     )
@@ -135,9 +146,12 @@ export default function VenuesPage() {
           <Card key={venue.id} className="p-0 overflow-hidden">
             <div className="relative h-44 bg-surface-subtle flex items-center justify-center overflow-hidden">
               {venue.photo ? (
-                <img src={venue.photo} alt={venue.name} className="w-full h-full object-cover" />
+                <img src={venue.photo} alt={venue.name} loading="lazy" className="w-full h-full object-cover" />
               ) : (
-                <ImageIcon className="w-10 h-10 text-ink-muted" />
+                <div className="flex flex-col items-center">
+                  <ImageIcon className="w-10 h-10 text-ink-muted" />
+                  <span className="mt-1 text-xs text-ink-tertiary">Rasm mavjud emas</span>
+                </div>
               )}
               <div className="absolute top-3 right-3">
                 <Badge variant={statusConfig[venue.status].variant} size="sm">
@@ -168,13 +182,13 @@ export default function VenuesPage() {
                   )}
                 </div>
                 <div className="flex items-center gap-1">
-                  <button className="p-2 rounded-xl text-ink-tertiary hover:bg-surface-subtle hover:text-info transition-colors" title="Tahrirlash">
+                  <button className="p-2 rounded-xl text-ink-tertiary hover:bg-surface-subtle hover:text-info transition-colors" aria-label="Tahrirlash">
                     <Edit3 className="w-4 h-4" />
                   </button>
-                  <button className="p-2 rounded-xl text-ink-tertiary hover:bg-surface-subtle hover:text-ink-secondary transition-colors" title="Ko'rish">
+                  <button className="p-2 rounded-xl text-ink-tertiary hover:bg-surface-subtle hover:text-ink-secondary transition-colors" aria-label="Ko'rish">
                     <Eye className="w-4 h-4" />
                   </button>
-                  <button className="p-2 rounded-xl text-ink-tertiary hover:bg-surface-subtle hover:text-error transition-colors" title="O'chirish">
+                  <button onClick={() => setDeleteId(venue.id)} className="p-2 rounded-xl text-ink-tertiary hover:bg-surface-subtle hover:text-error transition-colors" aria-label="O'chirish">
                     <Trash2 className="w-4 h-4" />
                   </button>
                 </div>
@@ -183,6 +197,14 @@ export default function VenuesPage() {
           </Card>
         ))}
       </div>
+
+      <Modal isOpen={!!deleteId} onClose={() => setDeleteId(null)} title="O'chirishni tasdiqlash">
+        <p className="text-sm text-ink-secondary">Bu joyni o'chirishni xohlaysizmi? Bu amalni qaytarib bo'lmaydi.</p>
+        <div className="flex items-center justify-end gap-3 mt-6">
+          <Button variant="ghost" onClick={() => setDeleteId(null)}>Bekor qilish</Button>
+          <Button variant="danger" onClick={() => deleteId && handleDelete(deleteId)}>O'chirish</Button>
+        </div>
+      </Modal>
     </div>
   )
 }

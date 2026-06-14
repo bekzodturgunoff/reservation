@@ -51,17 +51,24 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     return (
       <button
         ref={ref}
+        type={props.type || 'button'}
         disabled={isDisabled}
-        className={`inline-flex items-center justify-center font-medium rounded-xl transition-all duration-fast ease-out-quart focus:outline-none focus:ring-2 focus:ring-brand/40 cursor-pointer disabled:cursor-not-allowed ${variantStyles[variant]} ${sizeStyles[size]} ${className}`}
+        aria-busy={loading ? 'true' : undefined}
+        className={`inline-flex items-center justify-center font-medium rounded-xl transition-all duration-fast ease-out-quart focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40 cursor-pointer disabled:cursor-not-allowed ${variantStyles[variant]} ${sizeStyles[size]} ${className}`}
         {...props}
       >
         {loading ? (
-          <Loader2 className="h-4 w-4 animate-spin shrink-0" />
+          <>
+            <Loader2 className="h-4 w-4 animate-spin shrink-0" aria-hidden="true" />
+            <span className="sr-only">Yuklanmoqda...</span>
+          </>
         ) : (
-          leftIcon && <span className="shrink-0">{leftIcon}</span>
+          <>
+            {leftIcon && <span className="shrink-0">{leftIcon}</span>}
+            {children}
+            {rightIcon && <span className="shrink-0">{rightIcon}</span>}
+          </>
         )}
-        {children}
-        {!loading && rightIcon && <span className="shrink-0">{rightIcon}</span>}
       </button>
     )
   },

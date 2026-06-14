@@ -37,7 +37,7 @@ const summaryCards: SummaryCard[] = [
     color: 'text-info bg-info-bg',
   },
   {
-    label: "O'rtacha buyurtma summasii",
+    label: "O'rtacha buyurtma summasi",
     value: '1 239 000 so\'m',
     change: -2.1,
     icon: TrendingUp,
@@ -109,9 +109,12 @@ export default function RevenuePage() {
       {/* Bar chart mock */}
       <Card className="p-6">
         <h2 className="text-sm font-semibold text-ink mb-4">Haftalik daromad</h2>
-        <div className="flex items-end gap-3 h-40">
+        <div className="flex items-end gap-3 h-40" role="img" aria-label={`Haftalik daromad: ${dailyRevenue.map(d => `${d.day} ${d.amount.toLocaleString()} so'm`).join(', ')}`}>
           {dailyRevenue.map((day) => (
-            <div key={day.day} className="flex-1 flex flex-col items-center gap-2">
+            <div key={day.day} className="flex-1 flex flex-col items-center gap-2 relative group">
+              <div className="opacity-0 group-hover:opacity-100 transition-opacity absolute -top-8 left-1/2 -translate-x-1/2 bg-ink text-white text-[11px] px-2 py-1 rounded-lg whitespace-nowrap z-10 pointer-events-none">
+                {day.amount.toLocaleString()} so'm
+              </div>
               <div
                 className="w-full bg-brand rounded-lg transition-all duration-500 ease-out-quart"
                 style={{

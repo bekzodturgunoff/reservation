@@ -9,8 +9,8 @@ import {
   Building2,
   TrendingUp,
   Settings,
-  Bell,
 } from 'lucide-react'
+import { Badge } from '@/components/ui/Badge'
 import { useAuthStore } from '@/store/auth'
 
 const sidebarLinks = [
@@ -53,25 +53,19 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           <Link href="/" className="flex items-center gap-0.5 no-underline">
             <span className="font-display text-xl font-bold text-brand -tracking-[0.03em]">Bron</span>
             <span className="font-display text-xl font-bold text-ink -tracking-[0.03em]">Uz</span>
-            <span className="ml-2 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider bg-error-bg text-error rounded-full">
-              Admin
-            </span>
+            <Badge variant="error" size="sm" className="ml-2">Admin</Badge>
           </Link>
           <div className="flex items-center gap-3">
             <span className="text-sm font-medium text-ink-secondary hidden sm:block">
               {profile?.full_name}
             </span>
-            <button className="relative p-2 rounded-xl text-ink-tertiary hover:bg-surface-subtle hover:text-ink-secondary transition-colors">
-              <Bell className="w-5 h-5" />
-              <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-error" />
-            </button>
           </div>
         </div>
       </header>
 
       <div className="flex">
         {/* Sidebar */}
-        <aside className="hidden lg:flex flex-col w-64 min-h-[calc(100vh-4rem)] bg-surface border-r border-border p-4 gap-1">
+        <aside aria-label="Admin navigatsiya" className="hidden lg:flex flex-col w-64 min-h-[calc(100vh-4rem)] bg-surface border-r border-border p-4 gap-1">
           {sidebarLinks.map((link) => {
             const isActive =
               link.href === '/admin'
@@ -83,7 +77,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 href={link.href}
                 className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-colors ${
                   isActive
-                    ? 'bg-purple-50 text-purple-700'
+                    ? 'bg-brand-light text-brand'
                     : 'text-ink-secondary hover:bg-surface-subtle'
                 }`}
               >
@@ -106,7 +100,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 key={link.href}
                 href={link.href}
                 className={`flex flex-col items-center gap-1 px-3 py-1.5 rounded-xl text-[10px] font-medium transition-colors ${
-                  isActive ? 'text-purple-700' : 'text-ink-tertiary'
+                  isActive ? 'text-brand' : 'text-ink-tertiary'
                 }`}
               >
                 <link.icon className="w-5 h-5" />

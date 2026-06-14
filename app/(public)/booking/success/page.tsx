@@ -1,31 +1,21 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { Suspense } from 'react'
+import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { CheckCircle2 } from 'lucide-react'
+import { Button } from '@/components/ui/Button'
 
-interface BookingDetails {
-  date: string
-  time: string
-  venue: string
-}
+function BookingSuccessInner() {
+  const searchParams = useSearchParams()
 
-export default function BookingSuccessPage() {
-  const [details, setDetails] = useState<BookingDetails>({
-    date: '',
-    time: '',
-    venue: '',
-  })
+  const details = {
+    date: searchParams.get('date') || '',
+    time: searchParams.get('time') || '',
+    venue: searchParams.get('venue') || '',
+  }
 
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search)
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setDetails({
-      date: params.get('date') || '',
-      time: params.get('time') || '',
-      venue: params.get('venue') || '',
-    })
-  }, [])
+  const hasDetails = details.date || details.time || details.venue
 
   return (
     <div className="min-h-[80vh] flex flex-col items-center justify-center px-6 py-16">
@@ -38,7 +28,7 @@ export default function BookingSuccessPage() {
           Tez orada siz bilan bog&apos;lanamiz
         </p>
 
-        {details.date && (
+        {hasDetails && (
           <div className="mt-8 w-full bg-surface border border-border rounded-2xl shadow-card p-5 space-y-3 text-left">
             <h3 className="text-sm font-semibold text-ink-tertiary uppercase tracking-wider">
               Buyurtma tafsilotlari
@@ -67,20 +57,30 @@ export default function BookingSuccessPage() {
         )}
 
         <div className="mt-8 flex flex-col sm:flex-row gap-3 w-full">
-          <Link
-            href="/"
-            className="flex-1 text-center py-3 rounded-xl border border-border text-sm font-medium text-ink-secondary hover:bg-surface-subtle transition-colors"
-          >
-            Bosh sahifaga qaytish
+          <Link href="/" className="flex-1">
+            <Button variant="secondary" className="w-full">
+              Bosh sahifaga qaytish
+            </Button>
           </Link>
-          <Link
-            href="/bookings"
-            className="flex-1 text-center py-3 rounded-xl bg-brand text-white text-sm font-semibold hover:bg-brand-dark transition-colors shadow-button"
-          >
-            Mening buyurtmalarim
+          <Link href="/search" className="flex-1">
+            <Button variant="primary" className="w-full">
+              Joylarni ko'rish
+            </Button>
           </Link>
         </div>
       </div>
     </div>
+  )
+}
+
+export default function BookingSuccessPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-[80vh] flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-brand border-t-transparent rounded-full animate-spin" />
+      </div>
+    }>
+      <BookingSuccessInner />
+    </Suspense>
   )
 }

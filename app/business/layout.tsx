@@ -10,7 +10,6 @@ import {
   CalendarCheck,
   TrendingUp,
   Settings,
-  Bell,
 } from 'lucide-react'
 import { useAuthStore } from '@/store/auth'
 
@@ -60,17 +59,13 @@ export default function BusinessLayout({ children }: { children: React.ReactNode
             <span className="text-sm font-medium text-ink-secondary hidden sm:block">
               {profile?.full_name}
             </span>
-            <button className="relative p-2 rounded-xl text-ink-tertiary hover:bg-surface-subtle hover:text-ink-secondary transition-colors">
-              <Bell className="w-5 h-5" />
-              <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-error" />
-            </button>
           </div>
         </div>
       </header>
 
       <div className="flex">
         {/* Sidebar */}
-        <aside className="hidden lg:flex flex-col w-64 min-h-[calc(100vh-4rem)] bg-surface border-r border-border p-4 gap-1">
+        <aside aria-label="Biznes navigatsiya" className="hidden lg:flex flex-col w-64 min-h-[calc(100vh-4rem)] bg-surface border-r border-border p-4 gap-1">
           {sidebarLinks.map((link) => {
             const isActive =
               link.href === '/business'
@@ -94,8 +89,8 @@ export default function BusinessLayout({ children }: { children: React.ReactNode
         </aside>
 
         {/* Mobile bottom nav */}
-        <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-border flex justify-around px-2 py-2">
-          {sidebarLinks.slice(0, 5).map((link) => {
+        <nav aria-label="Biznes navigatsiya" className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-border flex justify-around px-1 py-2 overflow-x-auto">
+          {sidebarLinks.map((link) => {
             const isActive =
               link.href === '/business'
                 ? pathname === '/business'
@@ -104,7 +99,7 @@ export default function BusinessLayout({ children }: { children: React.ReactNode
               <Link
                 key={link.href}
                 href={link.href}
-                className={`flex flex-col items-center gap-1 px-3 py-1.5 rounded-xl text-[10px] font-medium transition-colors ${
+                className={`flex flex-col items-center gap-1 px-2 py-1.5 rounded-xl text-[10px] font-medium transition-colors shrink-0 ${
                   isActive ? 'text-brand' : 'text-ink-tertiary'
                 }`}
               >

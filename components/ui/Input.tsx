@@ -6,10 +6,11 @@ interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   label?: string
   error?: string
   icon?: ReactNode
+  required?: boolean
 }
 
 const Input = forwardRef<HTMLInputElement, InputProps>(
-  ({ label, error, icon, className = '', id: externalId, ...props }, ref) => {
+  ({ label, error, icon, className = '', id: externalId, required, ...props }, ref) => {
     const autoId = useId()
     const inputId = externalId || autoId
 
@@ -21,6 +22,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
             className="block text-sm font-medium text-ink-secondary mb-1.5"
           >
             {label}
+            {required && <span className="text-error ml-0.5">*</span>}
           </label>
         )}
         <div className="relative">
@@ -32,12 +34,16 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
           <input
             ref={ref}
             id={inputId}
-            className={`w-full rounded-xl border bg-surface px-4 py-2.5 text-sm text-ink placeholder:text-ink-tertiary transition-all duration-fast ease-out-quart focus:outline-none focus:border-brand focus:ring-2 focus:ring-brand/40 disabled:cursor-not-allowed disabled:opacity-50 ${icon ? 'pl-10' : ''} ${error ? 'border-error focus:border-error focus:ring-error/40' : 'border-border'} ${className}`}
+            aria-invalid={error ? 'true' : undefined}
+            aria-describedby={error ? `${inputId}-error` : undefined}
+            aria-required={required ? 'true' : undefined}
+            inputMode={props.type === 'number' ? 'decimal' : props.type === 'tel' ? 'tel' : props.inputMode}
+            className={`w-full rounded-xl border bg-surface px-4 py-2.5 text-sm text-ink placeholder:text-ink-tertiary transition-all duration-fast ease-out-quart focus-visible:outline-none focus-visible:border-brand focus-visible:ring-2 focus-visible:ring-brand/40 disabled:cursor-not-allowed disabled:opacity-50 ${icon ? 'pl-10' : ''} ${error ? 'border-error focus-visible:border-error focus-visible:ring-error/40' : 'border-border'} ${className}`}
             {...props}
           />
         </div>
         {error && (
-          <p className="mt-1 text-sm text-error">{error}</p>
+          <p id={`${inputId}-error`} className="mt-1 text-sm text-error" role="alert">{error}</p>
         )}
       </div>
     )

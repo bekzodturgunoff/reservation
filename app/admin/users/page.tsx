@@ -4,8 +4,11 @@ import { useState, useEffect } from 'react'
 import { Users, Edit3, Ban, CheckCircle } from 'lucide-react'
 import { Card } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
+import { Button } from '@/components/ui/Button'
+import { Modal } from '@/components/ui/Modal'
 import { Skeleton } from '@/components/ui/Skeleton'
 import { EmptyState } from '@/components/ui/EmptyState'
+import toast from 'react-hot-toast'
 import type { BadgeVariant } from '@/components/ui/Badge'
 
 interface MockUser {
@@ -42,6 +45,7 @@ const mockUsers: MockUser[] = [
 export default function AdminUsersPage() {
   const [loading, setLoading] = useState(true)
   const [users, setUsers] = useState<MockUser[]>([])
+  const [blockUserId, setBlockUserId] = useState<string | null>(null)
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -50,6 +54,15 @@ export default function AdminUsersPage() {
     }, 600)
     return () => clearTimeout(timer)
   }, [])
+
+  const handleBlockToggle = (id: string) => {
+    setUsers((prev) =>
+      prev.map((u) => (u.id === id ? { ...u, status: u.status === 'active' ? 'blocked' : 'active' } : u)),
+    )
+    setBlockUserId(null)
+    const user = users.find((u) => u.id === id)
+    toast.success(user?.status === 'active' ? 'Foydalanuvchi bloklandi' : 'Foydalanuvchi blokdan chiqarildi')
+  }
 
   if (loading) {
     return (
@@ -115,11 +128,15 @@ export default function AdminUsersPage() {
                 </Badge>
               </div>
               <div className="flex items-center gap-1">
-                <button className="p-1.5 rounded-lg text-ink-tertiary hover:bg-surface-subtle hover:text-info transition-colors">
+                <button className="p-1.5 rounded-lg text-ink-tertiary hover:bg-surface-subtle hover:text-info transition-colors" aria-label="Tahrirlash">
                   <Edit3 className="w-3.5 h-3.5" />
                 </button>
-                <button className="p-1.5 rounded-lg text-ink-tertiary hover:bg-surface-subtle hover:text-error transition-colors">
-                  <Ban className="w-3.5 h-3.5" />
+                <button
+                  onClick={() => setBlockUserId(user.id)}
+                  className="p-1.5 rounded-lg text-ink-tertiary hover:bg-surface-subtle hover:text-error transition-colors"
+                  aria-label={user.status === 'active' ? 'Bloklash' : 'Blokdan chiqarish'}
+                >
+                  {user.status === 'active' ? <Ban className="w-3.5 h-3.5" /> : <CheckCircle className="w-3.5 h-3.5" />}
                 </button>
               </div>
             </div>
@@ -168,13 +185,14 @@ export default function AdminUsersPage() {
                   <div className="flex items-center justify-end gap-1">
                     <button
                       className="p-2 rounded-xl text-ink-tertiary hover:bg-surface-subtle hover:text-info transition-colors"
-                      title="Tahrirlash"
+                      aria-label="Tahrirlash"
                     >
                       <Edit3 className="w-4 h-4" />
                     </button>
                     <button
+                      onClick={() => setBlockUserId(user.id)}
                       className="p-2 rounded-xl text-ink-tertiary hover:bg-surface-subtle hover:text-error transition-colors"
-                      title={user.status === 'active' ? 'Bloklash' : 'Blokdan chiqarish'}
+                      aria-label={user.status === 'active' ? 'Bloklash' : 'Blokdan chiqarish'}
                     >
                       {user.status === 'active' ? <Ban className="w-4 h-4" /> : <CheckCircle className="w-4 h-4" />}
                     </button>
@@ -185,6 +203,16 @@ export default function AdminUsersPage() {
           </tbody>
         </table>
       </Card>
+
+      <Modal isOpen={!!blockUserId} onClose={() => setBlockUserId(null)} title="Bloklashni tasdiqlash">
+        <p className="text-sm text-ink-secondary">Bu foydalanuvchini {users.find(u => u.id === blockUserId)?.status === 'active' ? 'bloklashni' : 'blokdan chiqarishni'} xohlaysizmi?</p>
+        <div className="flex items-center justify-end gap-3 mt-6">
+          <Button variant="ghost" onClick={() => setBlockUserId(null)}>Bekor qilish</Button>
+          <Button variant="danger" onClick={() => blockUserId && handleBlockToggle(blockUserId)}>
+            {users.find(u => u.id === blockUserId)?.status === 'active' ? 'Bloklash' : 'Blokdan chiqarish'}
+          </Button>
+        </div>
+      </Modal>
     </div>
   )
 }

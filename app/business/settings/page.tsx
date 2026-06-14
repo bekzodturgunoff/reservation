@@ -5,6 +5,7 @@ import { Card } from '@/components/ui/Card'
 import { Input } from '@/components/ui/Input'
 import { Button } from '@/components/ui/Button'
 import { Skeleton } from '@/components/ui/Skeleton'
+import toast from 'react-hot-toast'
 
 interface ToggleSwitchProps {
   label: string
@@ -57,9 +58,18 @@ export default function BusinessSettingsPage() {
   }, [])
 
   const handleSave = async () => {
+    if (!form.business_name?.trim()) {
+      toast.error('Biznes nomi majburiy')
+      return
+    }
+    if (!/^\+998\d{9}$/.test(form.phone.replace(/\s/g, ''))) {
+      toast.error('Telefon raqam noto\'g\'ri formatda')
+      return
+    }
     setSaving(true)
     await new Promise((r) => setTimeout(r, 1000))
     setSaving(false)
+    toast.success('Sozlamalar saqlandi')
   }
 
   return (

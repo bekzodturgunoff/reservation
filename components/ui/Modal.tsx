@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, type ReactNode } from 'react'
+import { useEffect, useRef, type ReactNode, useCallback } from 'react'
 import { createPortal } from 'react-dom'
 import { X } from 'lucide-react'
 
@@ -21,22 +21,49 @@ const sizeStyles: Record<ModalSize, string> = {
 }
 
 function Modal({ isOpen, onClose, title, children, size = 'md' }: ModalProps) {
+  const modalRef = useRef<HTMLDivElement>(null)
+  const titleId = title ? 'modal-title' : undefined
+
+  const handleKeyDown = useCallback((e: KeyboardEvent) => {
+    if (e.key === 'Escape') {
+      onClose()
+      return
+    }
+    if (e.key === 'Tab' && modalRef.current) {
+      const focusable = modalRef.current.querySelectorAll<HTMLElement>(
+        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
+      )
+      if (focusable.length === 0) return
+      const first = focusable[0]
+      const last = focusable[focusable.length - 1]
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault()
+        last.focus()
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault()
+        first.focus()
+      }
+    }
+  }, [onClose])
+
   useEffect(() => {
     if (!isOpen) return
 
     const original = document.body.style.overflow
     document.body.style.overflow = 'hidden'
 
-    const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose()
-    }
-    document.addEventListener('keydown', handleEscape)
+    document.addEventListener('keydown', handleKeyDown)
+
+    requestAnimationFrame(() => {
+      const closeBtn = modalRef.current?.querySelector<HTMLElement>('[data-modal-close]')
+      closeBtn?.focus()
+    })
 
     return () => {
       document.body.style.overflow = original
-      document.removeEventListener('keydown', handleEscape)
+      document.removeEventListener('keydown', handleKeyDown)
     }
-  }, [isOpen, onClose])
+  }, [isOpen, handleKeyDown])
 
   if (!isOpen) return null
 
@@ -45,15 +72,22 @@ function Modal({ isOpen, onClose, title, children, size = 'md' }: ModalProps) {
       <div
         className="fixed inset-0 bg-black/40 backdrop-blur-sm"
         onClick={onClose}
+        aria-hidden="true"
       />
       <div
+        ref={modalRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
         className={`relative w-full bg-surface border border-border rounded-2xl shadow-modal animate-in fade-in zoom-in-95 ease-out-quart ${sizeStyles[size]}`}
       >
         {title && (
           <div className="flex items-center justify-between px-6 py-4 border-b border-border">
-            <h2 className="text-lg font-semibold text-ink">{title}</h2>
+            <h2 id={titleId} className="text-lg font-semibold text-ink">{title}</h2>
             <button
+              data-modal-close
               onClick={onClose}
+              aria-label="Yopish"
               className="p-1 rounded-lg text-ink-tertiary hover:text-ink hover:bg-surface-subtle transition-colors duration-fast cursor-pointer"
             >
               <X className="h-5 w-5" />
@@ -62,7 +96,9 @@ function Modal({ isOpen, onClose, title, children, size = 'md' }: ModalProps) {
         )}
         {!title && (
           <button
+            data-modal-close
             onClick={onClose}
+            aria-label="Yopish"
             className="absolute top-4 right-4 p-1 rounded-lg text-ink-tertiary hover:text-ink hover:bg-surface-subtle transition-colors duration-fast cursor-pointer z-10"
           >
             <X className="h-5 w-5" />

@@ -1,6 +1,7 @@
 'use client'
 
 import { create } from 'zustand'
+import { persist } from 'zustand/middleware'
 import type { User } from '@supabase/supabase-js'
 
 export interface Profile {
@@ -25,14 +26,22 @@ interface AuthState {
   logout: () => void
 }
 
-export const useAuthStore = create<AuthState>((set) => ({
-  user: null,
-  profile: null,
-  loading: true,
-  initialized: false,
-  setUser: (user) => set({ user }),
-  setProfile: (profile) => set({ profile }),
-  setLoading: (loading) => set({ loading }),
-  setInitialized: (initialized) => set({ initialized }),
-  logout: () => set({ user: null, profile: null, loading: false }),
-}))
+export const useAuthStore = create<AuthState>()(
+  persist(
+    (set) => ({
+      user: null,
+      profile: null,
+      loading: true,
+      initialized: false,
+      setUser: (user) => set({ user }),
+      setProfile: (profile) => set({ profile }),
+      setLoading: (loading) => set({ loading }),
+      setInitialized: (initialized) => set({ initialized }),
+      logout: () => set({ user: null, profile: null, loading: false }),
+    }),
+    {
+      name: 'auth-storage',
+      partialize: (state) => ({ user: state.user, profile: state.profile }),
+    },
+  ),
+)
