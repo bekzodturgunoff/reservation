@@ -3,6 +3,7 @@
 import { useEffect, useRef } from 'react'
 import { useAuthStore } from '@/store/auth'
 import { supabase } from '@/lib/supabase'
+import type { Profile } from '@/types'
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const { setUser, setProfile, setLoading, setInitialized, logout } = useAuthStore()
@@ -25,10 +26,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         try {
           const { data: profile } = await supabase
             .from('profiles')
-            .select('*')
+            .select('id, full_name, phone, avatar_url, role, created_at')
             .eq('id', session.user.id)
             .single()
-          setProfile(profile)
+          setProfile(profile as Profile | null)
         } catch {
           setProfile(null)
         }
@@ -49,10 +50,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             try {
               const { data: profile } = await supabase
                 .from('profiles')
-                .select('*')
+                .select('id, full_name, phone, avatar_url, role, created_at')
                 .eq('id', session.user.id)
                 .single()
-              setProfile(profile)
+              setProfile(profile as Profile | null)
             } catch {
               setProfile(null)
             }

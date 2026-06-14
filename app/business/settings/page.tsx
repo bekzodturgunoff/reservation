@@ -1,20 +1,31 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Card } from '@/components/ui/Card'
 import { Input } from '@/components/ui/Input'
 import { Button } from '@/components/ui/Button'
 import { Skeleton } from '@/components/ui/Skeleton'
+import { supabase } from '@/lib/supabase'
+import { useAuthStore } from '@/store/auth'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { z } from 'zod'
 import toast from 'react-hot-toast'
 
-interface ToggleSwitchProps {
+const profileSchema = z.object({
+  full_name: z.string().min(3, 'Ism kamida 3 ta harf bo\'lishi kerak').max(100),
+  phone: z.string().regex(/^\+998[0-9]{9}$/, 'Telefon: +998901234567 formatida kiriting'),
+})
+
+function ToggleSwitch({
+  label, description, checked, onChange
+}: {
   label: string
   description: string
   checked: boolean
   onChange: (checked: boolean) => void
-}
-
-function ToggleSwitch({ label, description, checked, onChange }: ToggleSwitchProps) {
+}) {
   return (
     <div className="flex items-center justify-between py-3">
       <div>
@@ -37,13 +48,14 @@ function ToggleSwitch({ label, description, checked, onChange }: ToggleSwitchPro
 }
 
 export default function BusinessSettingsPage() {
-  const [loading, setLoading] = useState(true)
-  const [saving, setSaving] = useState(false)
-  const [form] = useState({
-    business_name: "Grand Ballroom MCHJ",
-    phone: '+998 90 123 45 67',
-    email: 'info@grandballroom.uz',
-    address: "Amir Temur shoh ko'chasi, 15, Toshkent",
+  const { profile } = useAuthStore()
+  const queryClient = useQueryClient()
+
+  const {
+    register, handleSubmit, formState: { errors },
+  } = useForm({
+    resolver: zodResolver(profileSchema),
+    defaultValues: { full_name: profile?.full_name || '', phone: profile?.phone || '' },
   })
   const [notifications, setNotifications] = useState({
     new_booking: true,
@@ -52,31 +64,43 @@ export default function BusinessSettingsPage() {
     weekly_report: true,
   })
 
-  useEffect(() => {
-    const timer = setTimeout(() => setLoading(false), 600)
-    return () => clearTimeout(timer)
-  }, [])
+  const { data: venueInfo } = useQuery({
+    queryKey: ['my-first-venue', profile?.id],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('venues')
+        .select('address, phone')
+        .eq('owner_id', profile!.id)
+        .limit(1)
+        .single()
+      return data || null
+    },
+    enabled: !!profile?.id,
+  })
 
-  const handleSave = async () => {
-    if (!form.business_name?.trim()) {
-      toast.error('Biznes nomi majburiy')
-      return
-    }
-    if (!/^\+998\d{9}$/.test(form.phone.replace(/\s/g, ''))) {
-      toast.error('Telefon raqam noto\'g\'ri formatda')
-      return
-    }
-    setSaving(true)
-    await new Promise((r) => setTimeout(r, 1000))
-    setSaving(false)
-    toast.success('Sozlamalar saqlandi')
-  }
+  const { mutate: saveProfile, isPending: saving } = useMutation({
+    mutationFn: async (data: { full_name: string; phone: string }) => {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ full_name: data.full_name.trim(), phone: data.phone.trim() })
+        .eq('id', profile!.id)
+      if (error) throw error
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['profile'] })
+      toast.success('Sozlamalar saqlandi')
+    },
+    onError: (err: Error) => {
+      toast.error(err.message || 'Xatolik yuz berdi')
+    },
+  })
+
+  const loading = !profile
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
       <h1 className="text-xl font-display font-semibold text-ink">Sozlamalar</h1>
 
-      {/* Business info */}
       <Card className="p-6">
         <h2 className="text-sm font-semibold text-ink mb-4">Biznes ma'lumotlari</h2>
         {loading ? (
@@ -86,63 +110,61 @@ export default function BusinessSettingsPage() {
             ))}
           </div>
         ) : (
-          <div className="space-y-4">
-            <Input label="Biznes nomi" value={form.business_name} disabled />
-            <Input label="Telefon" value={form.phone} disabled />
-            <Input label="Email" value={form.email} disabled />
-            <Input label="Manzil" value={form.address} disabled />
-          </div>
+          <form onSubmit={handleSubmit((data) => saveProfile(data))} className="space-y-4">
+            <Input
+              label="Biznes nomi"
+              {...register('full_name')}
+              error={errors.full_name?.message}
+              placeholder="MCHJ nomi yoki to'liq ism"
+            />
+            <Input
+              label="Telefon"
+              {...register('phone')}
+              error={errors.phone?.message}
+              placeholder="+998 90 123 45 67"
+            />
+            <Input
+              label="Asosiy manzil"
+              value={venueInfo?.address || ''}
+              disabled
+            />
+          </form>
         )}
       </Card>
 
-      {/* Notification preferences */}
       <Card className="p-6">
         <h2 className="text-sm font-semibold text-ink mb-2">Bildirishnomalar</h2>
         <p className="text-xs text-ink-tertiary mb-4">Qanday bildirishnomalarni olishni xohlaysiz?</p>
-        {loading ? (
-          <div className="space-y-4">
-            {Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="flex items-center justify-between py-3">
-                <div className="space-y-1">
-                  <Skeleton variant="text" width="160px" />
-                  <Skeleton variant="text" width="200px" />
-                </div>
-                <Skeleton variant="rect" className="w-11 h-6 rounded-full" />
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="divide-y divide-border">
-            <ToggleSwitch
-              label="Yangi buyurtma"
-              description="Yangi buyurtma kelganda bildirishnoma yuborish"
-              checked={notifications.new_booking}
-              onChange={(checked) => setNotifications((prev) => ({ ...prev, new_booking: checked }))}
-            />
-            <ToggleSwitch
-              label="Buyurtma bekor qilindi"
-              description="Buyurtma bekor qilinganda bildirishnoma yuborish"
-              checked={notifications.booking_cancelled}
-              onChange={(checked) => setNotifications((prev) => ({ ...prev, booking_cancelled: checked }))}
-            />
-            <ToggleSwitch
-              label="Yangi sharh"
-              description="Yangi sharh qoldirilganda bildirishnoma yuborish"
-              checked={notifications.new_review}
-              onChange={(checked) => setNotifications((prev) => ({ ...prev, new_review: checked }))}
-            />
-            <ToggleSwitch
-              label="Haftalik hisobot"
-              description="Har hafta daromad va statistika hisobotini yuborish"
-              checked={notifications.weekly_report}
-              onChange={(checked) => setNotifications((prev) => ({ ...prev, weekly_report: checked }))}
-            />
-          </div>
-        )}
+        <div className="divide-y divide-border">
+          <ToggleSwitch
+            label="Yangi buyurtma"
+            description="Yangi buyurtma kelganda bildirishnoma yuborish"
+            checked={notifications.new_booking}
+            onChange={(checked) => setNotifications((prev) => ({ ...prev, new_booking: checked }))}
+          />
+          <ToggleSwitch
+            label="Buyurtma bekor qilindi"
+            description="Buyurtma bekor qilinganda bildirishnoma yuborish"
+            checked={notifications.booking_cancelled}
+            onChange={(checked) => setNotifications((prev) => ({ ...prev, booking_cancelled: checked }))}
+          />
+          <ToggleSwitch
+            label="Yangi sharh"
+            description="Yangi sharh qoldirilganda bildirishnoma yuborish"
+            checked={notifications.new_review}
+            onChange={(checked) => setNotifications((prev) => ({ ...prev, new_review: checked }))}
+          />
+          <ToggleSwitch
+            label="Haftalik hisobot"
+            description="Har hafta daromad va statistika hisobotini yuborish"
+            checked={notifications.weekly_report}
+            onChange={(checked) => setNotifications((prev) => ({ ...prev, weekly_report: checked }))}
+          />
+        </div>
       </Card>
 
       <div className="flex justify-end">
-        <Button variant="primary" loading={saving} onClick={handleSave}>
+        <Button variant="primary" loading={saving} type="submit" onClick={handleSubmit((data) => saveProfile(data))}>
           Saqlash
         </Button>
       </div>

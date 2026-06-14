@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect } from 'react'
-import { useRouter, usePathname } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import {
   LayoutDashboard,
@@ -12,8 +12,10 @@ import {
   Settings,
 } from 'lucide-react'
 import { useAuthStore } from '@/store/auth'
+import { DashboardSidebar, MobileBottomNav } from '@/components/layout/DashboardSidebar'
+import type { SidebarLink } from '@/components/layout/DashboardSidebar'
 
-const sidebarLinks = [
+const sidebarLinks: SidebarLink[] = [
   { href: '/business', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/business/venues', label: 'Mening joylarim', icon: Building2 },
   { href: '/business/venues/add', label: 'Yangi joy qo\'shish', icon: PlusCircle },
@@ -25,7 +27,6 @@ const sidebarLinks = [
 export default function BusinessLayout({ children }: { children: React.ReactNode }) {
   const { user, profile, loading } = useAuthStore()
   const router = useRouter()
-  const pathname = usePathname()
 
   useEffect(() => {
     if (loading) return
@@ -49,69 +50,31 @@ export default function BusinessLayout({ children }: { children: React.ReactNode
   return (
     <div className="min-h-screen bg-surface-bg">
       {/* Top bar */}
-      <header className="sticky top-0 z-40 bg-white/90 backdrop-blur-xl border-b border-border h-16 flex items-center px-4 sm:px-6 lg:px-8">
+      <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-xl border-b border-border h-16 flex items-center px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between w-full">
           <Link href="/" className="flex items-center gap-0.5 no-underline">
             <span className="font-display text-xl font-bold text-brand -tracking-[0.03em]">Bron</span>
             <span className="font-display text-xl font-bold text-ink -tracking-[0.03em]">Uz</span>
           </Link>
           <div className="flex items-center gap-3">
-            <span className="text-sm font-medium text-ink-secondary hidden sm:block">
-              {profile?.full_name}
-            </span>
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-full bg-brand-light flex items-center justify-center text-sm font-semibold text-brand">
+                {profile?.full_name?.charAt(0)?.toUpperCase() || 'B'}
+              </div>
+              <span className="text-sm font-medium text-ink-secondary hidden sm:block">
+                {profile?.full_name}
+              </span>
+            </div>
           </div>
         </div>
       </header>
 
       <div className="flex">
-        {/* Sidebar */}
-        <aside aria-label="Biznes navigatsiya" className="hidden lg:flex flex-col w-64 min-h-[calc(100vh-4rem)] bg-surface border-r border-border p-4 gap-1">
-          {sidebarLinks.map((link) => {
-            const isActive =
-              link.href === '/business'
-                ? pathname === '/business'
-                : pathname.startsWith(link.href)
-            return (
-              <Link
-                key={link.href}
-                href={link.href}
-                className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-colors ${
-                  isActive
-                    ? 'bg-brand-light text-brand'
-                    : 'text-ink-secondary hover:bg-surface-subtle'
-                }`}
-              >
-                <link.icon className="w-4 h-4 shrink-0" />
-                {link.label}
-              </Link>
-            )
-          })}
-        </aside>
-
-        {/* Mobile bottom nav */}
-        <nav aria-label="Biznes navigatsiya" className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-border flex justify-around px-1 py-2 overflow-x-auto">
-          {sidebarLinks.map((link) => {
-            const isActive =
-              link.href === '/business'
-                ? pathname === '/business'
-                : pathname.startsWith(link.href)
-            return (
-              <Link
-                key={link.href}
-                href={link.href}
-                className={`flex flex-col items-center gap-1 px-2 py-1.5 rounded-xl text-[10px] font-medium transition-colors shrink-0 ${
-                  isActive ? 'text-brand' : 'text-ink-tertiary'
-                }`}
-              >
-                <link.icon className="w-5 h-5" />
-                <span className="truncate max-w-14">{link.label}</span>
-              </Link>
-            )
-          })}
-        </nav>
+        <DashboardSidebar links={sidebarLinks} basePath="/business" badge="Biznes panel" />
+        <MobileBottomNav links={sidebarLinks} basePath="/business" />
 
         {/* Content */}
-        <main className="flex-1 p-4 sm:p-6 lg:p-8 pb-20 lg:pb-8">
+        <main className="flex-1 p-4 sm:p-6 lg:p-8 pb-20 lg:pb-8 max-w-6xl">
           {children}
         </main>
       </div>

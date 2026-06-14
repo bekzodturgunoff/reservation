@@ -1,1 +1,32 @@
-{}
+{
+  "components/ui/ScrollReveal.tsx -> gsap": {
+    "id": "components/ui/ScrollReveal.tsx -> gsap",
+    "files": [
+      "static/chunks/_app-pages-browser_node_modules_gsap_index_js.js"
+    ]
+  },
+  "components/ui/ScrollReveal.tsx -> gsap/ScrollTrigger": {
+    "id": "components/ui/ScrollReveal.tsx -> gsap/ScrollTrigger",
+    "files": [
+      "static/chunks/_app-pages-browser_node_modules_gsap_ScrollTrigger_js.js"
+    ]
+  },
+  "lib/lenis.ts -> gsap": {
+    "id": "lib/lenis.ts -> gsap",
+    "files": [
+      "static/chunks/_app-pages-browser_node_modules_gsap_index_js.js"
+    ]
+  },
+  "lib/lenis.ts -> gsap/ScrollTrigger": {
+    "id": "lib/lenis.ts -> gsap/ScrollTrigger",
+    "files": [
+      "static/chunks/_app-pages-browser_node_modules_gsap_ScrollTrigger_js.js"
+    ]
+  },
+  "lib/lenis.ts -> lenis": {
+    "id": "lib/lenis.ts -> lenis",
+    "files": [
+      "static/chunks/_app-pages-browser_node_modules_lenis_dist_lenis_mjs.js"
+    ]
+  }
+}

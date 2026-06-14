@@ -6,25 +6,24 @@ import Link from 'next/link'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { useTranslation } from 'react-i18next'
 import toast from 'react-hot-toast'
-import { Mail, Lock, Eye, EyeOff, ShieldCheck, Zap, Star } from 'lucide-react'
+import { Mail, Lock, Eye, EyeOff, Star } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/auth'
 import { useTitle } from '@/hooks/useTitle'
 
 const LoginPage = () => {
-  const { t } = useTranslation()
   useTitle('Kirish — BronUz')
   const router = useRouter()
   const { setUser, setProfile } = useAuthStore()
   const [loading, setLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
+  const [apiError, setApiError] = useState('')
 
   const schema = useMemo(() => z.object({
-    email: z.string().email(t('auth.validEmail', 'Noto\'g\'ri email')),
-    password: z.string().min(6, t('auth.passwordMin', 'Parol kamida 6 belgidan iborat bo\'lishi kerak')),
-  }), [t])
+    email: z.string().email("Noto'g'ri email"),
+    password: z.string().min(6, 'Parol kamida 6 belgidan iborat bo\'lishi kerak'),
+  }), [])
 
   type FormData = z.infer<typeof schema>
 
@@ -36,17 +35,20 @@ const LoginPage = () => {
 
   const onSubmit = async (data: FormData) => {
     setLoading(true)
+    setApiError('')
     const { data: authData, error } = await supabase.auth.signInWithPassword({
       email: data.email,
       password: data.password,
     })
 
     if (error) {
-      toast.error(error.message === 'Invalid login credentials'
-        ? "Email yoki parol noto'g'ri"
-        : error.message
-      )
+      const msg = error.message === 'Invalid login credentials'
+        ? "Email yoki parol noto'g'ri. Qayta urinib ko'ring."
+        : error.message === 'Failed to fetch'
+          ? 'Tarmoq xatosi. Internet aloqasini tekshiring.'
+          : error.message
       setLoading(false)
+      setApiError(msg)
       return
     }
 
@@ -55,87 +57,78 @@ const LoginPage = () => {
       try {
         const { data: profile } = await supabase
           .from('profiles')
-          .select('*')
+          .select('id, full_name, phone, avatar_url, role, created_at')
           .eq('id', authData.session.user.id)
           .single()
         setProfile(profile)
         const firstName = profile?.full_name?.trim().split(/\s+/)[0]
-        toast.success(firstName
-          ? `Xush kelibsiz, ${firstName}!`
-          : t('auth.welcome', 'Xush kelibsiz!')
-        )
+        toast.success(firstName ? `Xush kelibsiz, ${firstName}! 👋` : 'Xush kelibsiz! 👋')
       } catch {
         setProfile(null)
-        toast.success(t('auth.welcome', 'Xush kelibsiz!'))
+        toast.success('Xush kelibsiz! 👋')
       }
     }
     router.push('/')
   }
 
   return (
-    <div className="flex min-h-screen">
-      {/* Left Panel */}
-      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-gradient-to-br from-brand-dark via-brand to-brand-darker">
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-20 left-10 w-40 h-40 bg-white rounded-full blur-3xl" />
-          <div className="absolute bottom-20 right-10 w-60 h-60 bg-white rounded-full blur-3xl" />
-        </div>
-        <div className="relative z-10 flex flex-col justify-between p-12 w-full">
-          <div>
-            <Link href="/" className="inline-flex items-center gap-1">
-              <span className="font-display text-2xl font-bold text-white">BronUz</span>
-            </Link>
-          </div>
-          <div className="max-w-sm">
-            <div className="text-5xl mb-6">“</div>
-            <p className="text-2xl font-display font-bold text-white leading-snug">
-              Minglab mijozlar BronUz orqali joylarni bron qilmoqda
+    <div className="flex flex-row min-h-screen">
+      {/* LEFT PANEL - Venue photo */}
+      <div className="hidden lg:flex lg:w-[45%] relative overflow-hidden">
+        <div
+          className="absolute inset-0 bg-cover bg-center"
+          style={{
+            backgroundImage: 'url(https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=800&q=80)',
+          }}
+        />
+        <div
+          className="absolute inset-0"
+          style={{
+            background: 'linear-gradient(160deg, rgba(6,95,70,0.7) 0%, rgba(2,44,34,0.9) 100%)',
+          }}
+        />
+        <div className="relative z-10 flex flex-col justify-center p-12 w-full">
+          <div className="max-w-xs mx-auto text-center">
+            <p className="text-2xl font-display font-semibold text-white leading-snug">
+              Minglab foydalanuvchilar BronUz orqali vaqtlarini tejayapti
             </p>
-            <p className="text-sm text-white/70 mt-4">
-              Sardor T., Kafe egasi, Toshkent
-            </p>
-            <div className="flex gap-1 mt-3">
+            <div className="flex justify-center gap-1 mt-4">
               {[1, 2, 3, 4, 5].map((i) => (
-                <Star key={i} className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                <Star key={i} className="w-5 h-5 fill-white text-white" />
               ))}
             </div>
-          </div>
-          <div className="space-y-4">
-            {[
-              { icon: <ShieldCheck className="w-5 h-5" />, text: t('home.featureSecureDesc', 'Barcha to\'lovlar xavfsiz va himoyalangan') },
-              { icon: <Zap className="w-5 h-5" />, text: t('home.featureFastDesc', 'Bir necha soniyada joy bron qiling') },
-            ].map((item) => (
-              <div key={item.text} className="flex items-center gap-3 text-sm text-white/80">
-                <div className="w-9 h-9 rounded-xl bg-white/10 flex items-center justify-center shrink-0 text-white">
-                  {item.icon}
-                </div>
-                {item.text}
-              </div>
-            ))}
+            <p className="text-sm text-white/60 mt-2">Sardor, Toshkent</p>
           </div>
         </div>
       </div>
 
-      {/* Right Panel */}
-      <div className="w-full lg:w-1/2 flex items-center justify-center px-4 py-8 sm:px-12">
-        <div className="w-full max-w-[420px]">
-          {/* Mobile Logo */}
-          <div className="text-center lg:hidden mb-8">
-            <Link href="/" className="font-display text-2xl font-bold text-brand">BronUz</Link>
-            <h1 className="text-2xl font-display font-bold text-ink mt-4">{t('auth.loginTitle', 'Xush kelibsiz')}</h1>
-            <p className="text-sm text-ink-tertiary mt-1">{t('auth.loginSubtitle', 'Hisobingizga kiring')}</p>
-          </div>
+      {/* RIGHT PANEL - Form */}
+      <div className="w-full lg:w-[55%] flex items-center justify-center px-6 py-12 sm:px-12">
+        <div className="w-full max-w-[400px]">
+          {/* Logo */}
+          <Link href="/" className="inline-flex items-center gap-0.5 no-underline mb-12">
+            <span className="font-display text-2xl font-extrabold text-brand-600 -tracking-[0.03em]">Bron</span>
+            <span className="font-display text-2xl font-extrabold text-ink -tracking-[0.03em]">Uz</span>
+          </Link>
 
-          {/* Desktop Heading */}
-          <div className="hidden lg:block mb-10">
-            <h1 className="text-3xl font-display font-bold text-ink">{t('auth.loginTitle', 'Xush kelibsiz')}</h1>
-            <p className="text-base text-ink-tertiary mt-1">{t('auth.loginSubtitle', 'Hisobingizga kiring')}</p>
+          {/* Google SSO (commented out - not configured)
+          <button className="w-full flex items-center justify-center gap-3 h-[52px] bg-white border border-line rounded-input text-sm font-medium text-ink hover:bg-surface-muted hover:border-line-strong transition-colors shadow-[0_1px_3px_rgba(0,0,0,0.08)]">
+            <svg className="w-5 h-5" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+            Google orqali kirish
+          </button>
+
+          <div className="flex items-center gap-3 my-6">
+            <div className="flex-1 h-px bg-line" />
+            <span className="text-xs text-ink-muted">yoki</span>
+            <div className="flex-1 h-px bg-line" />
           </div>
+          */}
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+            {/* Email */}
             <div>
-              <label htmlFor="login-email" className="text-xs font-semibold uppercase tracking-[0.05em] text-ink-secondary mb-1.5 block">
-                {t('common.email', 'Email')}
+              <label htmlFor="login-email" className="text-[11px] font-semibold uppercase tracking-wider text-ink-secondary mb-1.5 block">
+                Email manzil
               </label>
               <div className="relative">
                 <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-muted" />
@@ -143,22 +136,24 @@ const LoginPage = () => {
                   id="login-email"
                   type="email"
                   placeholder="siz@example.com"
+                  autoComplete="email"
                   {...register('email')}
-                  className={`w-full h-[52px] pl-11 pr-4 bg-white border-2 rounded-xl text-base text-ink placeholder:text-ink-muted outline-none transition-all ${
+                  className={`w-full h-[52px] pl-11 pr-4 bg-white border rounded-input text-base text-ink placeholder:text-ink-muted outline-none transition-all ${
                     errors.email
-                      ? 'border-error shadow-[0_0_0_3px_rgba(239,68,68,0.1)]'
-                      : 'border-border focus:border-brand focus:shadow-[0_0_0_3px_rgba(5,150,105,0.12)]'
+                      ? 'border-status-error shadow-[0_0_0_3px_rgba(239,68,68,0.12)]'
+                      : 'border-line focus:border-brand-600 focus:shadow-[0_0_0_3px_rgba(5,150,105,0.12)]'
                   }`}
                 />
               </div>
               {errors.email && (
-                <p className="text-xs text-error mt-1">{errors.email.message}</p>
+                <p className="text-xs text-status-error mt-1">{errors.email.message}</p>
               )}
             </div>
 
+            {/* Password */}
             <div>
-              <label htmlFor="login-password" className="text-xs font-semibold uppercase tracking-[0.05em] text-ink-secondary mb-1.5 block">
-                {t('common.password', 'Parol')}
+              <label htmlFor="login-password" className="text-[11px] font-semibold uppercase tracking-wider text-ink-secondary mb-1.5 block">
+                Parol
               </label>
               <div className="relative">
                 <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-muted" />
@@ -166,63 +161,65 @@ const LoginPage = () => {
                   id="login-password"
                   type={showPassword ? 'text' : 'password'}
                   placeholder="••••••••"
+                  autoComplete="current-password"
                   {...register('password')}
-                  className={`w-full h-[52px] pl-11 pr-11 bg-white border-2 rounded-xl text-base text-ink placeholder:text-ink-muted outline-none transition-all ${
+                  className={`w-full h-[52px] pl-11 pr-11 bg-white border rounded-input text-base text-ink placeholder:text-ink-muted outline-none transition-all ${
                     errors.password
-                      ? 'border-error shadow-[0_0_0_3px_rgba(239,68,68,0.1)]'
-                      : 'border-border focus:border-brand focus:shadow-[0_0_0_3px_rgba(5,150,105,0.12)]'
+                      ? 'border-status-error shadow-[0_0_0_3px_rgba(239,68,68,0.12)]'
+                      : 'border-line focus:border-brand-600 focus:shadow-[0_0_0_3px_rgba(5,150,105,0.12)]'
                   }`}
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
                   aria-label={showPassword ? 'Parolni yashirish' : 'Parolni ko\'rsatish'}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-ink-muted hover:text-ink-secondary"
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-ink-muted hover:text-ink-secondary transition-colors"
                 >
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
               </div>
               {errors.password && (
-                <p className="text-xs text-error mt-1">{errors.password.message}</p>
+                <p className="text-xs text-status-error mt-1">{errors.password.message}</p>
               )}
               <div className="flex justify-end mt-2">
-                <button type="button" className="text-xs text-brand hover:underline">
-                  {t('auth.forgotPassword', 'Parolni unutdingizmi?')}
+                <button type="button" className="text-xs text-brand-600 hover:underline">
+                  Parolni unutdingizmi?
                 </button>
               </div>
             </div>
 
+            {/* API Error */}
+            {apiError && (
+              <div className="flex items-center gap-1.5 text-sm text-status-error bg-status-error-bg rounded-xl px-4 py-3">
+                <span>⚠️</span>
+                <span>{apiError}</span>
+              </div>
+            )}
+
+            {/* Submit */}
             <button
               type="submit"
               disabled={loading}
-              className="w-full h-[52px] bg-brand hover:bg-brand-dark disabled:opacity-40 disabled:cursor-not-allowed text-white font-semibold text-base rounded-xl shadow-button transition-all hover:-translate-y-0.5 active:translate-y-0 flex items-center justify-center gap-2"
+              className="w-full h-[52px] bg-brand-600 hover:bg-brand-700 disabled:opacity-40 disabled:cursor-not-allowed text-white font-semibold text-base rounded-btn shadow-btn transition-all hover:-translate-y-0.5 active:translate-y-0 flex items-center justify-center gap-2"
             >
               {loading ? (
-                <span className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                <span className="flex items-center gap-2">
+                  <span className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  Kirilmoqda...
+                </span>
               ) : (
-                t('common.login', 'Kirish')
+                'Kirish'
               )}
             </button>
-
-            {errors.root && (
-              <p className="text-sm text-error text-center flex items-center justify-center gap-1">
-                <span>⚠️</span> {errors.root.message}
-              </p>
-            )}
           </form>
 
+          {/* Register link */}
           <p className="text-sm text-ink-tertiary text-center mt-8">
-            {t('auth.noAccount', 'Hisobingiz yo\'qmi?')}{' '}
-            <Link href="/register" className="text-brand font-medium hover:underline">
-              {t('auth.registerLink', 'Ro\'yxatdan o\'ting')}
+            Hisob yo'qmi?{' '}
+            <Link href="/register" className="text-brand-600 font-medium hover:underline">
+              Ro'yxatdan o'ting
             </Link>
           </p>
-
-          <div className="mt-4 p-4 rounded-2xl bg-info-bg border border-info/20">
-            <p className="text-xs text-center text-info">
-              Test: admin@example.com / password123
-            </p>
-          </div>
         </div>
       </div>
     </div>

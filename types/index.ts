@@ -3,7 +3,7 @@ export interface Profile {
   full_name: string
   phone: string
   avatar_url: string | null
-  role: 'user' | 'business' | 'admin'
+  role: 'user' | 'business' | 'admin' | 'blocked'
   total_points?: number
   created_at: string
 }

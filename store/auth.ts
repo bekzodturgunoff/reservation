@@ -3,16 +3,7 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import type { User } from '@supabase/supabase-js'
-
-export interface Profile {
-  id: string
-  full_name: string
-  phone: string
-  avatar_url: string | null
-  role: 'user' | 'business' | 'admin'
-  total_points?: number
-  created_at: string
-}
+import type { Profile } from '@/types'
 
 interface AuthState {
   user: User | null

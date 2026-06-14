@@ -1,99 +1,65 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { useRouter } from 'next/navigation'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Plus, Edit3, Eye, Trash2, MapPin, Star, ImageIcon, Building2 } from 'lucide-react'
+import { useAuthStore } from '@/store/auth'
 import { Card } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { Modal } from '@/components/ui/Modal'
 import { Skeleton } from '@/components/ui/Skeleton'
 import { EmptyState } from '@/components/ui/EmptyState'
+import { supabase } from '@/lib/supabase'
 import toast from 'react-hot-toast'
 import type { BadgeVariant } from '@/components/ui/Badge'
-
-interface MockVenue {
-  id: string
-  name: string
-  address: string
-  city: string
-  price_per_slot: number
-  avg_rating: number
-  status: 'active' | 'pending' | 'inactive'
-  photo: string
-}
+import type { Venue } from '@/types'
 
 const statusConfig: Record<string, { label: string; variant: BadgeVariant }> = {
   active: { label: 'Faol', variant: 'success' },
   pending: { label: 'Kutilmoqda', variant: 'warning' },
-  inactive: { label: 'Nofaol', variant: 'error' },
+  rejected: { label: 'Rad etilgan', variant: 'error' },
+  human_action_needed: { label: 'Tekshirish kerak', variant: 'warning' },
 }
-
-const mockVenues: MockVenue[] = [
-  {
-    id: '1',
-    name: 'Grand Ballroom',
-    address: "Amir Temur shoh ko'chasi, 15",
-    city: 'Toshkent',
-    price_per_slot: 1500000,
-    avg_rating: 4.8,
-    status: 'active',
-    photo: '',
-  },
-  {
-    id: '2',
-    name: 'Sky Lounge',
-    address: 'Minor mozor, 7',
-    city: 'Toshkent',
-    price_per_slot: 2500000,
-    avg_rating: 4.5,
-    status: 'active',
-    photo: '',
-  },
-  {
-    id: '3',
-    name: 'Green Garden',
-    address: "Bog' ko'chasi, 22",
-    city: 'Samarqand',
-    price_per_slot: 800000,
-    avg_rating: 4.2,
-    status: 'pending',
-    photo: '',
-  },
-  {
-    id: '4',
-    name: 'Cozy Corner',
-    address: 'Navoiy ko\'chasi, 5',
-    city: 'Toshkent',
-    price_per_slot: 500000,
-    avg_rating: 0,
-    status: 'inactive',
-    photo: '',
-  },
-]
 
 export default function VenuesPage() {
   const router = useRouter()
-  const [loading, setLoading] = useState(true)
-  const [venues, setVenues] = useState<MockVenue[]>([])
+  const { profile } = useAuthStore()
+  const queryClient = useQueryClient()
   const [deleteId, setDeleteId] = useState<string | null>(null)
 
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setVenues(mockVenues)
-      setLoading(false)
-    }, 600)
-    return () => clearTimeout(timer)
-  }, [])
+  const { data: venues = [], isLoading } = useQuery({
+    queryKey: ['my-venues', profile?.id],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('venues')
+        .select('*, categories(name_uz, name_ru, icon)')
+        .eq('owner_id', profile!.id)
+        .order('created_at', { ascending: false })
+      return (data || []) as (Venue & { categories: { name_uz: string; name_ru: string; icon: string } | null })[]
+    },
+    enabled: !!profile?.id,
+  })
 
-  const handleDelete = (id: string) => {
-    setVenues((prev) => prev.filter((v) => v.id !== id))
-    setDeleteId(null)
-    toast.success("Joy o'chirildi")
-  }
+  const deleteMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from('venues').delete().eq('id', id)
+      if (error) throw error
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['my-venues'] })
+      setDeleteId(null)
+      toast.success("Joy o'chirildi")
+    },
+    onError: (err: Error) => {
+      toast.error(err.message)
+    },
+  })
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="space-y-6">
         <div className="flex items-center justify-between">
@@ -101,7 +67,7 @@ export default function VenuesPage() {
           <Skeleton variant="rect" width="160px" height="40px" className="rounded-xl" />
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-          {Array.from({ length: 4 }).map((_, i) => (
+          {Array.from({ length: 2 }).map((_, i) => (
             <Card key={i} className="p-0 overflow-hidden">
               <Skeleton variant="rect" className="w-full h-44" />
               <div className="p-5 space-y-3">
@@ -145,8 +111,8 @@ export default function VenuesPage() {
         {venues.map((venue) => (
           <Card key={venue.id} className="p-0 overflow-hidden">
             <div className="relative h-44 bg-surface-subtle flex items-center justify-center overflow-hidden">
-              {venue.photo ? (
-                <img src={venue.photo} alt={venue.name} loading="lazy" className="w-full h-full object-cover" />
+              {venue.photos && venue.photos[0] ? (
+                <Image src={venue.photos[0]} alt={venue.name} width={400} height={220} className="w-full h-full object-cover" />
               ) : (
                 <div className="flex flex-col items-center">
                   <ImageIcon className="w-10 h-10 text-ink-muted" />
@@ -154,8 +120,8 @@ export default function VenuesPage() {
                 </div>
               )}
               <div className="absolute top-3 right-3">
-                <Badge variant={statusConfig[venue.status].variant} size="sm">
-                  {statusConfig[venue.status].label}
+                <Badge variant={statusConfig[venue.status]?.variant || 'default'} size="sm">
+                  {statusConfig[venue.status]?.label || venue.status}
                 </Badge>
               </div>
             </div>
@@ -165,19 +131,19 @@ export default function VenuesPage() {
                   <h3 className="font-semibold text-ink">{venue.name}</h3>
                   <p className="mt-1 text-sm text-ink-tertiary flex items-center gap-1">
                     <MapPin className="w-3.5 h-3.5 shrink-0" />
-                    {venue.city}, {venue.address}
+                    {venue.city}{venue.district ? `, ${venue.district}` : ''}
                   </p>
                 </div>
               </div>
               <div className="mt-3 flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <span className="text-sm font-semibold text-ink">
-                    {venue.price_per_slot.toLocaleString()} so'm
+                    {(venue.price_per_slot ?? 0).toLocaleString()} so'm
                   </span>
-                  {venue.avg_rating > 0 && (
+                  {venue.avg_rating && venue.avg_rating > 0 && (
                     <span className="text-sm text-ink-tertiary flex items-center gap-1">
                       <Star className="w-3.5 h-3.5 text-warning fill-warning" />
-                      {venue.avg_rating}
+                      {venue.avg_rating.toFixed(1)}
                     </span>
                   )}
                 </div>
@@ -185,9 +151,11 @@ export default function VenuesPage() {
                   <button className="p-2 rounded-xl text-ink-tertiary hover:bg-surface-subtle hover:text-info transition-colors" aria-label="Tahrirlash">
                     <Edit3 className="w-4 h-4" />
                   </button>
-                  <button className="p-2 rounded-xl text-ink-tertiary hover:bg-surface-subtle hover:text-ink-secondary transition-colors" aria-label="Ko'rish">
-                    <Eye className="w-4 h-4" />
-                  </button>
+                  <Link href={`/venues/${venue.id}`}>
+                    <button className="p-2 rounded-xl text-ink-tertiary hover:bg-surface-subtle hover:text-ink-secondary transition-colors" aria-label="Ko'rish">
+                      <Eye className="w-4 h-4" />
+                    </button>
+                  </Link>
                   <button onClick={() => setDeleteId(venue.id)} className="p-2 rounded-xl text-ink-tertiary hover:bg-surface-subtle hover:text-error transition-colors" aria-label="O'chirish">
                     <Trash2 className="w-4 h-4" />
                   </button>
@@ -202,7 +170,7 @@ export default function VenuesPage() {
         <p className="text-sm text-ink-secondary">Bu joyni o'chirishni xohlaysizmi? Bu amalni qaytarib bo'lmaydi.</p>
         <div className="flex items-center justify-end gap-3 mt-6">
           <Button variant="ghost" onClick={() => setDeleteId(null)}>Bekor qilish</Button>
-          <Button variant="danger" onClick={() => deleteId && handleDelete(deleteId)}>O'chirish</Button>
+          <Button variant="danger" onClick={() => deleteId && deleteMutation.mutate(deleteId)} loading={deleteMutation.isPending}>O'chirish</Button>
         </div>
       </Modal>
     </div>

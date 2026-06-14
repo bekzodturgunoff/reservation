@@ -3,6 +3,9 @@ import type { Metadata, Viewport } from 'next'
 import { Inter, Plus_Jakarta_Sans, JetBrains_Mono } from 'next/font/google'
 import './globals.css'
 import { Providers } from './providers'
+import { AppLoader } from '@/components/layout/AppLoader'
+import { Analytics } from '@vercel/analytics/react'
+import { SpeedInsights } from '@vercel/speed-insights/next'
 
 const display = Plus_Jakarta_Sans({
   subsets: ['latin'],
@@ -65,8 +68,12 @@ export default function RootLayout({
     <html lang="uz" className={`${display.variable} ${body.variable} ${mono.variable}`} suppressHydrationWarning>
       <body className="font-body antialiased">
         <Providers>
-          {children}
+          <AppLoader>
+            {children}
+          </AppLoader>
         </Providers>
+        <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   )

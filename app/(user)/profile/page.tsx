@@ -21,7 +21,7 @@ export default function ProfilePage() {
     const loadProfile = async () => {
       const { data } = await supabase
         .from('profiles')
-        .select('*')
+        .select('id, full_name, phone, avatar_url, role, total_points, created_at')
         .eq('id', user.id)
         .single()
       setProfile(data)

@@ -1,87 +1,118 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import { TrendingUp, CalendarCheck, DollarSign, ArrowUpRight, ArrowDownRight } from 'lucide-react'
+import { useAuthStore } from '@/store/auth'
 import { Card } from '@/components/ui/Card'
 import { Skeleton } from '@/components/ui/Skeleton'
-
-interface SummaryCard {
-  label: string
-  value: string
-  change: number
-  icon: typeof TrendingUp
-  color: string
-}
-
-interface Transaction {
-  id: string
-  venue: string
-  amount: number
-  date: string
-  type: 'booking' | 'refund'
-}
-
-const summaryCards: SummaryCard[] = [
-  {
-    label: 'Oy uchun jami daromad',
-    value: '28 500 000 so\'m',
-    change: 12.5,
-    icon: DollarSign,
-    color: 'text-brand bg-brand-pale',
-  },
-  {
-    label: 'Faol buyurtmalar',
-    value: '23',
-    change: 8.3,
-    icon: CalendarCheck,
-    color: 'text-info bg-info-bg',
-  },
-  {
-    label: "O'rtacha buyurtma summasi",
-    value: '1 239 000 so\'m',
-    change: -2.1,
-    icon: TrendingUp,
-    color: 'text-warning bg-warning-bg',
-  },
-]
-
-const recentTransactions: Transaction[] = [
-  { id: '1', venue: 'Grand Ballroom', amount: 1500000, date: '2026-06-20', type: 'booking' },
-  { id: '2', venue: 'Sky Lounge', amount: 2500000, date: '2026-06-19', type: 'booking' },
-  { id: '3', venue: 'Cozy Corner', amount: 500000, date: '2026-06-18', type: 'refund' },
-  { id: '4', venue: 'Grand Ballroom', amount: 1500000, date: '2026-06-17', type: 'booking' },
-  { id: '5', venue: 'Green Garden', amount: 800000, date: '2026-06-16', type: 'booking' },
-]
-
-const dailyRevenue = [
-  { day: 'Du', amount: 3200000 },
-  { day: 'Se', amount: 4800000 },
-  { day: 'Chor', amount: 2500000 },
-  { day: 'Pay', amount: 6100000 },
-  { day: 'Ju', amount: 3900000 },
-  { day: 'Shan', amount: 7200000 },
-  { day: 'Yak', amount: 2800000 },
-]
-
-const maxRevenue = Math.max(...dailyRevenue.map((d) => d.amount))
+import { supabase } from '@/lib/supabase'
+import type { Booking } from '@/types'
 
 export default function RevenuePage() {
-  const [loading, setLoading] = useState(true)
+  const { profile } = useAuthStore()
 
-  useEffect(() => {
-    const timer = setTimeout(() => setLoading(false), 600)
-    return () => clearTimeout(timer)
-  }, [])
+  const { data: bookings = [], isLoading } = useQuery({
+    queryKey: ['my-revenue', profile?.id],
+    queryFn: async () => {
+      const { data: myVenues } = await supabase
+        .from('venues')
+        .select('id, name')
+        .eq('owner_id', profile!.id)
+      if (!myVenues || myVenues.length === 0) return []
+      const venueIds = myVenues.map(v => v.id)
+      const { data } = await supabase
+        .from('bookings')
+        .select('*, venues(name)')
+        .in('venue_id', venueIds)
+        .order('created_at', { ascending: false })
+        .limit(50)
+      return (data || []) as (Booking & { venues: { name: string } | null })[]
+    },
+    enabled: !!profile?.id,
+  })
+
+  const confirmed = bookings.filter(b => b.status === 'confirmed')
+  const totalRevenue = confirmed.reduce((sum, b) => sum + b.total_price, 0)
+  const activeBookings = bookings.filter(b => b.status === 'confirmed').length
+  const avgOrder = confirmed.length > 0 ? totalRevenue / confirmed.length : 0
+
+  const now = new Date()
+  const thisMonth = now.toISOString().substring(0, 7)
+  const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1).toISOString().substring(0, 7)
+
+  const thisMonthRevenue = confirmed
+    .filter(b => b.created_at?.startsWith(thisMonth))
+    .reduce((s, b) => s + b.total_price, 0)
+  const lastMonthRevenue = confirmed
+    .filter(b => b.created_at?.startsWith(lastMonth))
+    .reduce((s, b) => s + b.total_price, 0)
+
+  const revenueChange = lastMonthRevenue > 0
+    ? Math.round(((thisMonthRevenue - lastMonthRevenue) / lastMonthRevenue) * 100)
+    : 0
+
+  const thisMonthCount = confirmed.filter(b => b.created_at?.startsWith(thisMonth)).length
+  const lastMonthCount = confirmed.filter(b => b.created_at?.startsWith(lastMonth)).length
+  const bookingsChange = lastMonthCount > 0
+    ? Math.round(((thisMonthCount - lastMonthCount) / lastMonthCount) * 100)
+    : 0
+
+  const summaryCards = [
+    {
+      label: 'Oy uchun jami daromad',
+      value: `${totalRevenue.toLocaleString()} so'm`,
+      change: revenueChange,
+      icon: DollarSign,
+      color: 'text-brand bg-brand-pale',
+    },
+    {
+      label: 'Faol buyurtmalar',
+      value: activeBookings.toString(),
+      change: bookingsChange,
+      icon: CalendarCheck,
+      color: 'text-info bg-info-bg',
+    },
+    {
+      label: "O'rtacha buyurtma summasi",
+      value: `${avgOrder.toLocaleString()} so'm`,
+      change: 0,
+      icon: TrendingUp,
+      color: 'text-warning bg-warning-bg',
+    },
+  ]
+
+  const dailyRevenue = (() => {
+    const days: Record<string, number> = {}
+    const dayNames = ['Yak', 'Du', 'Se', 'Chor', 'Pay', 'Ju', 'Shan']
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date()
+      d.setDate(d.getDate() - i)
+      days[d.toISOString().split('T')[0]] = 0
+    }
+    confirmed.forEach(b => {
+      const dateKey = b.created_at?.split('T')[0]
+      if (dateKey && dateKey in days) {
+        days[dateKey] += b.total_price
+      }
+    })
+    return Object.entries(days).map(([date, amount]) => ({
+      day: dayNames[new Date(date).getDay()],
+      amount,
+    }))
+  })()
+
+  const maxRevenue = Math.max(...dailyRevenue.map(d => d.amount), 1)
+
+  const recentTransactions = bookings.slice(0, 10)
 
   return (
     <div className="space-y-6">
       <h1 className="text-xl font-display font-semibold text-ink">Daromad</h1>
 
-      {/* Summary cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {summaryCards.map((card) => (
           <Card key={card.label} className="p-5">
-            {loading ? (
+            {isLoading ? (
               <div className="space-y-3">
                 <Skeleton variant="rect" className="w-10 h-10 rounded-xl" />
                 <Skeleton variant="text" width="60%" />
@@ -106,7 +137,6 @@ export default function RevenuePage() {
         ))}
       </div>
 
-      {/* Bar chart mock */}
       <Card className="p-6">
         <h2 className="text-sm font-semibold text-ink mb-4">Haftalik daromad</h2>
         <div className="flex items-end gap-3 h-40" role="img" aria-label={`Haftalik daromad: ${dailyRevenue.map(d => `${d.day} ${d.amount.toLocaleString()} so'm`).join(', ')}`}>
@@ -116,10 +146,10 @@ export default function RevenuePage() {
                 {day.amount.toLocaleString()} so'm
               </div>
               <div
-                className="w-full bg-brand rounded-lg transition-all duration-500 ease-out-quart"
+                className="w-full bg-brand rounded-lg transition-all duration-500"
                 style={{
-                  height: `${(day.amount / maxRevenue) * 100}%`,
-                  opacity: loading ? 0.3 : 1,
+                  height: `${Math.max((day.amount / maxRevenue) * 100, 4)}%`,
+                  opacity: isLoading ? 0.3 : 1,
                 }}
               />
               <span className="text-xs text-ink-tertiary">{day.day}</span>
@@ -128,13 +158,12 @@ export default function RevenuePage() {
         </div>
       </Card>
 
-      {/* Recent transactions */}
       <Card className="overflow-hidden">
         <div className="px-6 py-4 border-b border-border">
           <h2 className="text-sm font-semibold text-ink">Oxirgi tranzaksiyalar</h2>
         </div>
         <div className="divide-y divide-border">
-          {loading
+          {isLoading
             ? Array.from({ length: 4 }).map((_, i) => (
                 <div key={i} className="px-6 py-4 flex items-center justify-between">
                   <div className="space-y-1">
@@ -147,15 +176,15 @@ export default function RevenuePage() {
             : recentTransactions.map((tx) => (
                 <div key={tx.id} className="px-6 py-4 flex items-center justify-between hover:bg-surface-subtle transition-colors">
                   <div>
-                    <p className="text-sm font-medium text-ink">{tx.venue}</p>
-                    <p className="text-xs text-ink-tertiary">{tx.date}</p>
+                    <p className="text-sm font-medium text-ink">{tx.venues?.name || tx.service_name}</p>
+                    <p className="text-xs text-ink-tertiary">{new Date(tx.created_at).toLocaleDateString('uz-UZ')}</p>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className={`text-xs font-medium ${tx.type === 'refund' ? 'text-error' : 'text-success'}`}>
-                      {tx.type === 'refund' ? 'Qaytarildi' : 'To\'landi'}
+                    <span className={`text-xs font-medium ${tx.status === 'cancelled' ? 'text-error' : 'text-success'}`}>
+                      {tx.status === 'cancelled' ? 'Qaytarildi' : 'To\'landi'}
                     </span>
-                    <span className={`text-sm font-semibold ${tx.type === 'refund' ? 'text-error' : 'text-ink'}`}>
-                      {tx.type === 'refund' ? '-' : '+'}{tx.amount.toLocaleString()} so'm
+                    <span className={`text-sm font-semibold ${tx.status === 'cancelled' ? 'text-error' : 'text-ink'}`}>
+                      {tx.status === 'cancelled' ? '-' : '+'}{tx.total_price.toLocaleString()} so'm
                     </span>
                   </div>
                 </div>

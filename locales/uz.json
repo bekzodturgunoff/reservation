@@ -196,13 +196,6 @@
     "telegramNote": "📱 Telegram orqali tasdiq xabari olasiz. Agar bildirishnoma kelmagan bo'lsa, admin bilan bog'laning.",
     "myBookings": "Mening bronlarim"
   },
-  "footer": {
-    "site": "Sayt",
-    "categories": "Kategoriyalar",
-    "businessFor": "Biznes uchun",
-    "addVenue": "Joyingizni qo'shing",
-    "copyright": "© 2026 BronUz. Barcha huquqlar himoyalangan."
-  },
   "profile": {
     "title": "Mening profilim",
     "welcome": "Xush kelibsiz, {{name}}!",

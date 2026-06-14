@@ -11,6 +11,14 @@ export default {
       },
       colors: {
         brand: {
+          '50': '#ECFDF5',
+          '100': '#D1FAE5',
+          '200': '#A7F3D0',
+          '500': '#10B981',
+          '600': '#059669',
+          '700': '#047857',
+          '800': '#065F46',
+          '900': '#022c22',
           DEFAULT: '#059669',
           dark: '#047857',
           darker: '#065F46',
@@ -23,14 +31,25 @@ export default {
           tertiary: '#6B7280',
           muted: '#9CA3AF',
         },
+        line: {
+          DEFAULT: '#E5E7EB',
+          strong: '#D1D5DB',
+        },
         border: {
           DEFAULT: '#E5E7EB',
           strong: '#D1D5DB',
         },
         surface: {
           DEFAULT: '#FFFFFF',
+          subtle: '#F9FAFB',
+          muted: '#F3F4F6',
           bg: '#F9FAFB',
-          subtle: '#F3F4F6',
+        },
+        status: {
+          success: { DEFAULT: '#10B981', bg: '#ECFDF5' },
+          warning: { DEFAULT: '#F59E0B', bg: '#FFFBEB' },
+          error: { DEFAULT: '#EF4444', bg: '#FEF2F2' },
+          info: { DEFAULT: '#3B82F6', bg: '#EFF6FF' },
         },
         success: {
           DEFAULT: '#10B981',
@@ -51,11 +70,16 @@ export default {
       },
       borderRadius: {
         pill: '9999px',
+        card: '20px',
+        input: '12px',
+        btn: '12px',
+        modal: '24px',
       },
       boxShadow: {
-        card: '0 1px 3px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.06)',
-        'card-hover': '0 4px 6px rgba(0,0,0,0.05), 0 10px 40px rgba(0,0,0,0.12)',
-        modal: '0 20px 60px rgba(0,0,0,0.2), 0 4px 16px rgba(0,0,0,0.1)',
+        card: '0 1px 3px rgba(0,0,0,0.05), 0 4px 16px rgba(0,0,0,0.07)',
+        'card-hover': '0 8px 30px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.06)',
+        modal: '0 24px 80px rgba(0,0,0,0.18)',
+        btn: '0 1px 2px rgba(5,150,105,0.25), 0 4px 12px rgba(5,150,105,0.18)',
         button: '0 1px 2px rgba(5,150,105,0.3), 0 4px 12px rgba(5,150,105,0.2)',
         nav: '0 1px 0 rgba(0,0,0,0.06)',
       },

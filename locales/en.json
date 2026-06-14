@@ -196,13 +196,6 @@
     "telegramNote": "📱 You'll receive a confirmation via Telegram. If the notification hasn't arrived, contact the admin.",
     "myBookings": "My bookings"
   },
-  "footer": {
-    "site": "Site",
-    "categories": "Categories",
-    "businessFor": "For business",
-    "addVenue": "Add your venue",
-    "copyright": "© 2026 BronUz. All rights reserved."
-  },
   "profile": {
     "title": "My profile",
     "welcome": "Welcome, {{name}}!",

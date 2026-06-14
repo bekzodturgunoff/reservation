@@ -1,1 +1,6 @@
-{}
+{
+  "/business/venues/page": "app/business/venues/page.js",
+  "/(public)/page": "app/(public)/page.js",
+  "/business/settings/page": "app/business/settings/page.js",
+  "/business/page": "app/business/page.js"
+}

@@ -1,27 +1,149 @@
 'use client'
 
-import { Suspense, useState } from 'react'
+import { Suspense, useState, useMemo } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { useQuery } from '@tanstack/react-query'
 import Link from 'next/link'
-import { Search, MapPin, SlidersHorizontal, X, Star } from 'lucide-react'
+import {
+  MapPin, Star, LayoutGrid, List,
+  Map as MapIcon, ChevronLeft, ChevronRight, ChevronDown,
+} from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useTitle } from '@/hooks/useTitle'
-import { useTranslation } from 'react-i18next'
-import { UZBEKISTAN_REGIONS } from '@/lib/constants'
+import { SearchFilters } from '@/components/search/SearchFilters'
+import { SearchMap } from '@/components/search/SearchMap'
+import { SearchAutocomplete } from '@/components/search/SearchAutocomplete'
+import { Skeleton } from '@/components/ui/Skeleton'
+import { EmptyState } from '@/components/ui/EmptyState'
+import { FavoriteButton } from '@/components/ui/FavoriteButton'
 import type { Venue, Category } from '@/types'
+import type { FilterState } from '@/components/search/SearchFilters'
+
+const ITEMS_PER_PAGE = 12
+
+function VenueCard({ venue }: { venue: Venue }) {
+  const rating = venue.review_count && venue.review_count >= 3
+    ? venue.avg_rating?.toFixed(1)
+    : venue.review_count && venue.review_count >= 1 ? '—' : null
+
+  return (
+    <Link
+      href={`/venues/${venue.id}`}
+      className="group bg-white rounded-card border border-border shadow-card hover:shadow-card-hover hover:-translate-y-1 transition-all duration-300 overflow-hidden"
+    >
+      <div className="relative h-[200px] sm:h-[220px] overflow-hidden">
+        <img
+          src={venue.photos?.[0] || 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=400&q=80'}
+          alt={venue.name}
+          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-transparent to-transparent" />
+
+        <span className="absolute top-3 left-3 inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-medium bg-white/20 backdrop-blur-sm border border-white/30 text-white">
+          {venue.categories?.icon || '🏢'} {venue.categories?.name_uz || ''}
+        </span>
+        <FavoriteButton venueId={venue.id} className="absolute top-3 right-3" />
+
+        {rating && (
+          <div className="absolute bottom-3 left-3 flex items-center gap-1">
+            <Star className="w-3.5 h-3.5 fill-yellow-400 text-yellow-400" />
+            <span className="text-sm font-semibold text-white">
+              {venue.avg_rating?.toFixed(1)}
+            </span>
+          </div>
+        )}
+      </div>
+
+      <div className="p-4">
+        <h3 className="font-display text-base font-semibold text-ink truncate">{venue.name}</h3>
+        <p className="flex items-center gap-1 text-xs text-ink-tertiary mt-1 truncate">
+          <MapPin className="w-3 h-3 shrink-0" />
+          {venue.city}{venue.district ? `, ${venue.district}` : ''}
+        </p>
+
+        <div className="mt-3 pt-3 border-t border-border flex items-center justify-between">
+          <div>
+            <span className="text-[10px] text-ink-muted uppercase tracking-wider">soatiga</span>
+            <p className="text-lg font-display font-bold text-ink">
+              {(venue.price_per_slot || 0).toLocaleString()} UZS
+            </p>
+          </div>
+          <span className="text-xs font-semibold text-brand group-hover:underline flex items-center gap-1">
+            Bron qilish
+            <ChevronDown className="w-3 h-3 -rotate-90" />
+          </span>
+        </div>
+      </div>
+    </Link>
+  )
+}
+
+function VenueListItem({ venue }: { venue: Venue }) {
+  return (
+    <Link
+      href={`/venues/${venue.id}`}
+      className="group flex gap-4 p-4 bg-white rounded-card border border-border shadow-card hover:shadow-card-hover hover:-translate-y-0.5 transition-all duration-300"
+    >
+      <div className="w-28 sm:w-36 h-24 sm:h-28 shrink-0 rounded-lg overflow-hidden">
+        <img
+          src={venue.photos?.[0] || 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=400&q=80'}
+          alt={venue.name}
+          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+        />
+      </div>
+      <div className="flex-1 min-w-0 flex flex-col justify-between">
+        <div>
+          <div className="flex items-center gap-2">
+            <h3 className="font-display font-semibold text-ink truncate">{venue.name}</h3>
+            <span className="shrink-0 text-[10px] font-medium bg-surface-bg text-ink-secondary px-2 py-0.5 rounded-full">
+              {venue.categories?.icon} {venue.categories?.name_uz}
+            </span>
+          </div>
+          <p className="flex items-center gap-1 text-xs text-ink-tertiary mt-1">
+            <MapPin className="w-3 h-3 shrink-0" />
+            {venue.city}{venue.district ? `, ${venue.district}` : ''}
+          </p>
+        </div>
+        <div className="flex items-center justify-between mt-2">
+          <div>
+            <span className="text-[10px] text-ink-muted uppercase tracking-wider">soatiga</span>
+            <p className="text-base font-bold text-ink">
+              {(venue.price_per_slot || 0).toLocaleString()} UZS
+            </p>
+          </div>
+          <div className="flex items-center gap-3">
+            {(venue.review_count ?? 0) >= 3 && (
+              <div className="flex items-center gap-1 text-xs text-ink-secondary">
+                <Star className="w-3.5 h-3.5 fill-yellow-400 text-yellow-400" />
+                {venue.avg_rating?.toFixed(1)}
+              </div>
+            )}
+            <span className="text-xs font-semibold text-brand group-hover:underline">
+              Bron qilish
+            </span>
+          </div>
+        </div>
+      </div>
+    </Link>
+  )
+}
 
 const SearchPageInner = () => {
-  const { t, i18n } = useTranslation()
   useTitle('Qidirish — BronUz')
   const searchParams = useSearchParams()
 
-  const [searchInput, setSearchInput] = useState(searchParams.get('search') || '')
-  const [city, setCity] = useState(searchParams.get('city') || '')
-  const [category, setCategory] = useState(searchParams.get('category') || '')
-  const [filtersOpen, setFiltersOpen] = useState(false)
-  const [minPrice, setMinPrice] = useState(searchParams.get('minPrice') || '')
-  const [maxPrice, setMaxPrice] = useState(searchParams.get('maxPrice') || '')
+  const [filters, setFilters] = useState<FilterState>({
+    search: searchParams.get('search') || '',
+    city: searchParams.get('city') || '',
+    category: searchParams.get('category') || '',
+    minPrice: searchParams.get('minPrice') || '',
+    maxPrice: searchParams.get('maxPrice') || '',
+    minCapacity: '',
+  })
+  const [page, setPage] = useState(1)
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
+  const [showMap, setShowMap] = useState(false)
+  const [sortBy, setSortBy] = useState('')
 
   const { data: categories = [] } = useQuery({
     queryKey: ['categories'],
@@ -31,242 +153,289 @@ const SearchPageInner = () => {
     },
   })
 
-  const { data: venues = [], isLoading } = useQuery({
-    queryKey: ['venues', 'search', searchInput, city, category, minPrice, maxPrice],
+  const { data: allVenues = [], isLoading } = useQuery({
+    queryKey: ['venues', 'search', filters, sortBy],
     queryFn: async () => {
-      let query = supabase.from('venues').select('*, categories(*)').eq('status', 'active')
+      let query = supabase
+        .from('venues')
+        .select('*, categories(*)')
+        .eq('status', 'active')
+        .limit(100)
 
-      if (searchInput) query = query.ilike('name', `%${searchInput}%`)
-      if (city) query = query.eq('city', city)
-      if (category) query = query.eq('category_id', parseInt(category))
-      if (minPrice) query = query.gte('price_per_slot', parseInt(minPrice))
-      if (maxPrice) query = query.lte('price_per_slot', parseInt(maxPrice))
+      if (filters.search) query = query.ilike('name', `%${filters.search}%`)
+      if (filters.city) query = query.eq('city', filters.city)
+      if (filters.category) query = query.eq('category_id', parseInt(filters.category))
+      if (filters.minPrice) query = query.gte('price_per_slot', parseInt(filters.minPrice))
+      if (filters.maxPrice) query = query.lte('price_per_slot', parseInt(filters.maxPrice))
+      if (filters.minCapacity) query = query.gte('max_group_size', parseInt(filters.minCapacity))
 
-      const { data } = await query.limit(50)
+      const { data } = await query
       return (data || []) as Venue[]
     },
   })
 
-  const getLangName = (uz: string, ru: string) => i18n.language === 'uz' ? uz : ru
+  const sorted = useMemo(() => {
+    const list = [...allVenues]
+    if (sortBy === 'price-asc') list.sort((a, b) => (a.price_per_slot || 0) - (b.price_per_slot || 0))
+    if (sortBy === 'price-desc') list.sort((a, b) => (b.price_per_slot || 0) - (a.price_per_slot || 0))
+    if (sortBy === 'rating') list.sort((a, b) => (b.avg_rating || 0) - (a.avg_rating || 0))
+    return list
+  }, [allVenues, sortBy])
 
-  const activeCategory = categories.find(c => c.slug === category)
-
-  const hasActiveFilters = !!(searchInput || category || minPrice || maxPrice)
+  const totalPages = Math.max(1, Math.ceil(sorted.length / ITEMS_PER_PAGE))
+  const paginated = sorted.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE)
 
   const clearFilters = () => {
-    setSearchInput('')
-    setCity('')
-    setCategory('')
-    setMinPrice('')
-    setMaxPrice('')
+    setFilters({ search: '', city: '', category: '', minPrice: '', maxPrice: '', minCapacity: '' })
+    setPage(1)
+  }
+
+  const activeCategory = categories.find((c) => c.slug === filters.category)
+
+  if (showMap) {
+    return (
+      <div className="h-[calc(100vh-72px)] flex flex-col">
+        <div className="sticky top-[72px] z-30 bg-white border-b border-border px-4 sm:px-6 lg:px-8 py-3">
+          <div className="max-w-7xl mx-auto flex items-center gap-3">
+            <button
+              onClick={() => setShowMap(false)}
+              className="flex items-center gap-1.5 text-sm text-ink-secondary hover:text-ink transition-colors"
+            >
+              <ChevronLeft className="w-4 h-4" />
+              Ro'yxat
+            </button>
+            <span className="text-sm text-ink-tertiary">
+              <span className="font-semibold text-ink">{sorted.length}</span> ta joy
+            </span>
+          </div>
+        </div>
+        <div className="flex-1">
+          <SearchMap venues={sorted} />
+        </div>
+      </div>
+    )
   }
 
   return (
     <div>
-      {/* Top search bar */}
-      <div className="sticky top-[72px] z-30 bg-white border-b border-border px-4 sm:px-6 lg:px-8 py-4">
-        <div className="max-w-7xl mx-auto">
-          <div className="flex flex-col sm:flex-row gap-3">
-            <div className="relative flex-1">
-              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-muted" />
-              <input
-                type="text"
-                placeholder={t('search.placeholder', 'Joy nomi yoki shaharni kiriting...')}
-                value={searchInput}
-                onChange={(e) => setSearchInput(e.target.value)}
-                className="w-full pl-10 pr-4 h-[44px] text-sm bg-surface-bg border border-border rounded-xl outline-none text-ink placeholder:text-ink-muted"
-              />
-              {searchInput && (
-                <button onClick={() => setSearchInput('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-muted">
-                  <X className="w-4 h-4" />
-                </button>
-              )}
-            </div>
+      {/* Top bar */}
+      <div className="sticky top-[72px] z-30 bg-white border-b border-border">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
+          <div className="flex items-center gap-3">
+            <SearchAutocomplete
+              value={filters.search}
+              onChange={(val) => { setFilters({ ...filters, search: val }); setPage(1) }}
+              onClear={() => { setFilters({ ...filters, search: '' }); setPage(1) }}
+            />
 
-            <select
-              value={city}
-              onChange={(e) => setCity(e.target.value)}
-              className="sm:w-40 h-[44px] px-3 text-sm bg-surface-bg border border-border rounded-xl outline-none text-ink"
-            >
-              <option value="">{t('common.all', 'Hammasi')}</option>
-              {Object.keys(UZBEKISTAN_REGIONS).map((r) => (
-                <option key={r} value={r}>{r}</option>
-              ))}
-            </select>
-
-            <button
-              onClick={() => setFiltersOpen(!filtersOpen)}
-              className={`flex items-center gap-2 h-[44px] px-4 text-sm rounded-xl border transition-colors ${
-                hasActiveFilters
-                  ? 'bg-brand-pale border-brand text-brand'
-                  : 'bg-white border-border text-ink-secondary hover:border-border-strong'
-              }`}
-            >
-              <SlidersHorizontal className="w-4 h-4" />
-              {t('search.filters', 'Filter')}
-              {hasActiveFilters && (
-                <span className="w-5 h-5 bg-brand text-white text-xs rounded-full flex items-center justify-center font-medium">
-                  {[searchInput, category, minPrice, maxPrice].filter(Boolean).length}
-                </span>
-              )}
-            </button>
-          </div>
-
-          {filtersOpen && (
-            <div className="mt-4 p-4 bg-surface-bg rounded-2xl">
-              <div className="flex flex-wrap gap-4 items-end">
-                <div className="flex-1 min-w-[160px]">
-                  <label className="block text-xs font-medium text-ink-secondary mb-1.5">{t('common.category', 'Kategoriya')}</label>
-                  <select
-                    value={category}
-                    onChange={(e) => setCategory(e.target.value)}
-                    className="w-full h-[44px] px-3 text-sm bg-white border border-border rounded-xl outline-none"
-                  >
-                    <option value="">{t('search.allCategories', 'Hamma kategoriyalar')}</option>
-                    {categories.map((cat) => (
-                      <option key={cat.id} value={cat.slug}>{cat.icon} {getLangName(cat.name_uz, cat.name_ru)}</option>
-                    ))}
-                  </select>
-                </div>
-                <div className="flex-1 min-w-[120px]">
-                  <label className="block text-xs font-medium text-ink-secondary mb-1.5">{t('search.minPrice', 'Min narx')}</label>
-                  <input
-                    type="number"
-                    placeholder="0"
-                    value={minPrice}
-                    onChange={(e) => setMinPrice(e.target.value)}
-                    className="w-full h-[44px] px-3 text-sm bg-white border border-border rounded-xl outline-none"
-                  />
-                </div>
-                <div className="flex-1 min-w-[120px]">
-                  <label className="block text-xs font-medium text-ink-secondary mb-1.5">{t('search.maxPrice', 'Max narx')}</label>
-                  <input
-                    type="number"
-                    placeholder="500000"
-                    value={maxPrice}
-                    onChange={(e) => setMaxPrice(e.target.value)}
-                    className="w-full h-[44px] px-3 text-sm bg-white border border-border rounded-xl outline-none"
-                  />
-                </div>
-                {hasActiveFilters && (
-                  <button
-                    onClick={clearFilters}
-                    className="flex items-center gap-1.5 h-[44px] px-4 text-sm text-error hover:bg-error-bg rounded-xl border border-error/20 transition-colors"
-                  >
-                    <X className="w-4 h-4" /> {t('search.clear', 'Tozalash')}
-                  </button>
-                )}
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Category pills */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6 mb-6">
-        <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
-          <button
-            onClick={() => setCategory('')}
-            className={`shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-all border ${
-              category === ''
-                ? 'bg-brand text-white border-brand'
-                : 'bg-surface-bg text-ink-secondary border-border hover:border-border-strong'
-            }`}
-          >
-            {t('search.allCategories', 'Hammasi')}
-          </button>
-          {categories.map((cat) => (
-            <button
-              key={cat.id}
-              onClick={() => setCategory(cat.slug === category ? '' : cat.slug)}
-              className={`shrink-0 flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium transition-all border ${
-                category === cat.slug
-                  ? 'bg-brand text-white border-brand'
-                  : 'bg-white text-ink-secondary border-border hover:border-border-strong'
-              }`}
-            >
-              {cat.icon} {getLangName(cat.name_uz, cat.name_ru)}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Results */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
-        <div className="flex items-center justify-between mb-6">
-          <p className="text-sm text-ink-tertiary">
-            {isLoading ? (
-              <span className="animate-pulse">{t('search.searching', 'Qidirilmoqda...')}</span>
-            ) : (
-              <>
-                <span className="font-semibold text-ink">{venues.length}</span> {t('search.results', 'ta joy topildi')}
-                {activeCategory && (
-                  <span className="ml-1">— {activeCategory.icon} {getLangName(activeCategory.name_uz, activeCategory.name_ru)}</span>
-                )}
-                {city && <span className="ml-1">· {city}</span>}
-              </>
-            )}
-          </p>
-        </div>
-
-        {venues.length === 0 && !isLoading ? (
-          <div className="text-center py-16">
-            <span className="text-6xl">🔍</span>
-            <h3 className="text-xl font-semibold text-ink mt-4">{t('search.empty', 'Hech narsa topilmadi')}</h3>
-            <p className="text-sm text-ink-tertiary mt-2">{t('search.emptyDesc', 'Boshqa qidiruv so\'rovini kiriting yoki filtrlarni o\'zgartiring')}</p>
-            <button
-              onClick={clearFilters}
-              className="mt-6 px-6 py-3 bg-brand text-white rounded-xl text-sm font-semibold hover:bg-brand-dark transition-colors"
-            >
-              {t('search.clearFilters', 'Filtrlarni tozalash')}
-            </button>
-          </div>
-        ) : (
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
-            {venues.map((venue) => (
-              <Link
-                key={venue.id}
-                href={`/venues/${venue.id}`}
-                className="group bg-white rounded-2xl border border-border shadow-card hover:shadow-card-hover hover:-translate-y-1 transition-all duration-300 overflow-hidden"
+            <div className="hidden sm:flex items-center gap-2 ml-auto">
+              {/* Sort */}
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value)}
+                className="h-[42px] px-3 text-xs bg-white border border-border rounded-input outline-none text-ink-secondary"
               >
-                <div className="relative h-[180px] overflow-hidden">
-                  <div
-                    className="w-full h-full bg-cover bg-center group-hover:scale-105 transition-transform duration-500"
-                    style={{ backgroundImage: `url(${venue.photos?.[0] || 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=400'})` }}
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-                  <div className="absolute top-3 left-3">
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-white/20 backdrop-blur-sm text-white">
-                      {venue.categories?.icon || '🏢'} {venue.categories ? getLangName(venue.categories.name_uz, venue.categories.name_ru) : ''}
-                    </span>
-                  </div>
-                  <div className="absolute bottom-3 left-3 flex items-center gap-1 text-white">
-                    <Star className="w-3.5 h-3.5 fill-yellow-400 text-yellow-400" />
-                    <span className="text-sm font-semibold">{venue.avg_rating?.toFixed(1) || '4.8'}</span>
-                    <span className="text-xs text-white/70">({venue.review_count || 0})</span>
-                  </div>
-                </div>
-                <div className="p-4">
-                  <h3 className="font-display text-base font-semibold text-ink truncate">{venue.name}</h3>
-                  <p className="flex items-center gap-1 text-sm text-ink-tertiary mt-1 truncate">
-                    <MapPin className="w-3.5 h-3.5 shrink-0" />
-                    {venue.city}
-                    {venue.district && `, ${venue.district}`}
-                  </p>
-                  <div className="flex items-center justify-between mt-4 pt-3 border-t border-border">
-                    <div>
-                      <span className="text-xs text-ink-tertiary">soatiga</span>
-                      <p className="text-base font-bold text-ink">
-                        {new Intl.NumberFormat('uz-UZ').format(venue.price_per_slot)} UZS
-                      </p>
-                    </div>
-                    <span className="text-xs font-semibold text-brand group-hover:underline">Bron qilish</span>
-                  </div>
-                </div>
-              </Link>
+                <option value="">Standart</option>
+                <option value="price-asc">Narx: arzon → qimmat</option>
+                <option value="price-desc">Narx: qimmat → arzon</option>
+                <option value="rating">Reyting bo'yicha</option>
+              </select>
+
+              {/* View toggle */}
+              <div className="flex border border-border rounded-input overflow-hidden">
+                <button
+                  onClick={() => setViewMode('grid')}
+                  className={`p-2.5 transition-colors ${viewMode === 'grid' ? 'bg-brand text-white' : 'bg-white text-ink-muted hover:text-ink'}`}
+                  aria-label="Grid ko'rinishi"
+                >
+                  <LayoutGrid className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={() => setViewMode('list')}
+                  className={`p-2.5 transition-colors ${viewMode === 'list' ? 'bg-brand text-white' : 'bg-white text-ink-muted hover:text-ink'}`}
+                  aria-label="Ro'yxat ko'rinishi"
+                >
+                  <List className="w-4 h-4" />
+                </button>
+              </div>
+
+              {/* Map toggle */}
+              <button
+                onClick={() => setShowMap(true)}
+                className="flex items-center gap-1.5 h-[42px] px-4 text-xs border border-border rounded-input text-ink-secondary hover:text-ink hover:border-border-strong transition-colors"
+              >
+                <MapIcon className="w-4 h-4" />
+                Xarita
+              </button>
+            </div>
+          </div>
+
+          {/* Category pills */}
+          <div className="flex gap-2 overflow-x-auto pb-1 mt-3 scrollbar-hide -mx-4 sm:mx-0 px-4 sm:px-0">
+            <button
+              onClick={() => { setFilters({ ...filters, category: '' }); setPage(1) }}
+              className={`shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-all border ${
+                filters.category === ''
+                  ? 'bg-brand text-white border-brand'
+                  : 'bg-surface-bg text-ink-secondary border-border hover:border-border-strong'
+              }`}
+            >
+              Hammasi
+            </button>
+            {categories.map((cat) => (
+              <button
+                key={cat.id}
+                onClick={() => {
+                  setFilters({ ...filters, category: cat.slug === filters.category ? '' : cat.slug })
+                  setPage(1)
+                }}
+                className={`shrink-0 flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium transition-all border ${
+                  filters.category === cat.slug
+                    ? 'bg-brand text-white border-brand'
+                    : 'bg-white text-ink-secondary border-border hover:border-border-strong'
+                }`}
+              >
+                {cat.icon} {cat.name_uz}
+              </button>
             ))}
           </div>
-        )}
+        </div>
+      </div>
+
+      {/* Main content */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div className="flex gap-8">
+          {/* Sidebar */}
+          <SearchFilters
+            categories={categories}
+            filters={filters}
+            onChange={(f) => { setFilters(f); setPage(1) }}
+            onClear={clearFilters}
+            totalResults={sorted.length}
+          />
+
+          {/* Results */}
+          <div className="flex-1 min-w-0">
+            {/* Results header */}
+            <div className="flex items-center justify-between mb-5">
+              <p className="text-sm text-ink-tertiary">
+                {isLoading ? (
+                  <span className="animate-pulse">Qidirilmoqda...</span>
+                ) : (
+                  <>
+                    <span className="font-semibold text-ink">{sorted.length}</span> ta joy topildi
+                    {activeCategory && (
+                      <span className="ml-1">— {activeCategory.icon} {activeCategory.name_uz}</span>
+                    )}
+                    {filters.city && <span className="ml-1">· {filters.city}</span>}
+                  </>
+                )}
+              </p>
+
+              {/* Mobile sort (hidden on desktop) */}
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value)}
+                className="sm:hidden h-[36px] px-2 text-xs bg-white border border-border rounded-input outline-none text-ink-secondary"
+              >
+                <option value="">Standart</option>
+                <option value="price-asc">Narx: ↑</option>
+                <option value="price-desc">Narx: ↓</option>
+                <option value="rating">Reyting</option>
+              </select>
+            </div>
+
+            {/* Loading */}
+            {isLoading ? (
+              <div className={viewMode === 'grid'
+                ? 'grid sm:grid-cols-2 lg:grid-cols-3 gap-5'
+                : 'space-y-4'
+              }>
+                {Array.from({ length: 6 }).map((_, i) => (
+                  <div key={i} className={viewMode === 'grid' ? '' : 'flex gap-4'}>
+                    <Skeleton className={viewMode === 'grid' ? 'h-[220px] rounded-card' : 'w-36 h-28 rounded-lg shrink-0'} />
+                    <div className={viewMode === 'grid' ? 'space-y-2 mt-3' : 'space-y-2 flex-1'}>
+                      <Skeleton className="h-5 w-3/4 rounded-lg" />
+                      <Skeleton className="h-4 w-1/2 rounded-lg" />
+                      <Skeleton className="h-5 w-1/3 rounded-lg mt-3" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : paginated.length === 0 ? (
+              <EmptyState
+                icon={<MapPin className="w-10 h-10 text-ink-muted" />}
+                title="Hech narsa topilmadi"
+                description="Boshqa qidiruv so'rovini kiriting yoki filtrlarni o'zgartiring"
+                action={{
+                  label: 'Filtrlarni tozalash',
+                  onClick: clearFilters,
+                }}
+              />
+            ) : (
+              <>
+                {/* Results grid/list */}
+                {viewMode === 'grid' ? (
+                  <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-5">
+                    {paginated.map((venue) => (
+                      <VenueCard key={venue.id} venue={venue} />
+                    ))}
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {paginated.map((venue) => (
+                      <VenueListItem key={venue.id} venue={venue} />
+                    ))}
+                  </div>
+                )}
+
+                {/* Pagination */}
+                {totalPages > 1 && (
+                  <div className="flex items-center justify-center gap-2 mt-10">
+                    <button
+                      onClick={() => setPage(Math.max(1, page - 1))}
+                      disabled={page === 1}
+                      className="w-10 h-10 flex items-center justify-center rounded-lg border border-border hover:border-border-strong disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                      aria-label="Oldingi sahifa"
+                    >
+                      <ChevronLeft className="w-4 h-4 text-ink-secondary" />
+                    </button>
+
+                    {Array.from({ length: totalPages }).map((_, i) => {
+                      const p = i + 1
+                      if (totalPages > 7 && p > 2 && p < totalPages - 1) {
+                        if (p === 3) return <span key={p} className="text-ink-muted text-sm">...</span>
+                        if (p < totalPages - 1 && Math.abs(p - page) > 2) return null
+                      }
+                      return (
+                        <button
+                          key={p}
+                          onClick={() => setPage(p)}
+                          className={`w-10 h-10 rounded-lg text-sm font-medium transition-colors ${
+                            page === p
+                              ? 'bg-brand text-white'
+                              : 'text-ink-secondary border border-border hover:border-border-strong hover:bg-surface-bg'
+                          }`}
+                        >
+                          {p}
+                        </button>
+                      )
+                    })}
+
+                    <button
+                      onClick={() => setPage(Math.min(totalPages, page + 1))}
+                      disabled={page === totalPages}
+                      className="w-10 h-10 flex items-center justify-center rounded-lg border border-border hover:border-border-strong disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                      aria-label="Keyingi sahifa"
+                    >
+                      <ChevronRight className="w-4 h-4 text-ink-secondary" />
+                    </button>
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   )
@@ -275,10 +444,18 @@ const SearchPageInner = () => {
 export default function SearchPage() {
   return (
     <Suspense fallback={
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="animate-pulse space-y-4">
-          <div className="h-[44px] bg-gray-200 rounded-xl w-full" />
-          <div className="h-[180px] bg-gray-200 rounded-2xl w-full" />
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-4">
+        <Skeleton className="h-[42px] rounded-input w-full max-w-md" />
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5 mt-6">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <div key={i}>
+              <Skeleton className="h-[220px] rounded-card" />
+              <div className="space-y-2 mt-3">
+                <Skeleton className="h-5 w-3/4 rounded-lg" />
+                <Skeleton className="h-4 w-1/2 rounded-lg" />
+              </div>
+            </div>
+          ))}
         </div>
       </div>
     }>

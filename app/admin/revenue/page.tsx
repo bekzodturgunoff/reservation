@@ -1,47 +1,76 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import { TrendingUp, DollarSign, Building2, Star } from 'lucide-react'
 import { Card } from '@/components/ui/Card'
 import { Skeleton } from '@/components/ui/Skeleton'
-
-const stats = [
-  { label: 'Jami daromad', value: '8.2 mlrd so\'m', change: '+18.5%', icon: DollarSign, color: 'text-brand bg-brand-pale' },
-  { label: 'Platforma to\'lovlari (8%)', value: '656 mln so\'m', change: '+18.5%', icon: TrendingUp, color: 'text-info bg-info-bg' },
-  { label: 'Premium joylar', value: '24', change: '+4', icon: Building2, color: 'text-warning bg-warning-bg' },
-  { label: "O'rtacha reyting", value: '4.6', change: '+0.2', icon: Star, color: 'text-success bg-success-bg' },
-]
-
-const breakdown = [
-  { label: 'Platforma to\'lovlari', amount: 656000000, percent: 65, color: 'bg-brand' },
-  { label: 'Premium listinglar', amount: 246000000, percent: 24, color: 'bg-info' },
-  { label: 'Promo aksiyalar', amount: 110000000, percent: 11, color: 'bg-warning' },
-]
-
-const monthlyRevenue = [
-  { month: 'Yan', amount: 520 },
-  { month: 'Fev', amount: 580 },
-  { month: 'Mar', amount: 610 },
-  { month: 'Apr', amount: 590 },
-  { month: 'May', amount: 650 },
-  { month: 'Iyun', amount: 720 },
-  { month: 'Iyl', amount: 680 },
-  { month: 'Avg', amount: 750 },
-  { month: 'Sen', amount: 820 },
-  { month: 'Okt', amount: 780 },
-  { month: 'Noy', amount: 710 },
-  { month: 'Dek', amount: 760 },
-]
-
-const maxRevenue = Math.max(...monthlyRevenue.map((d) => d.amount))
+import { supabase } from '@/lib/supabase'
 
 export default function AdminRevenuePage() {
-  const [loading, setLoading] = useState(true)
+  const { data: bookings = [], isLoading } = useQuery({
+    queryKey: ['admin-revenue'],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('bookings')
+        .select('total_price, status, created_at')
+        .order('created_at', { ascending: true })
+      return (data || []) as { total_price: number; status: string; created_at: string }[]
+    },
+  })
 
-  useEffect(() => {
-    const timer = setTimeout(() => setLoading(false), 600)
-    return () => clearTimeout(timer)
-  }, [])
+  const confirmedBookings = bookings.filter(b => b.status === 'confirmed')
+  const totalRevenue = confirmedBookings.reduce((sum, b) => sum + (b.total_price || 0), 0)
+  const platformFee = Math.round(totalRevenue * 0.08)
+
+  const { data: avgRating = 0 } = useQuery({
+    queryKey: ['admin-avg-rating'],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('venues')
+        .select('avg_rating')
+        .not('avg_rating', 'is', null)
+      const ratings = (data || []).map(v => v.avg_rating).filter(Boolean) as number[]
+      if (ratings.length === 0) return 0
+      return ratings.reduce((a, b) => a + b, 0) / ratings.length
+    },
+  })
+
+  const { data: premiumCount = 0 } = useQuery({
+    queryKey: ['admin-premium-venues'],
+    queryFn: async () => {
+      const { count } = await supabase
+        .from('venues')
+        .select('*', { count: 'exact', head: true })
+        .eq('status', 'active')
+      return count || 0
+    },
+  })
+
+  const stats = [
+    { label: 'Jami daromad', value: `${(totalRevenue / 1e9).toFixed(1)} mlrd so'm`, change: '', icon: DollarSign, color: 'text-brand bg-brand-pale' },
+    { label: "Platforma to'lovlari (8%)", value: `${(platformFee / 1e6).toFixed(0)} mln so'm`, change: '', icon: TrendingUp, color: 'text-info bg-info-bg' },
+    { label: 'Faol joylar', value: premiumCount.toString(), change: '', icon: Building2, color: 'text-warning bg-warning-bg' },
+    { label: "O'rtacha reyting", value: avgRating.toFixed(1), change: '', icon: Star, color: 'text-success bg-success-bg' },
+  ]
+
+  const breakdown = [
+    { label: "Platforma to'lovlari", amount: platformFee, percent: 100, color: 'bg-brand' },
+  ]
+
+  const monthlyMap: Record<string, number> = {}
+  confirmedBookings.forEach(b => {
+    if (!b.created_at) return
+    const monthKey = b.created_at.substring(0, 7)
+    monthlyMap[monthKey] = (monthlyMap[monthKey] || 0) + (b.total_price || 0)
+  })
+
+  const monthNames = ['Yan', 'Fev', 'Mar', 'Apr', 'May', 'Iyun', 'Iyl', 'Avg', 'Sen', 'Okt', 'Noy', 'Dek']
+  const monthlyRevenue = Object.entries(monthlyMap).map(([key, amount]) => ({
+    month: monthNames[parseInt(key.split('-')[1]) - 1] || key,
+    amount: Math.round(amount / 1e6),
+  }))
+
+  const maxMonthly = Math.max(...monthlyRevenue.map(d => d.amount), 1)
 
   return (
     <div className="space-y-6">
@@ -50,11 +79,10 @@ export default function AdminRevenuePage() {
         <p className="mt-1 text-sm text-ink-tertiary">Platforma daromadlari haqida umumiy ma'lumot.</p>
       </div>
 
-      {/* Stats cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {stats.map((stat) => (
           <Card key={stat.label} className="p-5">
-            {loading ? (
+            {isLoading ? (
               <div className="space-y-3">
                 <Skeleton variant="rect" className="w-10 h-10 rounded-xl" />
                 <Skeleton variant="text" width="60%" />
@@ -66,7 +94,9 @@ export default function AdminRevenuePage() {
                   <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${stat.color}`}>
                     <stat.icon className="w-5 h-5" />
                   </div>
-                  <span className="text-xs font-medium text-success">{stat.change}</span>
+                  {stat.change && (
+                    <span className="text-xs font-medium text-success">{stat.change}</span>
+                  )}
                 </div>
                 <p className="mt-3 text-sm text-ink-tertiary">{stat.label}</p>
                 <p className="mt-0.5 text-xl font-semibold text-ink">{stat.value}</p>
@@ -77,10 +107,9 @@ export default function AdminRevenuePage() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Revenue breakdown */}
         <Card className="p-6 lg:col-span-1">
           <h2 className="text-sm font-semibold text-ink mb-4">Daromad tahlili</h2>
-          {loading ? (
+          {isLoading ? (
             <div className="space-y-4">
               {Array.from({ length: 3 }).map((_, i) => (
                 <Skeleton key={i} variant="rect" className="w-full h-12 rounded-xl" />
@@ -103,17 +132,22 @@ export default function AdminRevenuePage() {
           )}
         </Card>
 
-        {/* Monthly revenue chart */}
         <Card className="p-6 lg:col-span-2">
           <h2 className="text-sm font-semibold text-ink mb-4">Oylik daromad (mln so'm)</h2>
           <div className="flex items-end gap-2 h-48">
+            {monthlyRevenue.length === 0 && !isLoading && (
+              <p className="text-sm text-ink-tertiary">Ma'lumot mavjud emas</p>
+            )}
             {monthlyRevenue.map((month) => (
-              <div key={month.month} className="flex-1 flex flex-col items-center gap-2">
+              <div key={month.month} className="flex-1 flex flex-col items-center gap-2 relative group">
+                <div className="opacity-0 group-hover:opacity-100 transition-opacity absolute -top-8 left-1/2 -translate-x-1/2 bg-ink text-white text-[11px] px-2 py-1 rounded-lg whitespace-nowrap z-10 pointer-events-none">
+                  {month.amount} mln so'm
+                </div>
                 <div
-                  className="w-full bg-brand rounded-lg transition-all duration-500 ease-out-quart"
+                  className="w-full bg-brand rounded-lg transition-all duration-500"
                   style={{
-                    height: `${(month.amount / maxRevenue) * 100}%`,
-                    opacity: loading ? 0.3 : 1,
+                    height: `${Math.max((month.amount / maxMonthly) * 100, 4)}%`,
+                    opacity: isLoading ? 0.3 : 1,
                   }}
                 />
                 <span className="text-[10px] text-ink-tertiary">{month.month}</span>
