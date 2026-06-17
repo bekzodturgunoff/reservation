@@ -4,8 +4,8 @@ import { useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Plus, Edit3, Eye, Trash2, MapPin, Star, ImageIcon, Building2 } from 'lucide-react'
 import { useAuthStore } from '@/store/auth'
 import { Card } from '@/components/ui/Card'
@@ -150,9 +150,9 @@ export default function VenuesPage() {
                   )}
                 </div>
                 <div className="flex items-center gap-1">
-                  <button className="p-2 rounded-xl text-ink-tertiary hover:bg-surface-subtle hover:text-info transition-colors" aria-label={t('business.editVenue')}>
+                  <Link href={`/business/venues/${venue.id}/edit`} className="p-2 rounded-xl text-ink-tertiary hover:bg-surface-subtle hover:text-info transition-colors" aria-label={t('business.editVenue')}>
                     <Edit3 className="w-4 h-4" />
-                  </button>
+                  </Link>
                   <Link href={`/venues/${venue.id}`}>
                     <button className="p-2 rounded-xl text-ink-tertiary hover:bg-surface-subtle hover:text-ink-secondary transition-colors" aria-label={t('business.view')}>
                       <Eye className="w-4 h-4" />

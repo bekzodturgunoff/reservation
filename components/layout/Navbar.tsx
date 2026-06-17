@@ -54,7 +54,6 @@ export const Navbar = () => {
   const navLinks = [
     { href: '/', label: t('common.home') },
     { href: '/search', label: t('nav.venues') },
-    { href: '/#categories', label: t('nav.categories') },
     { href: '/#how-it-works', label: t('home.howItWorks') },
   ]
 

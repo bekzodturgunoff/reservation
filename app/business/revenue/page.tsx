@@ -1,17 +1,26 @@
 'use client'
 
+import { useState, useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { useTranslation } from 'react-i18next'
-import { TrendingUp, CalendarCheck, DollarSign, ArrowUpRight, ArrowDownRight } from 'lucide-react'
+import {
+  TrendingUp, CalendarCheck, DollarSign, ArrowUpRight, ArrowDownRight,
+  ChevronDown,
+} from 'lucide-react'
+import {
+  BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, LineChart, Line,
+} from 'recharts'
 import { useAuthStore } from '@/store/auth'
 import { Card } from '@/components/ui/Card'
 import { Skeleton } from '@/components/ui/Skeleton'
+import { EmptyState } from '@/components/ui/EmptyState'
 import { supabase } from '@/lib/supabase'
 import type { Booking } from '@/types'
 
+type Range = '7' | '30' | '90'
+
 export default function RevenuePage() {
-  const { t } = useTranslation()
   const { profile } = useAuthStore()
+  const [range, setRange] = useState<Range>('7')
 
   const { data: bookings = [], isLoading } = useQuery({
     queryKey: ['my-revenue', profile?.id],
@@ -27,16 +36,16 @@ export default function RevenuePage() {
         .select('*, venues(name)')
         .in('venue_id', venueIds)
         .order('created_at', { ascending: false })
-        .limit(50)
+        .limit(100)
       return (data || []) as (Booking & { venues: { name: string } | null })[]
     },
     enabled: !!profile?.id,
   })
 
-  const confirmed = bookings.filter(b => b.status === 'confirmed')
+  const confirmed = useMemo(() => bookings.filter(b => b.status === 'confirmed'), [bookings])
   const totalRevenue = confirmed.reduce((sum, b) => sum + b.total_price, 0)
-  const activeBookings = bookings.filter(b => b.status === 'confirmed').length
-  const avgOrder = confirmed.length > 0 ? totalRevenue / confirmed.length : 0
+  const activeCount = confirmed.length
+  const avgOrder = activeCount > 0 ? totalRevenue / activeCount : 0
 
   const now = new Date()
   const thisMonth = now.toISOString().substring(0, 7)
@@ -53,144 +62,183 @@ export default function RevenuePage() {
     ? Math.round(((thisMonthRevenue - lastMonthRevenue) / lastMonthRevenue) * 100)
     : 0
 
-  const thisMonthCount = confirmed.filter(b => b.created_at?.startsWith(thisMonth)).length
-  const lastMonthCount = confirmed.filter(b => b.created_at?.startsWith(lastMonth)).length
-  const bookingsChange = lastMonthCount > 0
-    ? Math.round(((thisMonthCount - lastMonthCount) / lastMonthCount) * 100)
-    : 0
+  const rangeDays = parseInt(range)
+  const rangeStart = new Date()
+  rangeStart.setDate(rangeStart.getDate() - rangeDays)
+
+  const dailyMap: Record<string, number> = {}
+  const startStr = rangeStart.toISOString().split('T')[0]
+  for (let i = rangeDays - 1; i >= 0; i--) {
+    const d = new Date()
+    d.setDate(d.getDate() - i)
+    dailyMap[d.toISOString().split('T')[0]] = 0
+  }
+  confirmed.forEach(b => {
+    const dateKey = b.created_at?.split('T')[0]
+    if (dateKey && dateKey >= startStr && dateKey in dailyMap) {
+      dailyMap[dateKey] += b.total_price
+    }
+  })
+
+  const dailyRevenue = Object.entries(dailyMap).map(([date, amount]) => ({
+    date,
+    day: new Date(date).toLocaleDateString('uz', { weekday: 'short' }),
+    amount,
+  }))
+
+  const cumulativeData = dailyRevenue.reduce<{ date: string; cum: number }[]>((acc, d) => {
+    const cum = (acc.length > 0 ? acc[acc.length - 1].cum : 0) + d.amount
+    acc.push({ date: d.date, cum })
+    return acc
+  }, [])
+
+  const recentTransactions = bookings.slice(0, 10)
 
   const summaryCards = [
     {
-      label: t('business.totalMonthlyRevenue'),
-      value: `${totalRevenue.toLocaleString()} ${t('common.sum')}`,
+      label: 'Jami daromad',
+      value: `${totalRevenue.toLocaleString()} so'm`,
       change: revenueChange,
       icon: DollarSign,
       color: 'text-brand bg-brand-pale',
     },
     {
-      label: t('business.activeOrders'),
-      value: activeBookings.toString(),
-      change: bookingsChange,
+      label: 'Faol bronlar',
+      value: activeCount.toString(),
       icon: CalendarCheck,
       color: 'text-info bg-info-bg',
     },
     {
-      label: t('business.avgOrderAmount'),
-      value: `${avgOrder.toLocaleString()} ${t('common.sum')}`,
-      change: 0,
+      label: "O'rtacha chek",
+      value: `${avgOrder.toLocaleString()} so'm`,
       icon: TrendingUp,
       color: 'text-warning bg-warning-bg',
     },
   ]
 
-  const dailyRevenue = (() => {
-    const days: Record<string, number> = {}
-    const dayNames = t('common.days.short', { returnObjects: true }) as string[]
-    for (let i = 6; i >= 0; i--) {
-      const d = new Date()
-      d.setDate(d.getDate() - i)
-      days[d.toISOString().split('T')[0]] = 0
-    }
-    confirmed.forEach(b => {
-      const dateKey = b.created_at?.split('T')[0]
-      if (dateKey && dateKey in days) {
-        days[dateKey] += b.total_price
-      }
-    })
-    return Object.entries(days).map(([date, amount]) => ({
-      day: dayNames[new Date(date).getDay()],
-      amount,
-    }))
-  })()
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        <Skeleton className="h-8 w-48" />
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          {Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-28 rounded-card" />)}
+        </div>
+        <Skeleton className="h-72 rounded-card" />
+      </div>
+    )
+  }
 
-  const maxRevenue = Math.max(...dailyRevenue.map(d => d.amount), 1)
-
-  const recentTransactions = bookings.slice(0, 10)
+  if (bookings.length === 0) {
+    return (
+      <EmptyState
+        icon={<DollarSign className="w-12 h-12" />}
+        title="Daromad ma'lumotlari yo'q"
+        description="Tasdiqlangan bronlar paydo bo'lgach, daromad hisoboti shu yerda ko'rinadi"
+      />
+    )
+  }
 
   return (
     <div className="space-y-6">
-      <h1 className="text-xl font-display font-semibold text-ink">{t('business.analytics.revenue')}</h1>
+      <h1 className="font-display text-2xl font-bold text-ink">Daromad</h1>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {summaryCards.map((card) => (
           <Card key={card.label} className="p-5">
-            {isLoading ? (
-              <div className="space-y-3">
-                <Skeleton variant="rect" className="w-10 h-10 rounded-xl" />
-                <Skeleton variant="text" width="60%" />
-                <Skeleton variant="text" width="80%" height="1.5rem" />
+            <div className="flex items-center justify-between">
+              <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${card.color}`}>
+                <card.icon className="w-5 h-5" />
               </div>
-            ) : (
-              <>
-                <div className="flex items-center justify-between">
-                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${card.color}`}>
-                    <card.icon className="w-5 h-5" />
-                  </div>
-                  <span className={`flex items-center gap-0.5 text-xs font-medium ${card.change >= 0 ? 'text-success' : 'text-error'}`}>
-                    {card.change >= 0 ? <ArrowUpRight className="w-3.5 h-3.5" /> : <ArrowDownRight className="w-3.5 h-3.5" />}
-                    {Math.abs(card.change)}%
-                  </span>
-                </div>
-                <p className="mt-3 text-sm text-ink-tertiary">{card.label}</p>
-                <p className="mt-0.5 text-xl font-semibold text-ink">{card.value}</p>
-              </>
-            )}
+              {card.change !== undefined && (
+                <span className={`flex items-center gap-0.5 text-xs font-medium ${card.change >= 0 ? 'text-success' : 'text-error'}`}>
+                  {card.change >= 0 ? <ArrowUpRight className="w-3.5 h-3.5" /> : <ArrowDownRight className="w-3.5 h-3.5" />}
+                  {Math.abs(card.change)}%
+                </span>
+              )}
+            </div>
+            <p className="mt-3 text-sm text-ink-tertiary">{card.label}</p>
+            <p className="mt-0.5 text-xl font-semibold text-ink">{card.value}</p>
           </Card>
         ))}
       </div>
 
-      <Card className="p-6">
-        <h2 className="text-sm font-semibold text-ink mb-4">{t('business.weeklyRevenue')}</h2>
-        <div className="flex items-end gap-3 h-40" role="img" aria-label={`${t('business.weeklyRevenue')}: ${dailyRevenue.map(d => `${d.day} ${d.amount.toLocaleString()} ${t('common.sum')}`).join(', ')}`}>
-          {dailyRevenue.map((day) => (
-            <div key={day.day} className="flex-1 flex flex-col items-center gap-2 relative group">
-              <div className="opacity-0 group-hover:opacity-100 transition-opacity absolute -top-8 left-1/2 -translate-x-1/2 bg-ink text-white text-[11px] px-2 py-1 rounded-lg whitespace-nowrap z-10 pointer-events-none">
-                {day.amount.toLocaleString()} {t('common.sum')}
-              </div>
-              <div
-                className="w-full bg-brand rounded-lg transition-all duration-500"
-                style={{
-                  height: `${Math.max((day.amount / maxRevenue) * 100, 4)}%`,
-                  opacity: isLoading ? 0.3 : 1,
-                }}
-              />
-              <span className="text-xs text-ink-tertiary">{day.day}</span>
-            </div>
-          ))}
+      <Card className="p-5">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="font-display text-base font-bold text-ink">Kunlik daromad</h2>
+          <div className="relative">
+            <select
+              value={range}
+              onChange={e => setRange(e.target.value as Range)}
+              className="appearance-none h-9 pl-3 pr-8 text-sm bg-white border border-border rounded-lg outline-none text-ink-secondary"
+            >
+              <option value="7">7 kun</option>
+              <option value="30">30 kun</option>
+              <option value="90">90 kun</option>
+            </select>
+            <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-muted pointer-events-none" />
+          </div>
         </div>
+        {dailyRevenue.some(d => d.amount > 0) ? (
+          <div className="h-56">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={dailyRevenue} margin={{ top: 8, right: 8, left: -16, bottom: 0 }}>
+                <XAxis dataKey="day" tick={{ fontSize: 11, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fontSize: 11, fill: '#94a3b8' }} axisLine={false} tickLine={false} tickFormatter={v => `${(v / 1000).toFixed(0)}k`} />
+                <Tooltip
+                  contentStyle={{ borderRadius: 12, border: '1px solid #e2e8f0', fontSize: 13 }}
+                  formatter={(v) => `${(v as number).toLocaleString()} so'm`}
+                  labelFormatter={l => l}
+                />
+                <Bar dataKey="amount" fill="#059669" radius={[6, 6, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        ) : (
+          <p className="text-sm text-ink-tertiary py-10 text-center">Bu davrda daromad ma'lumotlari mavjud emas</p>
+        )}
       </Card>
+
+      {range === '30' && (
+        <Card className="p-5">
+          <h2 className="font-display text-base font-bold text-ink mb-4">Kumulativ daromad</h2>
+          <div className="h-40">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={cumulativeData} margin={{ top: 8, right: 8, left: -16, bottom: 0 }}>
+                <XAxis dataKey="date" tick={{ fontSize: 10, fill: '#94a3b8' }} axisLine={false} tickLine={false} tickFormatter={d => d.slice(5)} />
+                <YAxis tick={{ fontSize: 11, fill: '#94a3b8' }} axisLine={false} tickLine={false} tickFormatter={v => `${(v / 1000).toFixed(0)}k`} />
+                <Tooltip contentStyle={{ borderRadius: 12, border: '1px solid #e2e8f0', fontSize: 13 }} formatter={(v) => `${(v as number).toLocaleString()} so'm`} />
+                <Line type="monotone" dataKey="cum" stroke="#059669" strokeWidth={2} dot={false} />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+        </Card>
+      )}
 
       <Card className="overflow-hidden">
         <div className="px-6 py-4 border-b border-border">
-          <h2 className="text-sm font-semibold text-ink">{t('business.recentTransactions')}</h2>
+          <h2 className="font-display text-sm font-bold text-ink">So'nggi tranzaksiyalar</h2>
         </div>
         <div className="divide-y divide-border">
-          {isLoading
-            ? Array.from({ length: 4 }).map((_, i) => (
-                <div key={i} className="px-6 py-4 flex items-center justify-between">
-                  <div className="space-y-1">
-                    <Skeleton variant="text" width="140px" />
-                    <Skeleton variant="text" width="80px" />
-                  </div>
-                  <Skeleton variant="text" width="100px" />
+          {recentTransactions.length === 0 ? (
+            <div className="px-6 py-8 text-center text-sm text-ink-tertiary">Tranzaksiyalar yo'q</div>
+          ) : (
+            recentTransactions.map((tx) => (
+              <div key={tx.id} className="px-6 py-4 flex items-center justify-between hover:bg-surface-subtle transition-colors">
+                <div>
+                  <p className="text-sm font-medium text-ink">{tx.venues?.name || tx.service_name}</p>
+                  <p className="text-xs text-ink-tertiary">{new Date(tx.created_at).toLocaleDateString('uz-UZ')}</p>
                 </div>
-              ))
-            : recentTransactions.map((tx) => (
-                <div key={tx.id} className="px-6 py-4 flex items-center justify-between hover:bg-surface-subtle transition-colors">
-                  <div>
-                    <p className="text-sm font-medium text-ink">{tx.venues?.name || tx.service_name}</p>
-                    <p className="text-xs text-ink-tertiary">{new Date(tx.created_at).toLocaleDateString('uz-UZ')}</p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className={`text-xs font-medium ${tx.status === 'cancelled' ? 'text-error' : 'text-success'}`}>
-                      {tx.status === 'cancelled' ? t('business.refunded') : t('business.paid')}
-                    </span>
-                    <span className={`text-sm font-semibold ${tx.status === 'cancelled' ? 'text-error' : 'text-ink'}`}>
-                      {tx.status === 'cancelled' ? '-' : '+'}{tx.total_price.toLocaleString()} {t('common.sum')}
-                    </span>
-                  </div>
+                <div className="flex items-center gap-2">
+                  <span className={`text-xs font-medium ${tx.status === 'cancelled' ? 'text-error' : 'text-success'}`}>
+                    {tx.status === 'cancelled' ? 'Qaytarildi' : "To'landi"}
+                  </span>
+                  <span className={`text-sm font-semibold ${tx.status === 'cancelled' ? 'text-error' : 'text-ink'}`}>
+                    {tx.status === 'cancelled' ? '-' : '+'}{tx.total_price.toLocaleString()} so'm
+                  </span>
                 </div>
-              ))}
+              </div>
+            ))
+          )}
         </div>
       </Card>
     </div>

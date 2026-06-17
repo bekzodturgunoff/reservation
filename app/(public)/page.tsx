@@ -5,10 +5,8 @@ import { useTitle } from '@/hooks/useTitle'
 import { HeroSection } from '@/components/home/HeroSection'
 import { SearchBar } from '@/components/home/SearchBar'
 import { CategoryGrid } from '@/components/home/CategoryGrid'
-import { BugunBronSection } from '@/components/home/BugunBronSection'
 import { FeaturedVenues } from '@/components/home/FeaturedVenues'
 import { HowItWorks } from '@/components/home/HowItWorks'
-import { Testimonials } from '@/components/home/Testimonials'
 import { ScrollReveal } from '@/components/ui/ScrollReveal'
 
 const HomePage = () => {
@@ -20,10 +18,8 @@ const HomePage = () => {
       <HeroSection />
       <ScrollReveal><SearchBar /></ScrollReveal>
       <ScrollReveal direction="up" delay={0.1}><CategoryGrid /></ScrollReveal>
-      <ScrollReveal direction="up" delay={0.15}><BugunBronSection /></ScrollReveal>
-      <ScrollReveal direction="up" delay={0.2}><FeaturedVenues /></ScrollReveal>
-      <ScrollReveal direction="up" delay={0.25}><HowItWorks /></ScrollReveal>
-      <ScrollReveal direction="up" delay={0.3}><Testimonials /></ScrollReveal>
+      <ScrollReveal direction="up" delay={0.15}><FeaturedVenues /></ScrollReveal>
+      <ScrollReveal direction="up" delay={0.2}><HowItWorks /></ScrollReveal>
 
       {/* CTA Section */}
       <ScrollReveal direction="up" delay={0.35}>

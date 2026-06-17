@@ -9,6 +9,8 @@ import {
   Building2,
   TrendingUp,
   Settings,
+  CalendarCheck,
+  ClipboardCheck,
 } from 'lucide-react'
 import { Badge } from '@/components/ui/Badge'
 import { useAuthStore } from '@/store/auth'
@@ -17,8 +19,10 @@ import type { SidebarLink } from '@/components/layout/DashboardSidebar'
 
 const sidebarLinks: SidebarLink[] = [
   { href: '/admin', label: 'Dashboard', icon: LayoutDashboard },
-  { href: '/admin/users', label: 'Foydalanuvchilar', icon: Users },
+  { href: '/admin/venues/review', label: 'Tekshiruv', icon: ClipboardCheck },
   { href: '/admin/venues', label: 'Joylar', icon: Building2 },
+  { href: '/admin/users', label: 'Foydalanuvchilar', icon: Users },
+  { href: '/admin/bookings', label: 'Bronlar', icon: CalendarCheck },
   { href: '/admin/revenue', label: 'Daromad', icon: TrendingUp },
   { href: '/admin/settings', label: 'Sozlamalar', icon: Settings },
 ]

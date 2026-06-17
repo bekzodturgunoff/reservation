@@ -1,295 +1,234 @@
 'use client'
 
-import { useQuery } from '@tanstack/react-query'
-import { useTranslation } from 'react-i18next'
-import Link from 'next/link'
+import { useState } from 'react'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import {
-  Building2,
-  CalendarCheck,
-  TrendingUp,
-  MessageSquare,
-  ChevronRight,
+  CalendarCheck, Clock, TrendingUp, Star,
+  CheckCircle, XCircle, Phone,
 } from 'lucide-react'
 import { useAuthStore } from '@/store/auth'
+import { supabase } from '@/lib/supabase'
 import { Card } from '@/components/ui/Card'
 import { Skeleton } from '@/components/ui/Skeleton'
-import { supabase } from '@/lib/supabase'
+import { EmptyState } from '@/components/ui/EmptyState'
+import { BookingStatusBadge } from '@/components/shared/BookingStatusBadge'
+import { ConfirmModal } from '@/components/shared/ConfirmModal'
+import toast from 'react-hot-toast'
 
-function StatCard({
-  label,
-  value,
-  icon: Icon,
-  trend,
-  href,
-  color,
-}: {
-  label: string
-  value: string
-  icon: typeof Building2
-  trend?: { value: string; positive: boolean }
-  href?: string
-  color: string
-}) {
-  const { t } = useTranslation()
-  const content = (
-    <Card className="p-5 hover:shadow-card-hover transition-shadow group cursor-default">
-      <div className="flex items-start justify-between">
-        <div className={`w-11 h-11 rounded-xl flex items-center justify-center ${color} transition-colors`}>
-          <Icon className="w-5 h-5" />
-        </div>
-        {trend && (
-          <span className={`flex items-center gap-0.5 text-xs font-medium ${trend.positive ? 'text-success' : 'text-error'}`}>
-            <svg className={`w-3 h-3 ${trend.positive ? '' : 'rotate-180'}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M18 15l-6-6-6 6" />
-            </svg>
-            {trend.value}
-          </span>
-        )}
-      </div>
-      <p className="mt-4 text-sm text-ink-tertiary">{label}</p>
-      <p className="mt-0.5 text-2xl font-bold text-ink">{value}</p>
-      {href && (
-        <div className="mt-3 pt-3 border-t border-border opacity-0 group-hover:opacity-100 transition-opacity">
-          <span className="text-xs font-medium text-brand flex items-center gap-1">
-            {t('business.detail')} <ChevronRight className="w-3 h-3" />
-          </span>
-        </div>
-      )}
-    </Card>
-  )
+const today = new Date().toISOString().split('T')[0]
 
-  if (href) return <Link href={href} className="block">{content}</Link>
-  return content
-}
-
-export default function BusinessDashboard() {
-  const { t } = useTranslation()
+export default function BusinessToday() {
   const { profile } = useAuthStore()
+  const queryClient = useQueryClient()
+  const [cancelTarget, setCancelTarget] = useState<{ id: string; venueId: string } | null>(null)
 
-  const { data: venueCount = 0, isLoading: venuesLoading } = useQuery({
-    queryKey: ['my-venues-count', profile?.id],
+  const { data: myVenues = [] } = useQuery({
+    queryKey: ['my-venue-ids', profile?.id],
     queryFn: async () => {
-      const { count } = await supabase
-        .from('venues')
-        .select('*', { count: 'exact', head: true })
-        .eq('owner_id', profile!.id)
-      return count || 0
+      const { data } = await supabase
+        .from('venues').select('id, name').eq('owner_id', profile!.id)
+      return data || []
     },
     enabled: !!profile?.id,
   })
 
-  const today = new Date().toISOString().split('T')[0]
+  const venueIds = myVenues.map(v => v.id)
 
-  const { data: todayBookings = 0, isLoading: bookingsLoading } = useQuery({
-    queryKey: ['today-bookings-count', profile?.id, today],
+  const { data: stats, isLoading: statsLoading } = useQuery({
+    queryKey: ['business-today-stats', profile?.id, today],
     queryFn: async () => {
-      const { data: myVenues } = await supabase
-        .from('venues')
-        .select('id')
-        .eq('owner_id', profile!.id)
-      if (!myVenues || myVenues.length === 0) return 0
-      const venueIds = myVenues.map(v => v.id)
-      const { count } = await supabase
-        .from('bookings')
-        .select('*', { count: 'exact', head: true })
-        .in('venue_id', venueIds)
-        .gte('created_at', today)
-        .lt('created_at', new Date(Date.now() + 86400000).toISOString().split('T')[0])
-      return count || 0
+      const [todayBk, pendingBk, reviews] = await Promise.all([
+        supabase.from('bookings').select('id, total_price').in('venue_id', venueIds).eq('booking_date', today),
+        supabase.from('bookings').select('id').in('venue_id', venueIds).eq('booking_date', today).eq('status', 'pending'),
+        supabase.from('reviews').select('rating').in('venue_id', venueIds),
+      ])
+      const todayTotal = (todayBk.data || []).reduce((s, b) => s + (b.total_price || 0), 0)
+      const avgRating = reviews.data?.length
+        ? (reviews.data.reduce((s, r) => s + r.rating, 0) / reviews.data.length).toFixed(1)
+        : null
+      return {
+        todayCount: todayBk.data?.length || 0,
+        pendingCount: pendingBk.data?.length || 0,
+        todayRevenue: todayTotal,
+        avgRating,
+        reviewCount: reviews.data?.length || 0,
+      }
     },
-    enabled: !!profile?.id,
+    enabled: venueIds.length > 0,
   })
 
-  const { data: monthlyRevenue = 0, isLoading: revenueLoading } = useQuery({
-    queryKey: ['monthly-revenue', profile?.id],
+  const { data: todayBookings = [], isLoading: bkLoading } = useQuery({
+    queryKey: ['business-today-bookings', profile?.id, today],
     queryFn: async () => {
-      const { data: myVenues } = await supabase
-        .from('venues')
-        .select('id')
-        .eq('owner_id', profile!.id)
-      if (!myVenues || myVenues.length === 0) return 0
-      const venueIds = myVenues.map(v => v.id)
-      const monthStart = new Date()
-      monthStart.setDate(1)
-      const { data: bookings } = await supabase
-        .from('bookings')
-        .select('total_price')
-        .in('venue_id', venueIds)
-        .gte('created_at', monthStart.toISOString().split('T')[0])
-        .eq('status', 'confirmed')
-      return (bookings || []).reduce((sum, b) => sum + (b.total_price || 0), 0)
-    },
-    enabled: !!profile?.id,
-  })
-
-  const { data: reviewCount = 0, isLoading: reviewsLoading } = useQuery({
-    queryKey: ['my-reviews-count', profile?.id],
-    queryFn: async () => {
-      const { data: myVenues } = await supabase
-        .from('venues')
-        .select('id')
-        .eq('owner_id', profile!.id)
-      if (!myVenues || myVenues.length === 0) return 0
-      const venueIds = myVenues.map(v => v.id)
-      const { count } = await supabase
-        .from('reviews')
-        .select('*', { count: 'exact', head: true })
-        .in('venue_id', venueIds)
-      return count || 0
-    },
-    enabled: !!profile?.id,
-  })
-
-  const loading = venuesLoading || bookingsLoading || revenueLoading || reviewsLoading
-
-  const { data: recentBookings = [] } = useQuery({
-    queryKey: ['my-recent-bookings', profile?.id],
-    queryFn: async () => {
-      const { data: myVenues } = await supabase
-        .from('venues')
-        .select('id, name')
-        .eq('owner_id', profile!.id)
-      if (!myVenues || myVenues.length === 0) return []
-      const venueIds = myVenues.map(v => v.id)
-      const venueMap = Object.fromEntries(myVenues.map(v => [v.id, v.name]))
       const { data } = await supabase
         .from('bookings')
-        .select('*, profiles(full_name)')
+        .select('id, start_time, end_time, status, total_price, booking_date, profiles!user_id(full_name, phone), venues!venue_id(name)')
         .in('venue_id', venueIds)
-        .order('created_at', { ascending: false })
-        .limit(5)
-      return (data || []).map(b => ({
-        id: b.id,
-        venue_name: venueMap[b.venue_id] || t('common.unknown'),
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        customer: (b as any).profiles?.full_name || t('common.unknown'),
-        total_price: b.total_price || 0,
-        status: b.status,
-        date: new Date(b.created_at).toLocaleDateString('uz-UZ'),
-      }))
+        .eq('booking_date', today)
+        .order('start_time')
+      return data || []
     },
-    enabled: !!profile?.id,
+    enabled: venueIds.length > 0,
   })
 
-  const statusConfig: Record<string, { label: string; variant: 'success' | 'warning' | 'default' | 'error' }> = {
-    confirmed: { label: t('common.confirmed'), variant: 'success' },
-    completed: { label: t('common.completed'), variant: 'default' },
-    cancelled: { label: t('common.cancelled'), variant: 'error' },
-  }
+  const confirmMutation = useMutation({
+    mutationFn: async (bookingId: string) => {
+      await supabase.from('bookings').update({ status: 'confirmed', confirmed_at: new Date().toISOString() }).eq('id', bookingId)
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['business-today'] })
+      toast.success('Bron tasdiqlandi')
+    },
+    onError: () => toast.error('Xatolik yuz berdi'),
+  })
+
+  const cancelMutation = useMutation({
+    mutationFn: async ({ id }: { id: string }) => {
+      await supabase.from('bookings').update({ status: 'cancelled', cancelled_at: new Date().toISOString() }).eq('id', id)
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['business-today'] })
+      toast.success('Bron bekor qilindi')
+      setCancelTarget(null)
+    },
+    onError: () => toast.error('Xatolik yuz berdi'),
+  })
+
+  const pendingBookings = todayBookings.filter(b => b.status === 'pending')
+  const confirmedBookings = todayBookings.filter(b => b.status === 'confirmed')
+  const hours = Array.from({ length: 16 }, (_, i) => String(i + 7).padStart(2, '0'))
+
+  const isLoading = statsLoading || bkLoading
 
   return (
     <div className="space-y-6">
-      {/* Greeting */}
-      <Card className="p-6 sm:p-8 bg-gradient-to-br from-brand to-emerald-800 border-0">
-        <h1 className="text-xl sm:text-2xl font-display font-semibold text-white">
-          {t('business.welcome', { name: profile?.full_name?.split(' ')[0] || t('business.user') })}
-        </h1>
-        <p className="mt-1.5 text-brand-100 text-sm sm:text-base">
-          {t('business.dashboardSubtitle')}
-        </p>
-      </Card>
+      <h1 className="font-display text-2xl font-bold text-ink">Bugun — {today}</h1>
 
-      {/* Stats grid */}
-      {loading ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {Array.from({ length: 4 }).map((_, i) => (
-            <Card key={i} className="p-5">
-              <div className="space-y-3">
-                <Skeleton variant="rect" className="w-11 h-11 rounded-xl" />
-                <Skeleton variant="text" width="50%" />
-                <Skeleton variant="text" width="80%" height="1.75rem" />
-              </div>
-            </Card>
-          ))}
+      {/* Stats cards */}
+      {isLoading ? (
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          {Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-28 rounded-card" />)}
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <StatCard
-            label={t('business.activeVenues')}
-            value={venueCount.toLocaleString()}
-            icon={Building2}
-            href="/business/venues"
-            color="bg-blue-50 text-blue-600"
-          />
-          <StatCard
-            label={t('business.todayBookings')}
-            value={todayBookings.toLocaleString()}
-            icon={CalendarCheck}
-            href="/business/bookings"
-            color="bg-emerald-50 text-emerald-600"
-          />
-          <StatCard
-            label={t('business.statsRevenue')}
-            value={`${(monthlyRevenue / 1e6).toFixed(1)} mln ${t('common.sum')}`}
-            icon={TrendingUp}
-            href="/business/revenue"
-            color="bg-violet-50 text-violet-600"
-          />
-          <StatCard
-            label={t('business.newReviews')}
-            value={reviewCount.toLocaleString()}
-            icon={MessageSquare}
-            color="bg-amber-50 text-amber-600"
-          />
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <Card className="p-4">
+            <div className="flex items-center gap-2 text-brand mb-2"><CalendarCheck className="w-4 h-4" /><span className="text-xs font-semibold uppercase tracking-wider">Bugungi bronlar</span></div>
+            <p className="text-2xl font-bold text-ink">{stats?.todayCount || 0}</p>
+          </Card>
+          <Card className="p-4">
+            <div className="flex items-center gap-2 text-amber-600 mb-2"><Clock className="w-4 h-4" /><span className="text-xs font-semibold uppercase tracking-wider">Kutilayotgan</span></div>
+            <p className="text-2xl font-bold text-ink">{stats?.pendingCount || 0}</p>
+          </Card>
+          <Card className="p-4">
+            <div className="flex items-center gap-2 text-emerald-600 mb-2"><TrendingUp className="w-4 h-4" /><span className="text-xs font-semibold uppercase tracking-wider">Bugungi daromad</span></div>
+            <p className="text-2xl font-bold text-ink">{stats?.todayRevenue.toLocaleString() || 0} UZS</p>
+          </Card>
+          <Card className="p-4">
+            <div className="flex items-center gap-2 text-yellow-600 mb-2"><Star className="w-4 h-4" /><span className="text-xs font-semibold uppercase tracking-wider">O&apos;rtacha reyting</span></div>
+            <p className="text-2xl font-bold text-ink">{stats?.avgRating || '—'}</p>
+          </Card>
         </div>
       )}
 
-      {/* Recent bookings */}
-      <Card>
-        <div className="px-6 py-4 border-b border-border flex items-center justify-between">
-          <h2 className="text-sm font-semibold text-ink">{t('business.recentBookings')}</h2>
-          <Link href="/business/bookings" className="text-xs font-medium text-brand hover:underline">
-            {t('common.viewAll')}
-          </Link>
-        </div>
-        {loading ? (
-          <div className="p-6 space-y-4">
-            {Array.from({ length: 5 }).map((_, i) => (
-              <div key={i} className="flex items-center gap-3">
-                <Skeleton variant="rect" className="w-10 h-10 rounded-lg" />
-                <div className="flex-1 space-y-1">
-                  <Skeleton variant="text" width="40%" />
-                  <Skeleton variant="text" width="60%" />
+      {/* Pending bookings alert */}
+      {!isLoading && pendingBookings.length > 0 && (
+        <Card className="p-5 border-amber-200 bg-amber-50/50">
+          <h2 className="flex items-center gap-2 text-sm font-semibold text-amber-800 mb-4">
+            <Clock className="w-4 h-4" />
+            Tasdiqlashni kutayotgan bronlar ({pendingBookings.length} ta)
+          </h2>
+          <div className="space-y-3">
+              {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+              {pendingBookings.map((bk: any) => (
+              <div key={bk.id} className="flex flex-col sm:flex-row sm:items-center gap-3 p-3 bg-white rounded-xl border border-amber-200">
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold text-ink">{bk.profiles?.full_name || 'Noma\'lum'}</p>
+                  <p className="text-xs text-ink-tertiary flex items-center gap-1 mt-0.5">
+                    <Phone className="w-3 h-3" />{bk.profiles?.phone || '—'}
+                  </p>
+                  <p className="text-xs text-ink-tertiary mt-0.5">
+                    {bk.start_time?.slice(0, 5)} – {bk.end_time?.slice(0, 5)} · {bk.venues?.name}
+                  </p>
+                </div>
+                <div className="flex gap-2 shrink-0">
+                  <button
+                    onClick={() => confirmMutation.mutate(bk.id)}
+                    className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-brand text-white text-xs font-semibold hover:bg-brand-dark transition-colors"
+                  >
+                    <CheckCircle className="w-3.5 h-3.5" /> Tasdiqlash
+                  </button>
+                  <button
+                    onClick={() => setCancelTarget({ id: bk.id, venueId: '' })}
+                    className="flex items-center gap-1 px-3 py-1.5 rounded-lg border border-red-200 text-red-700 text-xs font-semibold hover:bg-red-50 transition-colors"
+                  >
+                    <XCircle className="w-3.5 h-3.5" /> Rad etish
+                  </button>
                 </div>
               </div>
             ))}
           </div>
-        ) : recentBookings.length === 0 ? (
-          <div className="p-8 text-center">
-            <CalendarCheck className="w-8 h-8 mx-auto text-ink-muted mb-2" />
-            <p className="text-sm text-ink-secondary">{t('business.emptyBookings')}</p>
-          </div>
+        </Card>
+      )}
+
+      {/* Today's schedule */}
+      <div>
+        <h2 className="font-display text-lg font-bold text-ink mb-4">Bugungi jadval</h2>
+        {isLoading ? (
+          <div className="space-y-2"><Skeleton className="h-12 w-full rounded-card" /></div>
+        ) : confirmedBookings.length === 0 && pendingBookings.length === 0 ? (
+          <EmptyState
+            icon={<CalendarCheck className="w-10 h-10 text-ink-muted" />}
+            title="Bugun bronlar yo'q"
+            description="Bugungi kunga hech qanday bron qilinmagan"
+          />
         ) : (
-          <div className="divide-y divide-border">
-            {recentBookings.map((b) => {
-              const cfg = statusConfig[b.status] || { label: b.status, variant: 'default' as const }
+          <div className="space-y-1">
+            {hours.map(h => {
+              const bkAtHour = [...confirmedBookings, ...pendingBookings].filter(
+                b => b.start_time?.slice(0, 2) === h
+              )
               return (
-                <div key={b.id} className="px-6 py-3.5 flex items-center gap-4 hover:bg-surface-subtle transition-colors">
-                  <div className="w-10 h-10 rounded-lg bg-brand-light flex items-center justify-center shrink-0">
-                    <CalendarCheck className="w-5 h-5 text-brand" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-ink truncate">{b.venue_name}</p>
-                    <p className="text-xs text-ink-tertiary">
-                      {b.customer} · {b.date}
-                    </p>
-                  </div>
-                  <div className="text-right shrink-0">
-                    <p className="text-sm font-semibold text-ink">{b.total_price.toLocaleString()} UZS</p>
-                    <span className={`inline-block px-2 py-0.5 rounded-full text-[10px] font-medium mt-0.5
-                      ${cfg.variant === 'success' ? 'bg-success-bg text-success' :
-                        cfg.variant === 'error' ? 'bg-error-bg text-error' :
-                        'bg-surface-bg text-ink-secondary'}`}
-                    >
-                      {cfg.label}
-                    </span>
+                <div key={h} className="flex gap-3">
+                  <div className="w-12 text-xs text-ink-muted font-medium pt-2 shrink-0">{h}:00</div>
+                  <div className="flex-1 min-h-[36px]">
+                    {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                    {bkAtHour.length > 0 ? bkAtHour.map((b: any) => (
+                      <div
+                        key={b.id}
+                        className={`p-2 rounded-lg text-xs mb-1 ${b.status === 'pending' ? 'bg-amber-50 border border-amber-200' : 'bg-brand-50 border border-brand-200'}`}
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className="font-semibold text-ink">{b.profiles?.full_name}</span>
+                          <BookingStatusBadge status={b.status} />
+                        </div>
+                        <p className="text-ink-tertiary mt-0.5">
+                          {b.start_time?.slice(0, 5)} – {b.end_time?.slice(0, 5)} · {b.venues?.name}
+                          {b.total_price ? ` · ${b.total_price.toLocaleString()} UZS` : ''}
+                        </p>
+                      </div>
+                    )) : (
+                      <div className="h-8 flex items-center">
+                        <span className="text-xs text-ink-muted/50">— bo'sh —</span>
+                      </div>
+                    )}
                   </div>
                 </div>
               )
             })}
           </div>
         )}
-      </Card>
+      </div>
+
+      <ConfirmModal
+        isOpen={!!cancelTarget}
+        onClose={() => setCancelTarget(null)}
+        onConfirm={() => { if (cancelTarget) cancelMutation.mutate(cancelTarget) }}
+        title="Bronni bekor qilish"
+        description="Bu brondan voz kechishni xohlaysizmi?"
+        confirmLabel="Bekor qilish"
+        confirmVariant="danger"
+        isLoading={cancelMutation.isPending}
+      />
     </div>
   )
 }

@@ -39,13 +39,19 @@
 - **Form validation:** zod schemas on business settings, venue add, login, register pages
 - **Bundle optimization:** removed unused `recharts` from `optimizePackageImports`; GSAP/ScrollTrigger lazy-loaded in ScrollReveal; sizes: max 215 kB/page, 103 kB shared JS
 - **i18n cleanup:** removed duplicate `footer` keys from all 3 locale files; confirmed uz/en/ru key structure is identical
-- **Build:** 25 routes, 0 errors, 0 warnings (Next.js 15.5.19)
+- **Build (session 2):** 30 routes, 0 errors, 0 warnings (Next.js 15.5.19)
+- **Phase 2 (shared components):** BookingStatusBadge (color-coded status pill), Drawer (right slide panel), ConfirmModal (confirmation dialog) — replaces inline modals
+- **Phase 3 (homepage cleanup):** removed "Kategoriyalar" navbar link, removed BugunBronSection (fake data), removed Testimonials (fake data), removed brand visual from HeroSection
+- **Phase 4 (business pages: calendar, bookings, reviews, revenue, edit venue):** built `/business/calendar` (monthly grid + booking pills + blocked dates with block/unblock), rewrote `/business/bookings` (filter bar + sortable table + Drawer detail with confirm/reject), built `/business/reviews` (star ratings + owner reply), rewrote `/business/revenue` (Recharts BarChart + date range filter + cumulative LineChart), built `/business/venues/[id]/edit` (edit form with zod validation)
+- **Phase 5 (admin pages: bookings, venue review):** built `/admin/bookings` (all-bookings table with Drawer detail), built `/admin/venues/review` (pending-venue review queue with approve/reject), updated `/admin/layout.tsx` sidebar with Tekshiruv + Bronlar links
+- **Fixed Vercel build crash:** `lib/supabase.ts` no longer throws on missing env vars; cleaned `next.config.ts` (removed security headers, added `recharts` to `optimizePackageImports`); simplified `vercel.json` to `{ "framework": "nextjs" }`
+- **Migration SQL:** created `supabase/migrations/00028_dashboard_features.sql` (blocked_dates table, platform_settings table, missing columns)
 
 ### In Progress
 - (none)
 
 ### Blocked
-- (none)
+- SQL migrations 00026–00028 need manual execution in Supabase SQL Editor
 
 ## Key Decisions
 - Fake/mock data removed from all business and admin pages; every number, list item, and chart value now comes from `useQuery` backed by Supabase queries (profiles, venues, bookings, reviews)
@@ -57,34 +63,52 @@
 - Migration 00027 adds booking status transition enforcement (pending→confirmed→completed/cancelled/no_show) plus RLS for auxiliary tables (waitlist_bookings, promo_codes, staff, loyalty_points, loyalty_history, no_show_bookings)
 - GSAP/ScrollTrigger lazy-loaded via dynamic import in ScrollReveal to reduce initial bundle; removed `recharts` from `optimizePackageImports` since charts are inline Tailwind bars
 - i18n `t()` is never called in components — UI is hardcoded Uzbek. Locale files (uz/en/ru) are structurally identical and complete; `footer` duplicate removed
+- `recharts` is now used for revenue bar/line charts (restored to `optimizePackageImports` in next.config.ts)
+- `any` types are used sparingly for Supabase join results where TypeScript infers incorrect array shapes; suppressed with `eslint-disable-next-line` comments
 
 ## Next Steps
-1. Apply migrations 00026 + 00027 to Supabase via `supabase migration up` (or SQL editor)
+1. Apply migrations 00026 + 00027 + 00028 to Supabase via `supabase migration up` (or SQL editor)
 2. Deploy to Vercel — commit and push
 3. End-to-end testing with real Supabase data and authenticated user
 4. Optional: wire `@sentry/nextjs` for error tracking
 5. Optional: retrofit `useTranslation` / `t()` calls across all components for multi-language support
 
 ## Critical Context
-- Build: 22 routes, 0 errors, 0 warnings (`pnpm build`)
+- Build: 30 routes, 0 errors, 0 warnings (`pnpm build`)
 - Dev server: all pages return 200 (`/`, `/login`, `/register`, `/search`, `/business`, `/admin`, `/business/venues`, `/admin/users`)
 - Node v24.14.0, pnpm v10.33.0
 - Supabase URL: `pydsqvslcjnytgebwtpo.supabase.co`
 - Environment: macOS, project at `/Users/macintosh/Documents/code/reservation`
 
 ## Relevant Files
-- `app/business/page.tsx` — real venue count, today's bookings, monthly revenue, review count from Supabase
-- `app/business/bookings/page.tsx` — real bookings joined with venues + profiles
-- `app/business/venues/page.tsx` — real venues owned by current user; delete modal
-- `app/business/revenue/page.tsx` — real bookings aggregated into revenue cards, weekly chart, transaction list
+- `app/business/page.tsx` — today dashboard: pending action cards, stat cards, hourly timeline
+- `app/business/bookings/page.tsx` — filter bar + sortable table + Drawer detail with confirm/reject
+- `app/business/calendar/page.tsx` — monthly grid + booking pills + blocked dates
+- `app/business/reviews/page.tsx` — star ratings + owner reply
+- `app/business/revenue/page.tsx` — Recharts BarChart + date range filter + cumulative LineChart
+- `app/business/venues/page.tsx` — real venues owned by current user; delete modal; edit link
+- `app/business/venues/add/page.tsx` — multi-field form with zod validation
+- `app/business/venues/[id]/edit/page.tsx` — pre-populated edit form with zod validation
+- `app/business/layout.tsx` — new sidebar (Bugun, Bronlar, Kalendar, Joylarim, Sharhlar, Daromad, Sozlamalar), pending-booking bell, mobile hamburger
 - `app/admin/page.tsx` — real user/venue/booking counts, role distribution, recent users
 - `app/admin/users/page.tsx` — real profiles table; block/unblock mutation using `role='blocked'`
 - `app/admin/venues/page.tsx` — real venues list with owner names, approve/reject/block action buttons
+- `app/admin/venues/review/page.tsx` — pending-venue review queue with approve/reject
+- `app/admin/bookings/page.tsx` — all-bookings table with Drawer detail, cancel action
 - `app/admin/revenue/page.tsx` — real booking totals + breakdown + monthly chart + platform fee
+- `app/admin/layout.tsx` — sidebar with Tekshiruv + Bronlar links added
+- `components/shared/BookingStatusBadge.tsx` — color-coded status pill
+- `components/shared/Drawer.tsx` — right-slide panel with backdrop + ESC close
+- `components/shared/ConfirmModal.tsx` — confirmation dialog with danger/primary variants
+- `components/layout/Navbar.tsx` — removed "Kategoriyalar" nav link
+- `components/layout/Footer.tsx` — fixed `/business/dashboard` → `/business`
+- `components/home/HeroSection.tsx` — removed right column brand visual
+- `lib/supabase.ts` — defensive (no longer throws on missing env vars)
+- `lib/supabase/server.ts` — defensive client init with placeholder
+- `next.config.ts` — security headers removed, recharts in optimizePackageImports
+- `vercel.json` — simplified to `{ "framework": "nextjs" }`
 - `.npmrc` — `node-linker=hoisted`, `shamefully-hoist=true`
 - `app/providers.tsx` — `retry: 0` in QueryClient config
 - `types/index.ts` — `role: 'user' | 'business' | 'admin' | 'blocked'`
 - `store/auth.ts` — same role union + persist middleware
-- `components/layout/Navbar.tsx` — React state dropdown, fixed dashboard links, fixed ternary
-- `components/layout/Footer.tsx` — fixed `/business/dashboard` → `/business`
-- `app/(public)/page.tsx` — safe `data || []` in categories query
+- `supabase/migrations/00028_dashboard_features.sql` — blocked_dates table, platform_settings table, missing columns (needs manual run)
