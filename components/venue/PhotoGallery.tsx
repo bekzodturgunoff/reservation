@@ -3,6 +3,7 @@
 import { useState, useCallback, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { X, ChevronLeft, ChevronRight, Image } from 'lucide-react'
+import { PLACEHOLDER_IMAGE } from '@/lib/constants'
 
 interface PhotoGalleryProps {
   photos: string[]
@@ -14,7 +15,7 @@ export function PhotoGallery({ photos, name }: PhotoGalleryProps) {
   const [lightboxOpen, setLightboxOpen] = useState(false)
   const [lightboxIndex, setLightboxIndex] = useState(0)
 
-  const images = photos.length > 0 ? photos : ['https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=1200']
+  const images = photos.length > 0 ? photos : [PLACEHOLDER_IMAGE]
 
   const openLightbox = (index: number) => {
     setLightboxIndex(index)

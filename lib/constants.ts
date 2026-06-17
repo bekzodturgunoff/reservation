@@ -1,3 +1,5 @@
+export const PLACEHOLDER_IMAGE = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='800' height='600'%3E%3Crect fill='%23059669' width='800' height='600'/%3E%3Ctext x='400' y='300' text-anchor='middle' dominant-baseline='central' fill='white' font-size='40' font-family='sans-serif'%3EBronUz%3C/text%3E%3C/svg%3E"
+
 export const UZBEKISTAN_REGIONS: Record<string, string[]> = {
   'Toshkent shahri': ['Toshkent'],
   'Toshkent viloyati': ['Nurafshon', 'Olmaliq', 'Angren', 'Bekobod', 'Bo\'ka', 'G\'azalkent', 'Guliston', 'Quyichirchiq', 'Parkent', 'Piskent', 'O\'rtachirchiq', 'Chinoz', 'Yangiyo\'l'],

@@ -12,6 +12,7 @@ import {
 import { supabase } from '@/lib/supabase'
 import { useTranslation } from 'react-i18next'
 import { useTitle } from '@/hooks/useTitle'
+import { PLACEHOLDER_IMAGE } from '@/lib/constants'
 import { SearchFilters } from '@/components/search/SearchFilters'
 import { SearchMap } from '@/components/search/SearchMap'
 import { SearchAutocomplete } from '@/components/search/SearchAutocomplete'
@@ -36,7 +37,7 @@ function VenueCard({ venue }: { venue: Venue }) {
     >
       <div className="relative h-[200px] sm:h-[220px] overflow-hidden">
         <Image
-          src={venue.photos?.[0] || 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=400&q=80'}
+          src={venue.photos?.[0] || PLACEHOLDER_IMAGE}
           alt={`${venue.name} — BronUz'da bron qilish`}
           fill
           className="object-cover group-hover:scale-105 transition-transform duration-500"
@@ -92,7 +93,7 @@ function VenueListItem({ venue }: { venue: Venue }) {
     >
       <div className="relative w-28 sm:w-36 h-24 sm:h-28 shrink-0 rounded-lg overflow-hidden">
         <Image
-          src={venue.photos?.[0] || 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=400&q=80'}
+          src={venue.photos?.[0] || PLACEHOLDER_IMAGE}
           alt={`${venue.name} — BronUz'da bron qilish`}
           fill
           className="object-cover group-hover:scale-105 transition-transform duration-500"
@@ -173,7 +174,10 @@ const SearchPageInner = () => {
 
       if (filters.search) query = query.ilike('name', `%${filters.search}%`)
       if (filters.city) query = query.eq('city', filters.city)
-      if (filters.category) query = query.eq('category_id', parseInt(filters.category))
+      if (filters.category) {
+        const catId = categories.find((c: Category) => c.slug === filters.category)?.id
+        if (catId) query = query.eq('category_id', catId)
+      }
       if (filters.minPrice) query = query.gte('price_per_slot', parseInt(filters.minPrice))
       if (filters.maxPrice) query = query.lte('price_per_slot', parseInt(filters.maxPrice))
       if (filters.minCapacity) query = query.gte('max_group_size', parseInt(filters.minCapacity))

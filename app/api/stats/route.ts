@@ -15,20 +15,14 @@ export async function GET() {
       supabase.from('reviews').select('rating'),
     ])
 
+    const venueCount = venuesResult.count ?? 0
+    const userCount = usersResult.count ?? 0
     const avgRating = ratingsResult.data?.length
       ? (ratingsResult.data.reduce((sum, r) => sum + r.rating, 0) / ratingsResult.data.length).toFixed(1)
       : null
 
-    return Response.json({
-      venueCount: Math.max(venuesResult.count ?? 0, 500),
-      userCount: Math.max(usersResult.count ?? 0, 12000),
-      avgRating: avgRating || '4.8',
-    })
+    return Response.json({ venueCount, userCount, avgRating })
   } catch {
-    return Response.json({
-      venueCount: 500,
-      userCount: 12000,
-      avgRating: '4.8',
-    })
+    return Response.json({ venueCount: 0, userCount: 0, avgRating: null })
   }
 }

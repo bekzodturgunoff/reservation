@@ -12,6 +12,7 @@ import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/auth'
 import { useTitle } from '@/hooks/useTitle'
 import { useTranslation } from 'react-i18next'
+import { PLACEHOLDER_IMAGE } from '@/lib/constants'
 
 const RegisterPage = () => {
   const { t } = useTranslation()
@@ -106,7 +107,7 @@ const RegisterPage = () => {
         <div
           className="absolute inset-0 bg-cover bg-center"
           style={{
-            backgroundImage: 'url(https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800&q=80)',
+            backgroundImage: `url(${PLACEHOLDER_IMAGE})`,
           }}
         />
         <div

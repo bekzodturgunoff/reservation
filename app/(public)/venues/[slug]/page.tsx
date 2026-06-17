@@ -8,6 +8,7 @@ import { useQuery } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
 import { useTranslation } from 'react-i18next'
 import { useTitle } from '@/hooks/useTitle'
+import { PLACEHOLDER_IMAGE } from '@/lib/constants'
 import {
   MapPin, Star, Phone, Users,
   Shield, Check, Copy, Wifi, Car, Tv, Fan,
@@ -414,7 +415,7 @@ export default function VenueDetailPage() {
                   <Card className="p-0 overflow-hidden">
                     <div className="relative h-44 overflow-hidden">
                       <Image
-                        src={v.photos?.[0] || 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=600'}
+                        src={v.photos?.[0] || PLACEHOLDER_IMAGE}
                         alt={`${v.name} — BronUz'da bron qilish`}
                         fill
                         className="object-cover transition-transform duration-500 group-hover:scale-105"

@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { supabase } from '@/lib/supabase'
+import { PLACEHOLDER_IMAGE } from '@/lib/constants'
 import { Skeleton } from '@/components/ui/Skeleton'
 import { MapPin, ChevronRight } from 'lucide-react'
 import type { Venue } from '@/types'
@@ -99,7 +100,7 @@ export function BugunBronSection() {
                 >
                   <div className="relative h-44 overflow-hidden">
                     <Image
-                      src={venue.photos?.[0] || 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=400&q=80'}
+                      src={venue.photos?.[0] || PLACEHOLDER_IMAGE}
                       alt={`${venue.name} — BronUz'da bron qilish`}
                       fill
                       className="object-cover group-hover:scale-105 transition-transform duration-500"

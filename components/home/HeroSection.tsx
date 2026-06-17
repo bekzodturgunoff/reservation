@@ -101,75 +101,41 @@ export function HeroSection() {
             </div>
           </div>
 
-          {/* RIGHT COLUMN - Booking preview card */}
+          {/* RIGHT COLUMN - Brand visual */}
           <div className="hidden lg:flex items-center justify-center">
-            <div className="w-[360px] animate-float">
-              <div
-                className="bg-white/10 backdrop-blur-xl border border-white/15 rounded-3xl p-5 shadow-[0_32px_80px_rgba(0,0,0,0.4)]"
-              >
-                {/* Venue photo */}
-                <div
-                  className="w-full h-[160px] rounded-xl bg-cover bg-center relative"
-                  style={{
-                    backgroundImage: 'url(https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=500&q=80)',
-                  }}
-                >
-                    <span className="absolute top-3 left-3 inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-medium bg-white/20 backdrop-blur-sm text-white">
-                      ☕ {t('footer.cafe')}
-                    </span>
-                  <button className="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center text-white text-sm">
-                    ♡
-                  </button>
+            <div className="relative w-[380px] h-[440px]">
+              {/* Decorative circles */}
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="w-[320px] h-[320px] rounded-full bg-gradient-to-br from-emerald-400/20 via-emerald-500/10 to-transparent animate-pulse" />
+              </div>
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="w-[220px] h-[220px] rounded-full bg-gradient-to-tr from-emerald-500/15 via-emerald-400/10 to-transparent" />
+              </div>
+              {/* Center icon */}
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="w-28 h-28 rounded-2xl bg-gradient-to-br from-emerald-400 to-emerald-600 shadow-[0_16px_48px_rgba(5,150,105,0.3)] flex items-center justify-center -rotate-6">
+                  <svg className="w-14 h-14 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
+                  </svg>
                 </div>
-
-                {/* Venue info */}
-                <h4 className="mt-3 font-display text-base font-bold text-white">Eski Juva Cafe</h4>
-                <p className="mt-1 text-xs text-white/55">📍 Yunusobod, Toshkent</p>
-
-                {/* Divider */}
-                <div className="my-3.5 h-px bg-white/10" />
-
-                {/* Date/time pills */}
-                <div className="flex gap-2">
-                  <div className="flex-1 bg-white/10 rounded-lg px-3 py-2 text-xs text-white text-center">
-                    📅 14-iyun, shanba
+              </div>
+              {/* Feature list */}
+              <div className="absolute bottom-0 left-0 right-0 space-y-3">
+                {[
+                  { icon: '⚡', text: t('home.featureFast') },
+                  { icon: '🛡️', text: t('home.featureSecure') },
+                  { icon: '✅', text: t('home.featureVerified') },
+                ].map((f, i) => (
+                  <div key={i} className="flex items-center gap-3 bg-white/10 backdrop-blur-sm border border-white/10 rounded-xl px-4 py-3">
+                    <span className="text-lg">{f.icon}</span>
+                    <span className="text-sm text-white/80 font-medium">{f.text}</span>
                   </div>
-                  <div className="flex-1 bg-white/10 rounded-lg px-3 py-2 text-xs text-white text-center">
-                    ⏰ 14:00 – 16:00
-                  </div>
-                </div>
-
-                {/* Price */}
-                <div className="mt-3 flex items-baseline gap-1">
-                  <span className="text-lg font-bold text-white">100,000 UZS</span>
-                  <span className="text-xs text-white/50">{t('home.slotDuration')}</span>
-                </div>
-
-                {/* Book button */}
-                <button className="mt-3 w-full h-11 bg-brand-600 hover:bg-brand-700 text-white font-semibold text-sm rounded-xl transition-colors">
-                  {t('common.book')}
-                </button>
-
-                {/* Availability indicator */}
-                <div className="mt-2.5 flex items-center gap-1.5 justify-center">
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#34D399] animate-pulse" />
-                  <span className="text-[11px] text-white/50">{t('home.realTimeAvailability')}</span>
-                </div>
+                ))}
               </div>
             </div>
           </div>
         </div>
       </div>
-
-      <style jsx>{`
-        @keyframes float {
-          0%, 100% { transform: translateY(0px); }
-          50% { transform: translateY(-10px); }
-        }
-        .animate-float {
-          animation: float 4s ease-in-out infinite;
-        }
-      `}</style>
     </section>
   )
 }

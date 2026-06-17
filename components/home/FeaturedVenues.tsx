@@ -7,6 +7,7 @@ import { ChevronRight, MapPin } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { supabase } from '@/lib/supabase'
 import { showRating } from '@/lib/validation'
+import { PLACEHOLDER_IMAGE } from '@/lib/constants'
 import { Skeleton } from '@/components/ui/Skeleton'
 import { FavoriteButton } from '@/components/ui/FavoriteButton'
 import { EmptyState } from '@/components/ui/EmptyState'
@@ -113,7 +114,7 @@ export function FeaturedVenues() {
                     <div
                       className="w-full h-full bg-cover bg-center group-hover:scale-105 transition-transform duration-500"
                       style={{
-                        backgroundImage: `url(${venue.photos?.[0] || 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=400&q=80'})`,
+                        backgroundImage: `url(${venue.photos?.[0] || PLACEHOLDER_IMAGE})`,
                       }}
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-transparent to-transparent" />

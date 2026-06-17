@@ -12,6 +12,7 @@ import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/auth'
 import { useTitle } from '@/hooks/useTitle'
 import { useTranslation } from 'react-i18next'
+import { PLACEHOLDER_IMAGE } from '@/lib/constants'
 
 const LoginPage = () => {
   const { t } = useTranslation()
@@ -88,7 +89,7 @@ const LoginPage = () => {
         <div
           className="absolute inset-0 bg-cover bg-center"
           style={{
-            backgroundImage: 'url(https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=800&q=80)',
+            backgroundImage: `url(${PLACEHOLDER_IMAGE})`,
           }}
         />
         <div
