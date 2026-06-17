@@ -5,6 +5,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useTranslation } from 'react-i18next'
 import { Plus, Edit3, Eye, Trash2, MapPin, Star, ImageIcon, Building2 } from 'lucide-react'
 import { useAuthStore } from '@/store/auth'
 import { Card } from '@/components/ui/Card'
@@ -18,18 +19,19 @@ import toast from 'react-hot-toast'
 import type { BadgeVariant } from '@/components/ui/Badge'
 import type { Venue } from '@/types'
 
-const statusConfig: Record<string, { label: string; variant: BadgeVariant }> = {
-  active: { label: 'Faol', variant: 'success' },
-  pending: { label: 'Kutilmoqda', variant: 'warning' },
-  rejected: { label: 'Rad etilgan', variant: 'error' },
-  human_action_needed: { label: 'Tekshirish kerak', variant: 'warning' },
-}
-
 export default function VenuesPage() {
+  const { t } = useTranslation()
   const router = useRouter()
   const { profile } = useAuthStore()
   const queryClient = useQueryClient()
   const [deleteId, setDeleteId] = useState<string | null>(null)
+
+  const statusConfig: Record<string, { label: string; variant: BadgeVariant }> = {
+    active: { label: t('common.active'), variant: 'success' },
+    pending: { label: t('common.pending'), variant: 'warning' },
+    rejected: { label: t('common.rejected'), variant: 'error' },
+    human_action_needed: { label: t('admin.needsReview'), variant: 'warning' },
+  }
 
   const { data: venues = [], isLoading } = useQuery({
     queryKey: ['my-venues', profile?.id],
@@ -52,7 +54,7 @@ export default function VenuesPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['my-venues'] })
       setDeleteId(null)
-      toast.success("Joy o'chirildi")
+      toast.success(t('business.venueDeleted'))
     },
     onError: (err: Error) => {
       toast.error(err.message)
@@ -86,10 +88,10 @@ export default function VenuesPage() {
     return (
       <EmptyState
         icon={<Building2 className="w-12 h-12" />}
-        title="Hozircha joylar yo'q"
-        description="Biznesingizni boshlash uchun birinchi joyni qo'shing."
+        title={t('business.noVenues')}
+        description={t('business.noVenuesDesc')}
         action={{
-          label: "Yangi joy qo'shish",
+          label: t('business.addVenueLink'),
           onClick: () => router.push('/business/venues/add'),
         }}
       />
@@ -99,10 +101,10 @@ export default function VenuesPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-xl font-display font-semibold text-ink">Mening joylarim</h1>
+        <h1 className="text-xl font-display font-semibold text-ink">{t('business.myVenues')}</h1>
         <Link href="/business/venues/add">
           <Button variant="primary" size="sm" leftIcon={<Plus className="w-4 h-4" />}>
-            Yangi joy qo'shish
+            {t('business.addVenueLink')}
           </Button>
         </Link>
       </div>
@@ -116,7 +118,7 @@ export default function VenuesPage() {
               ) : (
                 <div className="flex flex-col items-center">
                   <ImageIcon className="w-10 h-10 text-ink-muted" />
-                  <span className="mt-1 text-xs text-ink-tertiary">Rasm mavjud emas</span>
+                  <span className="mt-1 text-xs text-ink-tertiary">{t('business.noPhoto')}</span>
                 </div>
               )}
               <div className="absolute top-3 right-3">
@@ -138,7 +140,7 @@ export default function VenuesPage() {
               <div className="mt-3 flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <span className="text-sm font-semibold text-ink">
-                    {(venue.price_per_slot ?? 0).toLocaleString()} so'm
+                    {(venue.price_per_slot ?? 0).toLocaleString()} {t('common.sum')}
                   </span>
                   {venue.avg_rating && venue.avg_rating > 0 && (
                     <span className="text-sm text-ink-tertiary flex items-center gap-1">
@@ -148,15 +150,15 @@ export default function VenuesPage() {
                   )}
                 </div>
                 <div className="flex items-center gap-1">
-                  <button className="p-2 rounded-xl text-ink-tertiary hover:bg-surface-subtle hover:text-info transition-colors" aria-label="Tahrirlash">
+                  <button className="p-2 rounded-xl text-ink-tertiary hover:bg-surface-subtle hover:text-info transition-colors" aria-label={t('business.editVenue')}>
                     <Edit3 className="w-4 h-4" />
                   </button>
                   <Link href={`/venues/${venue.id}`}>
-                    <button className="p-2 rounded-xl text-ink-tertiary hover:bg-surface-subtle hover:text-ink-secondary transition-colors" aria-label="Ko'rish">
+                    <button className="p-2 rounded-xl text-ink-tertiary hover:bg-surface-subtle hover:text-ink-secondary transition-colors" aria-label={t('business.view')}>
                       <Eye className="w-4 h-4" />
                     </button>
                   </Link>
-                  <button onClick={() => setDeleteId(venue.id)} className="p-2 rounded-xl text-ink-tertiary hover:bg-surface-subtle hover:text-error transition-colors" aria-label="O'chirish">
+                  <button onClick={() => setDeleteId(venue.id)} className="p-2 rounded-xl text-ink-tertiary hover:bg-surface-subtle hover:text-error transition-colors" aria-label={t('business.deleteVenue')}>
                     <Trash2 className="w-4 h-4" />
                   </button>
                 </div>
@@ -166,11 +168,11 @@ export default function VenuesPage() {
         ))}
       </div>
 
-      <Modal isOpen={!!deleteId} onClose={() => setDeleteId(null)} title="O'chirishni tasdiqlash">
-        <p className="text-sm text-ink-secondary">Bu joyni o'chirishni xohlaysizmi? Bu amalni qaytarib bo'lmaydi.</p>
+      <Modal isOpen={!!deleteId} onClose={() => setDeleteId(null)} title={t('business.deleteVenue')}>
+        <p className="text-sm text-ink-secondary">{t('business.deleteConfirmText')}</p>
         <div className="flex items-center justify-end gap-3 mt-6">
-          <Button variant="ghost" onClick={() => setDeleteId(null)}>Bekor qilish</Button>
-          <Button variant="danger" onClick={() => deleteId && deleteMutation.mutate(deleteId)} loading={deleteMutation.isPending}>O'chirish</Button>
+          <Button variant="ghost" onClick={() => setDeleteId(null)}>{t('common.cancel')}</Button>
+          <Button variant="danger" onClick={() => deleteId && deleteMutation.mutate(deleteId)} loading={deleteMutation.isPending}>{t('business.deleteVenue')}</Button>
         </div>
       </Modal>
     </div>

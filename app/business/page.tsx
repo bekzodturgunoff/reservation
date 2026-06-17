@@ -1,6 +1,7 @@
 'use client'
 
 import { useQuery } from '@tanstack/react-query'
+import { useTranslation } from 'react-i18next'
 import Link from 'next/link'
 import {
   Building2,
@@ -29,6 +30,7 @@ function StatCard({
   href?: string
   color: string
 }) {
+  const { t } = useTranslation()
   const content = (
     <Card className="p-5 hover:shadow-card-hover transition-shadow group cursor-default">
       <div className="flex items-start justify-between">
@@ -49,7 +51,7 @@ function StatCard({
       {href && (
         <div className="mt-3 pt-3 border-t border-border opacity-0 group-hover:opacity-100 transition-opacity">
           <span className="text-xs font-medium text-brand flex items-center gap-1">
-            Batafsil <ChevronRight className="w-3 h-3" />
+            {t('business.detail')} <ChevronRight className="w-3 h-3" />
           </span>
         </div>
       )}
@@ -61,6 +63,7 @@ function StatCard({
 }
 
 export default function BusinessDashboard() {
+  const { t } = useTranslation()
   const { profile } = useAuthStore()
 
   const { data: venueCount = 0, isLoading: venuesLoading } = useQuery({
@@ -157,9 +160,9 @@ export default function BusinessDashboard() {
         .limit(5)
       return (data || []).map(b => ({
         id: b.id,
-        venue_name: venueMap[b.venue_id] || 'Noma\'lum',
+        venue_name: venueMap[b.venue_id] || t('common.unknown'),
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        customer: (b as any).profiles?.full_name || '—',
+        customer: (b as any).profiles?.full_name || t('common.unknown'),
         total_price: b.total_price || 0,
         status: b.status,
         date: new Date(b.created_at).toLocaleDateString('uz-UZ'),
@@ -169,9 +172,9 @@ export default function BusinessDashboard() {
   })
 
   const statusConfig: Record<string, { label: string; variant: 'success' | 'warning' | 'default' | 'error' }> = {
-    confirmed: { label: 'Tasdiqlangan', variant: 'success' },
-    completed: { label: 'Yakunlangan', variant: 'default' },
-    cancelled: { label: 'Bekor qilingan', variant: 'error' },
+    confirmed: { label: t('common.confirmed'), variant: 'success' },
+    completed: { label: t('common.completed'), variant: 'default' },
+    cancelled: { label: t('common.cancelled'), variant: 'error' },
   }
 
   return (
@@ -179,10 +182,10 @@ export default function BusinessDashboard() {
       {/* Greeting */}
       <Card className="p-6 sm:p-8 bg-gradient-to-br from-brand to-emerald-800 border-0">
         <h1 className="text-xl sm:text-2xl font-display font-semibold text-white">
-          Xush kelibsiz, {profile?.full_name?.split(' ')[0] || 'Foydalanuvchi'}
+          {t('business.welcome', { name: profile?.full_name?.split(' ')[0] || t('business.user') })}
         </h1>
         <p className="mt-1.5 text-brand-100 text-sm sm:text-base">
-          Biznes panelga xush kelibsiz. Bugungi faoliyatingizni kuzatib boring.
+          {t('business.dashboardSubtitle')}
         </p>
       </Card>
 
@@ -202,28 +205,28 @@ export default function BusinessDashboard() {
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <StatCard
-            label="Faol joylar"
+            label={t('business.activeVenues')}
             value={venueCount.toLocaleString()}
             icon={Building2}
             href="/business/venues"
             color="bg-blue-50 text-blue-600"
           />
           <StatCard
-            label="Bugungi buyurtmalar"
+            label={t('business.todayBookings')}
             value={todayBookings.toLocaleString()}
             icon={CalendarCheck}
             href="/business/bookings"
             color="bg-emerald-50 text-emerald-600"
           />
           <StatCard
-            label="Oylik daromad"
-            value={`${(monthlyRevenue / 1e6).toFixed(1)} mln so'm`}
+            label={t('business.statsRevenue')}
+            value={`${(monthlyRevenue / 1e6).toFixed(1)} mln ${t('common.sum')}`}
             icon={TrendingUp}
             href="/business/revenue"
             color="bg-violet-50 text-violet-600"
           />
           <StatCard
-            label="Yangi sharhlar"
+            label={t('business.newReviews')}
             value={reviewCount.toLocaleString()}
             icon={MessageSquare}
             color="bg-amber-50 text-amber-600"
@@ -234,9 +237,9 @@ export default function BusinessDashboard() {
       {/* Recent bookings */}
       <Card>
         <div className="px-6 py-4 border-b border-border flex items-center justify-between">
-          <h2 className="text-sm font-semibold text-ink">Oxirgi buyurtmalar</h2>
+          <h2 className="text-sm font-semibold text-ink">{t('business.recentBookings')}</h2>
           <Link href="/business/bookings" className="text-xs font-medium text-brand hover:underline">
-            Barchasi
+            {t('common.viewAll')}
           </Link>
         </div>
         {loading ? (
@@ -254,7 +257,7 @@ export default function BusinessDashboard() {
         ) : recentBookings.length === 0 ? (
           <div className="p-8 text-center">
             <CalendarCheck className="w-8 h-8 mx-auto text-ink-muted mb-2" />
-            <p className="text-sm text-ink-secondary">Hali buyurtmalar yo'q</p>
+            <p className="text-sm text-ink-secondary">{t('business.emptyBookings')}</p>
           </div>
         ) : (
           <div className="divide-y divide-border">

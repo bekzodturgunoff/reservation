@@ -9,7 +9,7 @@ import { useAuthStore } from '@/store/auth'
 import { Menu, X, ChevronDown, LogOut, User, Building2, Shield, Heart } from 'lucide-react'
 
 export const Navbar = () => {
-  const { i18n } = useTranslation()
+  const { t, i18n } = useTranslation()
   const { user, profile, logout } = useAuthStore()
   const router = useRouter()
   const pathname = usePathname()
@@ -52,10 +52,10 @@ export const Navbar = () => {
   }, [logout, router])
 
   const navLinks = [
-    { href: '/', label: 'Bosh sahifa' },
-    { href: '/search', label: 'Joylar' },
-    { href: '/#categories', label: 'Toifalar' },
-    { href: '/#how-it-works', label: "Qanday ishlaydi" },
+    { href: '/', label: t('common.home') },
+    { href: '/search', label: t('nav.venues') },
+    { href: '/#categories', label: t('nav.categories') },
+    { href: '/#how-it-works', label: t('home.howItWorks') },
   ]
 
   const isHome = pathname === '/'
@@ -168,22 +168,22 @@ export const Navbar = () => {
                     <div className="py-1">
                       <Link href="/profile" className="flex items-center gap-3 px-4 py-2.5 text-sm text-ink-secondary hover:bg-surface-muted transition-colors">
                         <User className="w-4 h-4" />
-                        Profil
+                        {t('nav.profile')}
                       </Link>
                       <Link href="/profile/favorites" className="flex items-center gap-3 px-4 py-2.5 text-sm text-ink-secondary hover:bg-surface-muted transition-colors">
                         <Heart className="w-4 h-4" />
-                        Sevimlilar
+                        {t('nav.favorites')}
                       </Link>
                       {(profile.role === 'business' || profile.role === 'admin') && (
                         <Link href="/business" className="flex items-center gap-3 px-4 py-2.5 text-sm text-ink-secondary hover:bg-surface-muted transition-colors">
                           <Building2 className="w-4 h-4" />
-                          Biznes panel
+                          {t('nav.businessPanel')}
                         </Link>
                       )}
                       {profile.role === 'admin' && (
                         <Link href="/admin" className="flex items-center gap-3 px-4 py-2.5 text-sm text-ink-secondary hover:bg-surface-muted transition-colors">
                           <Shield className="w-4 h-4" />
-                          Admin panel
+                          {t('nav.adminPanel')}
                         </Link>
                       )}
                     </div>
@@ -193,7 +193,7 @@ export const Navbar = () => {
                         className="flex items-center gap-3 px-4 py-2.5 text-sm text-status-error hover:bg-status-error-bg w-full text-left transition-colors"
                       >
                         <LogOut className="w-4 h-4" />
-                        Chiqish
+                        {t('common.logout')}
                       </button>
                     </div>
                   </div>
@@ -209,13 +209,13 @@ export const Navbar = () => {
                       : 'text-white/80 hover:text-white'
                   }`}
                 >
-                  Kirish
+                  {t('common.login')}
                 </Link>
                 <Link
                   href="/register"
                   className="text-sm font-semibold text-white bg-brand-600 hover:bg-brand-700 px-5 py-2 rounded-xl transition-colors shadow-btn"
                 >
-                  Ro'yxatdan o'tish
+                  {t('common.register')}
                 </Link>
               </div>
             )}
@@ -284,13 +284,13 @@ export const Navbar = () => {
                     href="/login"
                     className="flex-1 text-center py-3 rounded-xl border border-line text-sm font-medium text-ink-secondary hover:bg-surface-muted transition-colors"
                   >
-                    Kirish
+                    {t('common.login')}
                   </Link>
                   <Link
                     href="/register"
                     className="flex-1 text-center py-3 rounded-xl bg-brand-600 text-white text-sm font-semibold hover:bg-brand-700 transition-colors shadow-btn"
                   >
-                    Ro'yxatdan o'tish
+                    {t('common.register')}
                   </Link>
                 </div>
               ) : (
@@ -300,14 +300,14 @@ export const Navbar = () => {
                     className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-ink-secondary hover:bg-surface-muted transition-colors"
                   >
                     <User className="w-4 h-4" />
-                    Profil
+                    {t('nav.profile')}
                   </Link>
                   <Link
                     href="/profile/favorites"
                     className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-ink-secondary hover:bg-surface-muted transition-colors"
                   >
                     <Heart className="w-4 h-4" />
-                    Sevimlilar
+                    {t('nav.favorites')}
                   </Link>
                   {(profile?.role === 'business' || profile?.role === 'admin') && (
                     <Link
@@ -315,7 +315,7 @@ export const Navbar = () => {
                       className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-ink-secondary hover:bg-surface-muted transition-colors"
                     >
                       <Building2 className="w-4 h-4" />
-                      Biznes panel
+                      {t('nav.businessPanel')}
                     </Link>
                   )}
                   {profile?.role === 'admin' && (
@@ -324,7 +324,7 @@ export const Navbar = () => {
                       className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-ink-secondary hover:bg-surface-muted transition-colors"
                     >
                       <Shield className="w-4 h-4" />
-                      Admin panel
+                      {t('nav.adminPanel')}
                     </Link>
                   )}
                   <button
@@ -332,7 +332,7 @@ export const Navbar = () => {
                     className="w-full text-left flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-status-error hover:bg-status-error-bg transition-colors"
                   >
                     <LogOut className="w-4 h-4" />
-                    Chiqish
+                    {t('common.logout')}
                   </button>
                 </div>
               )}

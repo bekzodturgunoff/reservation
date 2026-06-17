@@ -1,37 +1,39 @@
 'use client'
 
 import { Search, CalendarDays, Check } from 'lucide-react'
-
-const steps = [
-  {
-    num: '01',
-    icon: <Search className="w-6 h-6" />,
-    title: 'Joyni toping',
-    desc: "Shahar, toifa yoki narx bo'yicha qidiring",
-  },
-  {
-    num: '02',
-    icon: <CalendarDays className="w-6 h-6" />,
-    title: 'Vaqtni tanlang',
-    desc: "Mavjud soatlardan o'zingizga mos birini belgilang",
-  },
-  {
-    num: '03',
-    icon: <Check className="w-6 h-6" />,
-    title: 'Tasdiqlash oling',
-    desc: "SMS va email orqali bron tasdiqnomasi kelib tushadi",
-  },
-]
+import { useTranslation } from 'react-i18next'
 
 export function HowItWorks() {
+  const { t } = useTranslation()
+
+  const steps = [
+    {
+      num: '01',
+      icon: <Search className="w-6 h-6" />,
+      title: t('home.howItWorksStep1Title'),
+      desc: t('home.howItWorksStep1Desc'),
+    },
+    {
+      num: '02',
+      icon: <CalendarDays className="w-6 h-6" />,
+      title: t('home.howItWorksStep2Title'),
+      desc: t('home.howItWorksStep2Desc'),
+    },
+    {
+      num: '03',
+      icon: <Check className="w-6 h-6" />,
+      title: t('home.howItWorksStep3Title'),
+      desc: t('home.howItWorksStep3Desc'),
+    },
+  ]
   return (
     <section id="how-it-works" className="bg-surface-subtle py-20 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
         <h2 className="font-display text-3xl sm:text-4xl font-bold text-ink text-center">
-          3 ta qadam — bron tayyor
+          {t('home.howItWorksTitle')}
         </h2>
         <p className="mt-3 text-base text-ink-tertiary text-center">
-          WhatsApp va qo'ng'iroqlarsiz
+          {t('home.howItWorksSubtitle')}
         </p>
 
         <div className="mt-16 grid md:grid-cols-3 gap-8 relative">

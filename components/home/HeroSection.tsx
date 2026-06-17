@@ -1,17 +1,32 @@
 'use client'
 
-import { useRef } from 'react'
+import { useRef, useState, useEffect } from 'react'
 import Link from 'next/link'
 import { ArrowRight, Star } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 
 export function HeroSection() {
+  const { t } = useTranslation()
   const statsRef = useRef<HTMLDivElement>(null)
 
-  const stats = [
-    { value: '500+', label: "Ro'yxatdagi joylar" },
-    { value: '12,000+', label: 'Faol foydalanuvchilar' },
-    { value: '4.8', label: "O'rtacha reyting", star: true },
-  ]
+  const [stats, setStats] = useState([
+    { value: '500+', label: t('home.statVenues') },
+    { value: '12,000+', label: t('home.statUsers') },
+    { value: '4.8', label: t('home.statRating'), star: true },
+  ])
+
+  useEffect(() => {
+    fetch('/api/stats')
+      .then(r => r.json())
+      .then(data => {
+        setStats([
+          { value: `${data.venueCount}+`, label: t('home.statVenues') },
+          { value: `${data.userCount}+`, label: t('home.statUsers') },
+          { value: data.avgRating, label: t('home.statRating'), star: true },
+        ])
+      })
+      .catch(() => {})
+  }, [t])
 
   return (
     <section className="relative min-h-screen flex items-center overflow-hidden">
@@ -29,22 +44,21 @@ export function HeroSection() {
             {/* Trust badge */}
             <div className="inline-flex items-center gap-1.5 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full px-3.5 py-1.5 text-xs font-medium text-white tracking-[0.05em] mb-8">
               <span>🇺🇿</span>
-              <span>O'zbekiston №1 bron platformasi</span>
+              <span>{t('home.heroBadge')}</span>
             </div>
 
             {/* Headline */}
             <h1 className="font-display text-[68px] sm:text-[68px] leading-[1.05] -tracking-[0.04em] font-extrabold text-white">
-              Mukammal joy —
+              {t('home.heroTitle1')}
               <br />
-              <span className="text-[#34D399]">bir daqiqada</span>
+              <span className="text-[#34D399]">{t('home.heroTitleHighlight')}</span>
               <br />
-              bron qiling.
+              {t('home.heroTitle2')}
             </h1>
 
             {/* Subtext */}
             <p className="mt-6 text-[17px] text-white/65 max-w-[460px] leading-relaxed">
-              Toshkentdagi kafeler, restoranlar, futbol maydonlari va ko'plab joylarni
-              WhatsApp va qo'ng'iroqlarsiz — onlayn toping va bron qiling.
+              {t('home.heroDescription')}
             </p>
 
             {/* CTA Buttons */}
@@ -53,7 +67,7 @@ export function HeroSection() {
                 href="/search"
                 className="inline-flex items-center justify-center gap-2 h-[52px] px-7 bg-brand-600 hover:bg-brand-700 text-white font-semibold text-base rounded-xl shadow-btn transition-all hover:-translate-y-[1px] active:translate-y-0"
               >
-                Joyni qidirish
+                {t('home.searchButton')}
                 <ArrowRight className="w-4 h-4" />
               </Link>
               <a
@@ -64,7 +78,7 @@ export function HeroSection() {
                   <circle cx="12" cy="12" r="10" />
                   <polygon points="10,8 16,12 10,16" fill="currentColor" stroke="none" />
                 </svg>
-                Qanday ishlaydi
+                {t('home.howItWorks')}
               </a>
             </div>
 
@@ -100,9 +114,9 @@ export function HeroSection() {
                     backgroundImage: 'url(https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=500&q=80)',
                   }}
                 >
-                  <span className="absolute top-3 left-3 inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-medium bg-white/20 backdrop-blur-sm text-white">
-                    ☕ Kafe
-                  </span>
+                    <span className="absolute top-3 left-3 inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-medium bg-white/20 backdrop-blur-sm text-white">
+                      ☕ {t('footer.cafe')}
+                    </span>
                   <button className="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center text-white text-sm">
                     ♡
                   </button>
@@ -128,18 +142,18 @@ export function HeroSection() {
                 {/* Price */}
                 <div className="mt-3 flex items-baseline gap-1">
                   <span className="text-lg font-bold text-white">100,000 UZS</span>
-                  <span className="text-xs text-white/50">/ 2 soat</span>
+                  <span className="text-xs text-white/50">{t('home.slotDuration')}</span>
                 </div>
 
                 {/* Book button */}
                 <button className="mt-3 w-full h-11 bg-brand-600 hover:bg-brand-700 text-white font-semibold text-sm rounded-xl transition-colors">
-                  Bron qilish
+                  {t('common.book')}
                 </button>
 
                 {/* Availability indicator */}
                 <div className="mt-2.5 flex items-center gap-1.5 justify-center">
                   <span className="w-1.5 h-1.5 rounded-full bg-[#34D399] animate-pulse" />
-                  <span className="text-[11px] text-white/50">Real vaqt mavjudligi</span>
+                  <span className="text-[11px] text-white/50">{t('home.realTimeAvailability')}</span>
                 </div>
               </div>
             </div>

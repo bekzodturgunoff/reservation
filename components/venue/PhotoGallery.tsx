@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useCallback, useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 import { X, ChevronLeft, ChevronRight, Image } from 'lucide-react'
 
 interface PhotoGalleryProps {
@@ -9,6 +10,7 @@ interface PhotoGalleryProps {
 }
 
 export function PhotoGallery({ photos, name }: PhotoGalleryProps) {
+  const { t } = useTranslation()
   const [lightboxOpen, setLightboxOpen] = useState(false)
   const [lightboxIndex, setLightboxIndex] = useState(0)
 
@@ -81,7 +83,7 @@ export function PhotoGallery({ photos, name }: PhotoGalleryProps) {
           >
             <Image className="w-5 h-5 text-ink-muted" />
             <span className="text-sm font-medium text-ink-secondary">
-              +{images.length - 3} ta rasm
+              +{images.length - 3} {t('common.photos')}
             </span>
           </button>
         )}
@@ -95,7 +97,7 @@ export function PhotoGallery({ photos, name }: PhotoGalleryProps) {
           <button
             onClick={closeLightbox}
             className="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors z-10"
-            aria-label="Yopish"
+            aria-label={t('common.close')}
           >
             <X className="w-5 h-5 text-white" />
           </button>
@@ -103,7 +105,7 @@ export function PhotoGallery({ photos, name }: PhotoGalleryProps) {
           <button
             onClick={(e) => { e.stopPropagation(); prev() }}
             className="absolute left-4 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-white/10 hover:bg-white/25 flex items-center justify-center transition-colors z-10"
-            aria-label="Oldingi rasm"
+            aria-label={t('common.previousPhoto')}
           >
             <ChevronLeft className="w-6 h-6 text-white" />
           </button>
@@ -111,7 +113,7 @@ export function PhotoGallery({ photos, name }: PhotoGalleryProps) {
           <button
             onClick={(e) => { e.stopPropagation(); next() }}
             className="absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-white/10 hover:bg-white/25 flex items-center justify-center transition-colors z-10"
-            aria-label="Keyingi rasm"
+            aria-label={t('common.nextPhoto')}
           >
             <ChevronRight className="w-6 h-6 text-white" />
           </button>
@@ -131,7 +133,7 @@ export function PhotoGallery({ photos, name }: PhotoGalleryProps) {
                 className={`w-2 h-2 rounded-full transition-all ${
                   i === lightboxIndex ? 'bg-white w-5' : 'bg-white/40 hover:bg-white/60'
                 }`}
-                aria-label={`Rasm ${i + 1}`}
+                aria-label={`${t('common.photo')} ${i + 1}`}
               />
             ))}
           </div>

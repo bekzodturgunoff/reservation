@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { SlidersHorizontal, X, Users } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import type { Category } from '@/types'
 import { UZBEKISTAN_REGIONS } from '@/lib/constants'
 
@@ -23,6 +24,7 @@ interface SearchFiltersProps {
 }
 
 export function SearchFilters({ categories, filters, onChange, onClear, totalResults }: SearchFiltersProps) {
+  const { t } = useTranslation()
   const [mobileOpen, setMobileOpen] = useState(false)
 
   const hasActiveFilters = !!(filters.search || filters.category || filters.minPrice || filters.maxPrice || filters.minCapacity)
@@ -42,11 +44,11 @@ export function SearchFilters({ categories, filters, onChange, onClear, totalRes
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2 text-sm font-semibold text-ink">
               <SlidersHorizontal className="w-4 h-4" />
-              Filtrlar
+              {t('search.filters')}
             </div>
             {hasActiveFilters && (
               <button onClick={onClear} className="text-xs text-brand hover:underline">
-                Tozalash
+                {t('search.clear')}
               </button>
             )}
           </div>
@@ -54,7 +56,7 @@ export function SearchFilters({ categories, filters, onChange, onClear, totalRes
           {/* Category */}
           <div>
             <label className="text-xs font-semibold uppercase tracking-wider text-ink-secondary mb-2 block">
-              Kategoriya
+              {t('common.category')}
             </label>
             <div className="space-y-1">
               <button
@@ -65,7 +67,7 @@ export function SearchFilters({ categories, filters, onChange, onClear, totalRes
                     : 'text-ink-secondary hover:bg-surface-bg'
                 }`}
               >
-                Hammasi
+                {t('search.allCategories')}
               </button>
               {categories.map((cat) => (
                 <button
@@ -87,14 +89,14 @@ export function SearchFilters({ categories, filters, onChange, onClear, totalRes
           {/* City */}
           <div>
             <label className="text-xs font-semibold uppercase tracking-wider text-ink-secondary mb-2 block">
-              Shahar
+              {t('common.city')}
             </label>
             <select
               value={filters.city}
               onChange={(e) => update('city', e.target.value)}
               className="w-full h-[44px] px-3 text-sm bg-white border border-border rounded-input outline-none focus:border-brand focus:shadow-[0_0_0_3px_rgba(5,150,105,0.12)] transition-shadow text-ink"
             >
-              <option value="">Hammasi</option>
+              <option value="">{t('common.all')}</option>
               {Object.keys(UZBEKISTAN_REGIONS).map((r) => (
                 <option key={r} value={r}>{r}</option>
               ))}
@@ -104,12 +106,12 @@ export function SearchFilters({ categories, filters, onChange, onClear, totalRes
           {/* Price Range */}
           <div>
             <label className="text-xs font-semibold uppercase tracking-wider text-ink-secondary mb-2 block">
-              Narx oralig'i (so'm)
+              {t('common.price')} ({t('common.sum')})
             </label>
             <div className="flex items-center gap-2">
               <input
                 type="number"
-                placeholder="Min"
+                placeholder={t('search.minPrice')}
                 value={filters.minPrice}
                 onChange={(e) => update('minPrice', e.target.value)}
                 className="w-full h-[44px] px-3 text-sm bg-white border border-border rounded-input outline-none focus:border-brand focus:shadow-[0_0_0_3px_rgba(5,150,105,0.12)] transition-shadow text-ink"
@@ -117,7 +119,7 @@ export function SearchFilters({ categories, filters, onChange, onClear, totalRes
               <span className="text-ink-muted">—</span>
               <input
                 type="number"
-                placeholder="Max"
+                placeholder={t('search.maxPrice')}
                 value={filters.maxPrice}
                 onChange={(e) => update('maxPrice', e.target.value)}
                 className="w-full h-[44px] px-3 text-sm bg-white border border-border rounded-input outline-none focus:border-brand focus:shadow-[0_0_0_3px_rgba(5,150,105,0.12)] transition-shadow text-ink"
@@ -127,16 +129,16 @@ export function SearchFilters({ categories, filters, onChange, onClear, totalRes
 
           {/* Capacity */}
           <div>
-            <label className="text-xs font-semibold uppercase tracking-wider text-ink-secondary mb-2 flex items-center gap-1">
-              <Users className="w-3.5 h-3.5" />
-              Sig'im
+              <label className="text-xs font-semibold uppercase tracking-wider text-ink-secondary mb-2 flex items-center gap-1">
+                <Users className="w-3.5 h-3.5" />
+                {t('common.capacity')}
             </label>
             <select
               value={filters.minCapacity}
               onChange={(e) => update('minCapacity', e.target.value)}
               className="w-full h-[44px] px-3 text-sm bg-white border border-border rounded-input outline-none focus:border-brand focus:shadow-[0_0_0_3px_rgba(5,150,105,0.12)] transition-shadow text-ink"
             >
-              <option value="">Istalgan</option>
+              <option value="">{t('common.any')}</option>
               <option value="2">2+ kishi</option>
               <option value="5">5+ kishi</option>
               <option value="10">10+ kishi</option>
@@ -148,7 +150,7 @@ export function SearchFilters({ categories, filters, onChange, onClear, totalRes
           {/* Results count */}
           <div className="pt-4 border-t border-border">
             <p className="text-sm text-ink-secondary">
-              <span className="font-semibold text-ink">{totalResults}</span> ta joy topildi
+              <span className="font-semibold text-ink">{totalResults}</span> {t('search.results')}
             </p>
           </div>
         </div>
@@ -164,7 +166,7 @@ export function SearchFilters({ categories, filters, onChange, onClear, totalRes
         }`}
       >
         <SlidersHorizontal className="w-4 h-4" />
-        Filtrlar
+        {t('search.filters')}
         {filterCount > 0 && (
           <span className="w-5 h-5 bg-white/20 text-white text-xs rounded-full flex items-center justify-center font-medium">
             {filterCount}
@@ -180,7 +182,7 @@ export function SearchFilters({ categories, filters, onChange, onClear, totalRes
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center gap-2 font-semibold text-ink">
                 <SlidersHorizontal className="w-4 h-4" />
-                Filtrlar
+                {t('search.filters')}
               </div>
               <button onClick={() => setMobileOpen(false)} className="p-1 hover:bg-surface-bg rounded-lg">
                 <X className="w-5 h-5 text-ink-secondary" />
@@ -191,7 +193,7 @@ export function SearchFilters({ categories, filters, onChange, onClear, totalRes
             <div className="space-y-5">
               <div>
                 <label className="text-xs font-semibold uppercase tracking-wider text-ink-secondary mb-2 block">
-                  Kategoriya
+                  {t('common.category')}
                 </label>
                 <div className="flex flex-wrap gap-2">
                   {categories.map((cat) => (
@@ -212,14 +214,14 @@ export function SearchFilters({ categories, filters, onChange, onClear, totalRes
 
               <div>
                 <label className="text-xs font-semibold uppercase tracking-wider text-ink-secondary mb-2 block">
-                  Shahar
+                  {t('common.city')}
                 </label>
                 <select
                   value={filters.city}
                   onChange={(e) => update('city', e.target.value)}
                   className="w-full h-[44px] px-3 text-sm bg-white border border-border rounded-input outline-none text-ink"
                 >
-                  <option value="">Hammasi</option>
+                  <option value="">{t('common.all')}</option>
                   {Object.keys(UZBEKISTAN_REGIONS).map((r) => (
                     <option key={r} value={r}>{r}</option>
                   ))}
@@ -228,7 +230,7 @@ export function SearchFilters({ categories, filters, onChange, onClear, totalRes
 
               <div>
                 <label className="text-xs font-semibold uppercase tracking-wider text-ink-secondary mb-2 block">
-                  Narx oralig'i
+                  {t('common.price')}
                 </label>
                 <div className="flex items-center gap-2">
                   <input
@@ -252,14 +254,14 @@ export function SearchFilters({ categories, filters, onChange, onClear, totalRes
               <div>
                 <label className="text-xs font-semibold uppercase tracking-wider text-ink-secondary mb-2 flex items-center gap-1">
                   <Users className="w-3.5 h-3.5" />
-                  Sig'im
+                  {t('common.capacity')}
                 </label>
                 <select
                   value={filters.minCapacity}
                   onChange={(e) => update('minCapacity', e.target.value)}
                   className="w-full h-[44px] px-3 text-sm bg-white border border-border rounded-input outline-none text-ink"
                 >
-                  <option value="">Istalgan</option>
+                  <option value="">{t('common.any')}</option>
                   <option value="2">2+ kishi</option>
                   <option value="5">5+ kishi</option>
                   <option value="10">10+ kishi</option>
@@ -274,13 +276,13 @@ export function SearchFilters({ categories, filters, onChange, onClear, totalRes
                 onClick={onClear}
                 className="flex-1 h-[48px] border border-border rounded-btn text-sm font-medium text-ink-secondary hover:bg-surface-bg transition-colors"
               >
-                Tozalash
+                {t('search.clear')}
               </button>
               <button
                 onClick={() => setMobileOpen(false)}
                 className="flex-1 h-[48px] bg-brand text-white rounded-btn text-sm font-semibold hover:bg-brand-dark transition-colors"
               >
-                Natijalarni ko'rish
+                {t('search.viewResults')}
               </button>
             </div>
           </div>

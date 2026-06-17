@@ -11,9 +11,11 @@ import { Mail, Lock, User, Phone, Eye, EyeOff, Star } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/auth'
 import { useTitle } from '@/hooks/useTitle'
+import { useTranslation } from 'react-i18next'
 
 const RegisterPage = () => {
-  useTitle("Ro'yxatdan o'tish — BronUz")
+  const { t } = useTranslation()
+  useTitle(`${t('common.register')} — BronUz`)
   const router = useRouter()
   const { setUser, setProfile } = useAuthStore()
   const [loading, setLoading] = useState(false)
@@ -22,11 +24,11 @@ const RegisterPage = () => {
   const [apiError, setApiError] = useState('')
 
   const schema = useMemo(() => z.object({
-    full_name: z.string().min(2, 'Ism kamida 2 belgidan iborat'),
-    phone: z.string().min(9, "Noto'g'ri telefon raqam"),
-    email: z.string().email("Noto'g'ri email"),
-    password: z.string().min(6, 'Parol kamida 6 belgidan iborat'),
-  }), [])
+    full_name: z.string().min(2, t('auth.nameMin')),
+    phone: z.string().min(9, t('auth.invalidPhone')),
+    email: z.string().email(t('auth.validEmail')),
+    password: z.string().min(8, t('auth.passwordMin')),
+  }), [t])
 
   type FormData = z.infer<typeof schema>
 
@@ -49,11 +51,11 @@ const RegisterPage = () => {
     if (/[^A-Za-z0-9]/.test(pwd)) points++
     const levels = [
       { level: 0, color: 'bg-gray-200', label: '' },
-      { level: 1, color: 'bg-status-error', label: 'Juda zaif' },
-      { level: 2, color: 'bg-orange-500', label: 'Zaif' },
-      { level: 3, color: 'bg-yellow-500', label: "O'rtacha" },
-      { level: 4, color: 'bg-lime-500', label: 'Yaxshi' },
-      { level: 5, color: 'bg-status-success', label: 'Kuchli' },
+      { level: 1, color: 'bg-status-error', label: t('auth.passwordStrength.veryWeak') },
+      { level: 2, color: 'bg-orange-500', label: t('auth.passwordStrength.weak') },
+      { level: 3, color: 'bg-yellow-500', label: t('auth.passwordStrength.average') },
+      { level: 4, color: 'bg-lime-500', label: t('auth.passwordStrength.good') },
+      { level: 5, color: 'bg-status-success', label: t('auth.passwordStrength.strong') },
     ]
     return levels[points] || levels[0]
   }
@@ -77,7 +79,7 @@ const RegisterPage = () => {
 
     if (error) {
       const msg = error.message === 'Failed to fetch'
-        ? 'Tarmoq xatosi. Internet aloqasini tekshiring.'
+        ? t('auth.networkError')
         : error.message
       setLoading(false)
       setApiError(msg)
@@ -92,7 +94,7 @@ const RegisterPage = () => {
         .eq('id', authData.user.id)
         .single()
       setProfile(profile)
-      toast.success("Muvaffaqiyatli ro'yxatdan o'tdingiz! 🎉")
+      toast.success(t('auth.registerSuccess'))
     }
     router.push('/')
   }
@@ -116,14 +118,14 @@ const RegisterPage = () => {
         <div className="relative z-10 flex flex-col justify-center p-12 w-full">
           <div className="max-w-xs mx-auto text-center">
             <p className="text-2xl font-display font-semibold text-white leading-snug">
-              O'zingizga mos joyni toping va bir zumda bron qiling
+              {t('auth.registerHeroQuote')}
             </p>
             <div className="flex justify-center gap-1 mt-4">
               {[1, 2, 3, 4, 5].map((i) => (
                 <Star key={i} className="w-5 h-5 fill-white text-white" />
               ))}
             </div>
-            <p className="text-sm text-white/60 mt-2">Nilufar, Samarqand</p>
+            <p className="text-sm text-white/60 mt-2">{t('auth.registerTestimonialUser')}</p>
           </div>
         </div>
       </div>
@@ -137,8 +139,8 @@ const RegisterPage = () => {
             <span className="font-display text-2xl font-extrabold text-ink -tracking-[0.03em]">Uz</span>
           </Link>
 
-          <h1 className="text-2xl font-display font-bold text-ink">Ro'yxatdan o'tish</h1>
-          <p className="text-sm text-ink-tertiary mt-1">Hisob yarating va bron qilishni boshlang</p>
+          <h1 className="text-2xl font-display font-bold text-ink">{t('common.register')}</h1>
+          <p className="text-sm text-ink-tertiary mt-1">{t('auth.registerSubtitle')}</p>
 
           {/* Role Toggle */}
           <div className="flex gap-3 mt-8 mb-8">
@@ -152,8 +154,8 @@ const RegisterPage = () => {
               }`}
             >
               <span className="text-xl">👤</span>
-              <p className="text-sm font-semibold text-ink mt-1">Foydalanuvchi</p>
-              <p className="text-xs text-ink-tertiary">Joy bron qilish uchun</p>
+              <p className="text-sm font-semibold text-ink mt-1">{t('auth.user')}</p>
+              <p className="text-xs text-ink-tertiary">{t('auth.userDesc')}</p>
               {role === 'user' && (
                 <span className="absolute top-2 right-2 w-5 h-5 bg-brand-600 rounded-full flex items-center justify-center text-white text-[10px]">✓</span>
               )}
@@ -168,8 +170,8 @@ const RegisterPage = () => {
               }`}
             >
               <span className="text-xl">🏢</span>
-              <p className="text-sm font-semibold text-ink mt-1">Biznes egasi</p>
-              <p className="text-xs text-ink-tertiary">Joy qo'shish uchun</p>
+              <p className="text-sm font-semibold text-ink mt-1">{t('auth.business')}</p>
+              <p className="text-xs text-ink-tertiary">{t('auth.businessDesc')}</p>
               {role === 'business' && (
                 <span className="absolute top-2 right-2 w-5 h-5 bg-brand-600 rounded-full flex items-center justify-center text-white text-[10px]">✓</span>
               )}
@@ -180,14 +182,14 @@ const RegisterPage = () => {
             {/* Full name */}
             <div>
               <label htmlFor="reg-name" className="text-[11px] font-semibold uppercase tracking-wider text-ink-secondary mb-1.5 block">
-                To'liq ism
+                {t('common.fullName')}
               </label>
               <div className="relative">
                 <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-muted" />
                 <input
                   id="reg-name"
                   type="text"
-                  placeholder="Sardor Toshmatov"
+                  placeholder={t('auth.namePlaceholder')}
                   autoComplete="name"
                   {...register('full_name')}
                   className={`w-full h-[52px] pl-11 pr-4 bg-white border rounded-input text-base text-ink placeholder:text-ink-muted outline-none transition-all ${
@@ -203,14 +205,14 @@ const RegisterPage = () => {
             {/* Phone */}
             <div>
               <label htmlFor="reg-phone" className="text-[11px] font-semibold uppercase tracking-wider text-ink-secondary mb-1.5 block">
-                Telefon
+                {t('common.phone')}
               </label>
               <div className="relative">
                 <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-muted" />
                 <input
                   id="reg-phone"
                   type="tel"
-                  placeholder="+998 90 123 45 67"
+                  placeholder={t('auth.phonePlaceholder')}
                   autoComplete="tel"
                   {...register('phone')}
                   className={`w-full h-[52px] pl-11 pr-4 bg-white border rounded-input text-base text-ink placeholder:text-ink-muted outline-none transition-all ${
@@ -226,14 +228,14 @@ const RegisterPage = () => {
             {/* Email */}
             <div>
               <label htmlFor="reg-email" className="text-[11px] font-semibold uppercase tracking-wider text-ink-secondary mb-1.5 block">
-                Email manzil
+                {t('common.email')}
               </label>
               <div className="relative">
                 <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-muted" />
                 <input
                   id="reg-email"
                   type="email"
-                  placeholder="siz@example.com"
+                  placeholder={t('auth.emailPlaceholder')}
                   autoComplete="email"
                   {...register('email')}
                   className={`w-full h-[52px] pl-11 pr-4 bg-white border rounded-input text-base text-ink placeholder:text-ink-muted outline-none transition-all ${
@@ -249,14 +251,14 @@ const RegisterPage = () => {
             {/* Password */}
             <div>
               <label htmlFor="reg-password" className="text-[11px] font-semibold uppercase tracking-wider text-ink-secondary mb-1.5 block">
-                Parol
+                {t('common.password')}
               </label>
               <div className="relative">
                 <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-muted" />
                 <input
                   id="reg-password"
                   type={showPassword ? 'text' : 'password'}
-                  placeholder="••••••••"
+                  placeholder={t('auth.passwordPlaceholder')}
                   autoComplete="new-password"
                   {...register('password')}
                   className={`w-full h-[52px] pl-11 pr-11 bg-white border rounded-input text-base text-ink placeholder:text-ink-muted outline-none transition-all ${
@@ -268,7 +270,7 @@ const RegisterPage = () => {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  aria-label={showPassword ? 'Parolni yashirish' : 'Parolni ko\'rsatish'}
+                  aria-label={showPassword ? t('auth.hidePassword') : t('auth.showPassword')}
                   className="absolute right-4 top-1/2 -translate-y-1/2 text-ink-muted hover:text-ink-secondary transition-colors"
                 >
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -313,15 +315,15 @@ const RegisterPage = () => {
               {loading ? (
                 <span className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
               ) : (
-                "Ro'yxatdan o'tish"
+                t('common.register')
               )}
             </button>
           </form>
 
           <p className="text-sm text-ink-tertiary text-center mt-6">
-            Hisobingiz bormi?{' '}
+            {t('auth.haveAccount')}{' '}
             <Link href="/login" className="text-brand-600 font-medium hover:underline">
-              Kirish
+              {t('common.login')}
             </Link>
           </p>
         </div>

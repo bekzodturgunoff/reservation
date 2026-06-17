@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { useQuery } from '@tanstack/react-query'
+import { useTranslation } from 'react-i18next'
 import { supabase } from '@/lib/supabase'
 import { Skeleton } from '@/components/ui/Skeleton'
 import type { Category } from '@/types'
@@ -20,6 +21,7 @@ const CATEGORY_ICONS: Record<string, string> = {
 }
 
 export function CategoryGrid() {
+  const { t } = useTranslation()
   const [expanded, setExpanded] = useState(false)
 
   const { data: rawCategories = [], isLoading } = useQuery({
@@ -47,10 +49,10 @@ export function CategoryGrid() {
     <section className="bg-white py-20 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
         <h2 className="font-display text-3xl sm:text-4xl font-bold text-ink text-center">
-          Nima qidiryapsiz?
+          {t('home.categoryQuestion')}
         </h2>
         <p className="mt-2 text-sm text-ink-tertiary text-center max-w-md mx-auto">
-          Kategoriyalar bo'yicha eng yaxshi joylarni kashf eting
+          {t('home.categorySubtitle')}
         </p>
 
         {isLoading ? (
@@ -79,7 +81,7 @@ export function CategoryGrid() {
                     {cat.name_uz || cat.slug}
                   </span>
                   <span className="mt-1 text-xs text-ink-muted group-hover:text-white/70 transition-colors">
-                    {cat.count || 0} ta joy
+                    {cat.count || 0} {t('home.categoryVenueCount')}
                   </span>
                 </Link>
               ))}
@@ -91,7 +93,7 @@ export function CategoryGrid() {
                   onClick={() => setExpanded(!expanded)}
                   className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-full text-sm font-medium text-brand border border-brand/30 hover:bg-brand-light transition-colors"
                 >
-                  {expanded ? 'Yopish' : `Ko'proq toifalar (${extra.length})`}
+                  {expanded ? t('home.showLess') : t('home.showMore', { count: extra.length })}
                 </button>
               </div>
             )}

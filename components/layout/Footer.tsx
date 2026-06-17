@@ -1,5 +1,6 @@
 'use client'
 
+import { useTranslation } from 'react-i18next'
 import Link from 'next/link'
 
 const socials = [
@@ -20,38 +21,40 @@ const socials = [
   },
 ]
 
-const columns = [
-  {
-    title: 'Platforma',
-    links: [
-      { href: '/', label: 'Bosh sahifa' },
-      { href: '/search', label: 'Joylar' },
-      { href: '/#categories', label: 'Toifalar' },
-      { href: '/#how-it-works', label: "Qanday ishlaydi" },
-      { href: '/register', label: 'Narxlar' },
-    ],
-  },
-  {
-    title: 'Biznes uchun',
-    links: [
-      { href: '/business/venues/add', label: "Joy qo'shish" },
-      { href: '/business', label: 'Boshqaruv' },
-      { href: '#', label: 'API' },
-      { href: '#', label: 'Hamkorlik' },
-    ],
-  },
-  {
-    title: 'Yordam',
-    links: [
-      { href: '#', label: "Ko'p so'raladigan savollar" },
-      { href: '#', label: 'Aloqa' },
-      { href: '/terms', label: 'Shartlar' },
-      { href: '/privacy', label: 'Maxfiylik' },
-    ],
-  },
-]
-
 export const Footer = () => {
+  const { t } = useTranslation()
+
+  const columns = [
+    {
+      title: t('footer.site'),
+      links: [
+        { href: '/', label: t('common.home') },
+        { href: '/search', label: t('footer.search') },
+        { href: '/#categories', label: t('footer.categories') },
+        { href: '/#how-it-works', label: t('footer.howItWorks') },
+        { href: '/register', label: t('footer.pricing') },
+      ],
+    },
+    {
+      title: t('footer.forBusiness'),
+      links: [
+        { href: '/business/venues/add', label: t('footer.addVenue') },
+        { href: '/business', label: t('footer.dashboard') },
+        { href: '#', label: 'API' },
+        { href: '#', label: t('footer.partnership') },
+      ],
+    },
+    {
+      title: t('footer.help'),
+      links: [
+        { href: '#', label: t('footer.faq') },
+        { href: '#', label: t('footer.contact') },
+        { href: '/terms', label: t('footer.terms') },
+        { href: '/privacy', label: t('footer.privacy') },
+      ],
+    },
+  ]
+
   return (
     <footer className="bg-[#0F172A] text-white mt-auto">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
@@ -63,7 +66,7 @@ export const Footer = () => {
               <span className="font-display text-xl font-bold text-white -tracking-[0.03em]">Uz</span>
             </div>
             <p className="text-sm text-white/50 leading-relaxed max-w-[200px]">
-              O'zbekistonda joy bron qilishning eng qulay yo'li.
+              {t('footer.description')}
             </p>
             <div className="flex gap-3 mt-6">
               {socials.map((s) => (
@@ -105,10 +108,10 @@ export const Footer = () => {
 
         <div className="border-t border-white/10 mt-12 pt-8 flex flex-col sm:flex-row justify-between items-center gap-4">
           <p className="text-xs text-white/35">
-            &copy; 2025 BronUz. Barcha huquqlar himoyalangan.
+            {t('footer.copyright', { year: 2026 })}
           </p>
           <p className="text-xs text-white/35">
-            O'zbekiston | +998
+            {t('footer.location')}
           </p>
         </div>
       </div>

@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { Search, X, MapPin, Building2, TrendingUp } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 
@@ -42,6 +43,7 @@ async function fetchSuggestions(q: string): Promise<Suggestion[]> {
 }
 
 export function SearchAutocomplete({ value, onChange, onClear }: SearchAutocompleteProps) {
+  const { t } = useTranslation()
   const [open, setOpen] = useState(false)
   const [suggestions, setSuggestions] = useState<Suggestion[]>([])
   const [loading, setLoading] = useState(false)
@@ -100,7 +102,7 @@ export function SearchAutocomplete({ value, onChange, onClear }: SearchAutocompl
       <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-muted" />
       <input
         type="text"
-        placeholder="Joy nomi yoki shaharni kiriting..."
+        placeholder={t('search.placeholder')}
         value={value}
         onChange={handleInput}
         onFocus={() => { if (suggestions.length > 0) setOpen(true) }}
@@ -118,10 +120,10 @@ export function SearchAutocomplete({ value, onChange, onClear }: SearchAutocompl
       {open && (
         <div className="absolute top-full left-0 right-0 mt-1 bg-white rounded-card border border-border shadow-lg z-50 overflow-hidden">
           {loading && (
-            <div className="px-4 py-3 text-xs text-ink-muted">Qidirilmoqda...</div>
+            <div className="px-4 py-3 text-xs text-ink-muted">{t('search.searching')}</div>
           )}
           {!loading && suggestions.length === 0 && value.trim().length >= 2 && (
-            <div className="px-4 py-3 text-xs text-ink-muted">Hech narsa topilmadi</div>
+            <div className="px-4 py-3 text-xs text-ink-muted">{t('search.empty')}</div>
           )}
           {suggestions.map((s, i) => (
             <button
@@ -135,7 +137,7 @@ export function SearchAutocomplete({ value, onChange, onClear }: SearchAutocompl
               <div className="min-w-0">
                 <span className="text-ink font-medium truncate block">{s.label}</span>
                 <span className="text-[10px] text-ink-muted uppercase tracking-wider">
-                  {s.type === 'venue' ? 'Joy' : s.type === 'city' ? 'Shahar' : 'Kategoriya'}
+                  {s.type === 'venue' ? t('common.venue') : s.type === 'city' ? t('common.city') : t('common.category')}
                 </span>
               </div>
               {s.type === 'venue' && <TrendingUp className="w-3.5 h-3.5 text-ink-muted ml-auto shrink-0" />}

@@ -1,6 +1,7 @@
 'use client'
 
 import { useQuery } from '@tanstack/react-query'
+import { useTranslation } from 'react-i18next'
 import { TrendingUp, CalendarCheck, DollarSign, ArrowUpRight, ArrowDownRight } from 'lucide-react'
 import { useAuthStore } from '@/store/auth'
 import { Card } from '@/components/ui/Card'
@@ -9,6 +10,7 @@ import { supabase } from '@/lib/supabase'
 import type { Booking } from '@/types'
 
 export default function RevenuePage() {
+  const { t } = useTranslation()
   const { profile } = useAuthStore()
 
   const { data: bookings = [], isLoading } = useQuery({
@@ -59,22 +61,22 @@ export default function RevenuePage() {
 
   const summaryCards = [
     {
-      label: 'Oy uchun jami daromad',
-      value: `${totalRevenue.toLocaleString()} so'm`,
+      label: t('business.totalMonthlyRevenue'),
+      value: `${totalRevenue.toLocaleString()} ${t('common.sum')}`,
       change: revenueChange,
       icon: DollarSign,
       color: 'text-brand bg-brand-pale',
     },
     {
-      label: 'Faol buyurtmalar',
+      label: t('business.activeOrders'),
       value: activeBookings.toString(),
       change: bookingsChange,
       icon: CalendarCheck,
       color: 'text-info bg-info-bg',
     },
     {
-      label: "O'rtacha buyurtma summasi",
-      value: `${avgOrder.toLocaleString()} so'm`,
+      label: t('business.avgOrderAmount'),
+      value: `${avgOrder.toLocaleString()} ${t('common.sum')}`,
       change: 0,
       icon: TrendingUp,
       color: 'text-warning bg-warning-bg',
@@ -83,7 +85,7 @@ export default function RevenuePage() {
 
   const dailyRevenue = (() => {
     const days: Record<string, number> = {}
-    const dayNames = ['Yak', 'Du', 'Se', 'Chor', 'Pay', 'Ju', 'Shan']
+    const dayNames = t('common.days.short', { returnObjects: true }) as string[]
     for (let i = 6; i >= 0; i--) {
       const d = new Date()
       d.setDate(d.getDate() - i)
@@ -107,7 +109,7 @@ export default function RevenuePage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-xl font-display font-semibold text-ink">Daromad</h1>
+      <h1 className="text-xl font-display font-semibold text-ink">{t('business.analytics.revenue')}</h1>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {summaryCards.map((card) => (
@@ -138,12 +140,12 @@ export default function RevenuePage() {
       </div>
 
       <Card className="p-6">
-        <h2 className="text-sm font-semibold text-ink mb-4">Haftalik daromad</h2>
-        <div className="flex items-end gap-3 h-40" role="img" aria-label={`Haftalik daromad: ${dailyRevenue.map(d => `${d.day} ${d.amount.toLocaleString()} so'm`).join(', ')}`}>
+        <h2 className="text-sm font-semibold text-ink mb-4">{t('business.weeklyRevenue')}</h2>
+        <div className="flex items-end gap-3 h-40" role="img" aria-label={`${t('business.weeklyRevenue')}: ${dailyRevenue.map(d => `${d.day} ${d.amount.toLocaleString()} ${t('common.sum')}`).join(', ')}`}>
           {dailyRevenue.map((day) => (
             <div key={day.day} className="flex-1 flex flex-col items-center gap-2 relative group">
               <div className="opacity-0 group-hover:opacity-100 transition-opacity absolute -top-8 left-1/2 -translate-x-1/2 bg-ink text-white text-[11px] px-2 py-1 rounded-lg whitespace-nowrap z-10 pointer-events-none">
-                {day.amount.toLocaleString()} so'm
+                {day.amount.toLocaleString()} {t('common.sum')}
               </div>
               <div
                 className="w-full bg-brand rounded-lg transition-all duration-500"
@@ -160,7 +162,7 @@ export default function RevenuePage() {
 
       <Card className="overflow-hidden">
         <div className="px-6 py-4 border-b border-border">
-          <h2 className="text-sm font-semibold text-ink">Oxirgi tranzaksiyalar</h2>
+          <h2 className="text-sm font-semibold text-ink">{t('business.recentTransactions')}</h2>
         </div>
         <div className="divide-y divide-border">
           {isLoading
@@ -181,10 +183,10 @@ export default function RevenuePage() {
                   </div>
                   <div className="flex items-center gap-2">
                     <span className={`text-xs font-medium ${tx.status === 'cancelled' ? 'text-error' : 'text-success'}`}>
-                      {tx.status === 'cancelled' ? 'Qaytarildi' : 'To\'landi'}
+                      {tx.status === 'cancelled' ? t('business.refunded') : t('business.paid')}
                     </span>
                     <span className={`text-sm font-semibold ${tx.status === 'cancelled' ? 'text-error' : 'text-ink'}`}>
-                      {tx.status === 'cancelled' ? '-' : '+'}{tx.total_price.toLocaleString()} so'm
+                      {tx.status === 'cancelled' ? '-' : '+'}{tx.total_price.toLocaleString()} {t('common.sum')}
                     </span>
                   </div>
                 </div>

@@ -11,9 +11,11 @@ import { Mail, Lock, Eye, EyeOff, Star } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/auth'
 import { useTitle } from '@/hooks/useTitle'
+import { useTranslation } from 'react-i18next'
 
 const LoginPage = () => {
-  useTitle('Kirish — BronUz')
+  const { t } = useTranslation()
+  useTitle(`${t('common.login')} — BronUz`)
   const router = useRouter()
   const { setUser, setProfile } = useAuthStore()
   const [loading, setLoading] = useState(false)
@@ -21,9 +23,9 @@ const LoginPage = () => {
   const [apiError, setApiError] = useState('')
 
   const schema = useMemo(() => z.object({
-    email: z.string().email("Noto'g'ri email"),
-    password: z.string().min(6, 'Parol kamida 6 belgidan iborat bo\'lishi kerak'),
-  }), [])
+    email: z.string().email(t('auth.validEmail')),
+    password: z.string().min(6, t('auth.passwordMin')),
+  }), [t])
 
   type FormData = z.infer<typeof schema>
 
@@ -43,9 +45,9 @@ const LoginPage = () => {
 
     if (error) {
       const msg = error.message === 'Invalid login credentials'
-        ? "Email yoki parol noto'g'ri. Qayta urinib ko'ring."
+        ? t('auth.invalidCredentials')
         : error.message === 'Failed to fetch'
-          ? 'Tarmoq xatosi. Internet aloqasini tekshiring.'
+          ? t('auth.networkError')
           : error.message
       setLoading(false)
       setApiError(msg)
@@ -60,12 +62,20 @@ const LoginPage = () => {
           .select('id, full_name, phone, avatar_url, role, created_at')
           .eq('id', authData.session.user.id)
           .single()
+        if (profile?.role === 'blocked') {
+          await supabase.auth.signOut()
+          setUser(null)
+          setProfile(null)
+          setLoading(false)
+          setApiError(t('auth.accountBlocked'))
+          return
+        }
         setProfile(profile)
         const firstName = profile?.full_name?.trim().split(/\s+/)[0]
-        toast.success(firstName ? `Xush kelibsiz, ${firstName}! 👋` : 'Xush kelibsiz! 👋')
+        toast.success(firstName ? `${t('auth.welcomeName', { name: firstName })} 👋` : `${t('auth.welcome')} 👋`)
       } catch {
         setProfile(null)
-        toast.success('Xush kelibsiz! 👋')
+        toast.success(`${t('auth.welcome')} 👋`)
       }
     }
     router.push('/')
@@ -90,14 +100,14 @@ const LoginPage = () => {
         <div className="relative z-10 flex flex-col justify-center p-12 w-full">
           <div className="max-w-xs mx-auto text-center">
             <p className="text-2xl font-display font-semibold text-white leading-snug">
-              Minglab foydalanuvchilar BronUz orqali vaqtlarini tejayapti
+              {t('auth.heroQuote')}
             </p>
             <div className="flex justify-center gap-1 mt-4">
               {[1, 2, 3, 4, 5].map((i) => (
                 <Star key={i} className="w-5 h-5 fill-white text-white" />
               ))}
             </div>
-            <p className="text-sm text-white/60 mt-2">Sardor, Toshkent</p>
+            <p className="text-sm text-white/60 mt-2">{t('auth.testimonialUser')}</p>
           </div>
         </div>
       </div>
@@ -128,14 +138,14 @@ const LoginPage = () => {
             {/* Email */}
             <div>
               <label htmlFor="login-email" className="text-[11px] font-semibold uppercase tracking-wider text-ink-secondary mb-1.5 block">
-                Email manzil
+                {t('common.email')}
               </label>
               <div className="relative">
                 <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-muted" />
                 <input
                   id="login-email"
                   type="email"
-                  placeholder="siz@example.com"
+                  placeholder={t('auth.emailPlaceholder')}
                   autoComplete="email"
                   {...register('email')}
                   className={`w-full h-[52px] pl-11 pr-4 bg-white border rounded-input text-base text-ink placeholder:text-ink-muted outline-none transition-all ${
@@ -153,14 +163,14 @@ const LoginPage = () => {
             {/* Password */}
             <div>
               <label htmlFor="login-password" className="text-[11px] font-semibold uppercase tracking-wider text-ink-secondary mb-1.5 block">
-                Parol
+                {t('common.password')}
               </label>
               <div className="relative">
                 <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-muted" />
                 <input
                   id="login-password"
                   type={showPassword ? 'text' : 'password'}
-                  placeholder="••••••••"
+                  placeholder={t('auth.passwordPlaceholder')}
                   autoComplete="current-password"
                   {...register('password')}
                   className={`w-full h-[52px] pl-11 pr-11 bg-white border rounded-input text-base text-ink placeholder:text-ink-muted outline-none transition-all ${
@@ -172,7 +182,7 @@ const LoginPage = () => {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  aria-label={showPassword ? 'Parolni yashirish' : 'Parolni ko\'rsatish'}
+                  aria-label={showPassword ? t('auth.hidePassword') : t('auth.showPassword')}
                   className="absolute right-4 top-1/2 -translate-y-1/2 text-ink-muted hover:text-ink-secondary transition-colors"
                 >
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -183,7 +193,7 @@ const LoginPage = () => {
               )}
               <div className="flex justify-end mt-2">
                 <button type="button" className="text-xs text-brand-600 hover:underline">
-                  Parolni unutdingizmi?
+                  {t('auth.forgotPassword')}
                 </button>
               </div>
             </div>
@@ -205,19 +215,19 @@ const LoginPage = () => {
               {loading ? (
                 <span className="flex items-center gap-2">
                   <span className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  Kirilmoqda...
+                  {t('auth.loggingIn')}
                 </span>
               ) : (
-                'Kirish'
+                t('common.login')
               )}
             </button>
           </form>
 
           {/* Register link */}
           <p className="text-sm text-ink-tertiary text-center mt-8">
-            Hisob yo'qmi?{' '}
+            {t('auth.noAccount')}{' '}
             <Link href="/register" className="text-brand-600 font-medium hover:underline">
-              Ro'yxatdan o'ting
+              {t('auth.registerLink')}
             </Link>
           </p>
         </div>

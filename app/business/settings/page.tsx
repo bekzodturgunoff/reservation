@@ -1,7 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useTranslation } from 'react-i18next'
 import { Card } from '@/components/ui/Card'
 import { Input } from '@/components/ui/Input'
 import { Button } from '@/components/ui/Button'
@@ -12,11 +13,6 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import toast from 'react-hot-toast'
-
-const profileSchema = z.object({
-  full_name: z.string().min(3, 'Ism kamida 3 ta harf bo\'lishi kerak').max(100),
-  phone: z.string().regex(/^\+998[0-9]{9}$/, 'Telefon: +998901234567 formatida kiriting'),
-})
 
 function ToggleSwitch({
   label, description, checked, onChange
@@ -48,8 +44,14 @@ function ToggleSwitch({
 }
 
 export default function BusinessSettingsPage() {
+  const { t } = useTranslation()
   const { profile } = useAuthStore()
   const queryClient = useQueryClient()
+
+  const profileSchema = useMemo(() => z.object({
+    full_name: z.string().min(3, t('business.settings.nameMin')).max(100),
+    phone: z.string().regex(/^\+998[0-9]{9}$/, t('business.settings.phoneFormat')),
+  }), [t])
 
   const {
     register, handleSubmit, formState: { errors },
@@ -88,10 +90,10 @@ export default function BusinessSettingsPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['profile'] })
-      toast.success('Sozlamalar saqlandi')
+      toast.success(t('business.settings.saved'))
     },
     onError: (err: Error) => {
-      toast.error(err.message || 'Xatolik yuz berdi')
+      toast.error(err.message || t('common.error'))
     },
   })
 
@@ -99,10 +101,10 @@ export default function BusinessSettingsPage() {
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
-      <h1 className="text-xl font-display font-semibold text-ink">Sozlamalar</h1>
+      <h1 className="text-xl font-display font-semibold text-ink">{t('business.settings.title')}</h1>
 
       <Card className="p-6">
-        <h2 className="text-sm font-semibold text-ink mb-4">Biznes ma'lumotlari</h2>
+        <h2 className="text-sm font-semibold text-ink mb-4">{t('business.settings.businessInfo')}</h2>
         {loading ? (
           <div className="space-y-4">
             {Array.from({ length: 4 }).map((_, i) => (
@@ -112,19 +114,19 @@ export default function BusinessSettingsPage() {
         ) : (
           <form onSubmit={handleSubmit((data) => saveProfile(data))} className="space-y-4">
             <Input
-              label="Biznes nomi"
+              label={t('business.settings.businessName')}
               {...register('full_name')}
               error={errors.full_name?.message}
-              placeholder="MCHJ nomi yoki to'liq ism"
+              placeholder={t('business.settings.businessNamePlaceholder')}
             />
             <Input
-              label="Telefon"
+              label={t('common.phone')}
               {...register('phone')}
               error={errors.phone?.message}
               placeholder="+998 90 123 45 67"
             />
             <Input
-              label="Asosiy manzil"
+              label={t('business.settings.mainAddress')}
               value={venueInfo?.address || ''}
               disabled
             />
@@ -133,30 +135,30 @@ export default function BusinessSettingsPage() {
       </Card>
 
       <Card className="p-6">
-        <h2 className="text-sm font-semibold text-ink mb-2">Bildirishnomalar</h2>
-        <p className="text-xs text-ink-tertiary mb-4">Qanday bildirishnomalarni olishni xohlaysiz?</p>
+        <h2 className="text-sm font-semibold text-ink mb-2">{t('business.settings.notifications')}</h2>
+        <p className="text-xs text-ink-tertiary mb-4">{t('business.settings.notificationsDesc')}</p>
         <div className="divide-y divide-border">
           <ToggleSwitch
-            label="Yangi buyurtma"
-            description="Yangi buyurtma kelganda bildirishnoma yuborish"
+            label={t('business.settings.newBooking')}
+            description={t('business.settings.newBookingDesc')}
             checked={notifications.new_booking}
             onChange={(checked) => setNotifications((prev) => ({ ...prev, new_booking: checked }))}
           />
           <ToggleSwitch
-            label="Buyurtma bekor qilindi"
-            description="Buyurtma bekor qilinganda bildirishnoma yuborish"
+            label={t('business.settings.bookingCancelled')}
+            description={t('business.settings.bookingCancelledDesc')}
             checked={notifications.booking_cancelled}
             onChange={(checked) => setNotifications((prev) => ({ ...prev, booking_cancelled: checked }))}
           />
           <ToggleSwitch
-            label="Yangi sharh"
-            description="Yangi sharh qoldirilganda bildirishnoma yuborish"
+            label={t('business.settings.newReview')}
+            description={t('business.settings.newReviewDesc')}
             checked={notifications.new_review}
             onChange={(checked) => setNotifications((prev) => ({ ...prev, new_review: checked }))}
           />
           <ToggleSwitch
-            label="Haftalik hisobot"
-            description="Har hafta daromad va statistika hisobotini yuborish"
+            label={t('business.settings.weeklyReport')}
+            description={t('business.settings.weeklyReportDesc')}
             checked={notifications.weekly_report}
             onChange={(checked) => setNotifications((prev) => ({ ...prev, weekly_report: checked }))}
           />
@@ -165,7 +167,7 @@ export default function BusinessSettingsPage() {
 
       <div className="flex justify-end">
         <Button variant="primary" loading={saving} type="submit" onClick={handleSubmit((data) => saveProfile(data))}>
-          Saqlash
+          {t('common.save')}
         </Button>
       </div>
     </div>

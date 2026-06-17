@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { useTranslation } from 'react-i18next'
 import { useQuery } from '@tanstack/react-query'
 import { Search, MapPin, Users } from 'lucide-react'
 import { DayPicker } from 'react-day-picker'
@@ -10,13 +11,14 @@ import { supabase } from '@/lib/supabase'
 import { UZBEKISTAN_REGIONS } from '@/lib/constants'
 import type { Category } from '@/types'
 
-const MONTHS = ['Yan','Fev','Mar','Apr','May','Iyun','Iyl','Avg','Sen','Okt','Noy','Dek']
-const DAYS = ['Yak','Dush','Sesh','Chor','Pay','Jum','Shan']
-
-const fmtDate = (d: Date) => `${d.getDate()}-${MONTHS[d.getMonth()]}, ${DAYS[d.getDay()]}`
-
 export function SearchBar() {
+  const { t } = useTranslation()
   const router = useRouter()
+
+  const months = t('common.months.short', { returnObjects: true }) as string[]
+  const days = t('common.days.short', { returnObjects: true }) as string[]
+
+  const fmtDate = (d: Date) => `${d.getDate()}-${months[d.getMonth()]}, ${days[d.getDay()]}`
   const [city, setCity] = useState('')
   const [category, setCategory] = useState('')
   const [date, setDate] = useState<Date | undefined>(undefined)
@@ -56,9 +58,9 @@ export function SearchBar() {
               value={city}
               onChange={(e) => setCity(e.target.value)}
               className="flex-1 text-sm outline-none bg-transparent text-ink-secondary cursor-pointer min-h-[44px]"
-              aria-label="Shahar"
+              aria-label={t('common.city')}
             >
-              <option value="">Qayerda?</option>
+              <option value="">{t('search.where')}</option>
               {Object.keys(UZBEKISTAN_REGIONS).map((r) => (
                 <option key={r} value={r}>{r}</option>
               ))}
@@ -71,9 +73,9 @@ export function SearchBar() {
               value={category}
               onChange={(e) => setCategory(e.target.value)}
               className="flex-1 text-sm outline-none bg-transparent text-ink-secondary cursor-pointer min-h-[44px]"
-              aria-label="Toifa"
+              aria-label={t('common.category')}
             >
-              <option value="">Hammasi</option>
+              <option value="">{t('home.allCategories')}</option>
               {categories.map((cat) => (
                 <option key={cat.slug} value={cat.slug}>{cat.name_uz}</option>
               ))}
@@ -85,11 +87,11 @@ export function SearchBar() {
             <button
               onClick={() => setDateOpen(!dateOpen)}
               className="flex items-center gap-2 flex-1 text-sm text-left outline-none bg-transparent min-h-[44px]"
-              aria-label="Sana"
+              aria-label={t('common.date')}
             >
               <span className="text-base">📅</span>
               <span className={date ? 'text-ink font-medium' : 'text-ink-muted'}>
-                {date ? fmtDate(date) : 'Qachon?'}
+                {date ? fmtDate(date) : t('search.when')}
               </span>
             </button>
             {dateOpen && (
@@ -111,13 +113,13 @@ export function SearchBar() {
               <button
                 onClick={() => setGuests(Math.max(1, guests - 1))}
                 className="w-7 h-7 rounded-md border border-line text-sm font-medium text-ink-secondary hover:bg-surface-muted transition-colors"
-                aria-label="Kamaytirish"
+                aria-label={t('search.decrease')}
               >−</button>
               <span className="w-6 text-center text-sm font-medium text-ink">{guests}</span>
               <button
                 onClick={() => setGuests(Math.min(50, guests + 1))}
                 className="w-7 h-7 rounded-md border border-line text-sm font-medium text-ink-secondary hover:bg-surface-muted transition-colors"
-                aria-label="Ko'paytirish"
+                aria-label={t('search.increase')}
               >+</button>
             </div>
           </div>
@@ -128,7 +130,7 @@ export function SearchBar() {
             className="flex items-center justify-center gap-2 h-[44px] m-1.5 px-6 bg-brand-600 hover:bg-brand-700 text-white font-semibold text-sm rounded-xl transition-colors shrink-0"
           >
             <Search className="w-4 h-4" />
-            Qidirish
+            {t('common.search')}
           </button>
         </div>
       </div>

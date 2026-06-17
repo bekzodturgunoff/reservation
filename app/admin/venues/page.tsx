@@ -1,5 +1,6 @@
 'use client'
 
+import { useTranslation } from 'react-i18next'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { Building2, CheckCircle, XCircle } from 'lucide-react'
 import { Card } from '@/components/ui/Card'
@@ -11,15 +12,26 @@ import toast from 'react-hot-toast'
 import type { BadgeVariant } from '@/components/ui/Badge'
 import type { Venue, Profile } from '@/types'
 
-const statusConfig: Record<string, { label: string; variant: BadgeVariant }> = {
-  active: { label: 'Faol', variant: 'success' },
-  pending: { label: 'Kutilmoqda', variant: 'warning' },
-  rejected: { label: 'Rad etilgan', variant: 'error' },
-  human_action_needed: { label: 'Tekshirish kerak', variant: 'warning' },
+const statusConfig: Record<string, BadgeVariant> = {
+  active: 'success',
+  pending: 'warning',
+  rejected: 'error',
+  human_action_needed: 'warning',
 }
 
 export default function AdminVenuesPage() {
+  const { t } = useTranslation()
   const queryClient = useQueryClient()
+
+  const statusLabel = (status: string) => {
+    const map: Record<string, string> = {
+      active: 'common.active',
+      pending: 'common.pending',
+      rejected: 'common.rejected',
+      human_action_needed: 'admin.needsReview',
+    }
+    return t(map[status] || status)
+  }
 
   const { data: venues = [], isLoading } = useQuery({
     queryKey: ['admin-venues'],
@@ -58,7 +70,7 @@ export default function AdminVenuesPage() {
       return
     }
     queryClient.invalidateQueries({ queryKey: ['admin-venues'] })
-    toast.success(status === 'active' ? 'Joy tasdiqlandi' : 'Joy holati o\'zgartirildi')
+    toast.success(status === 'active' ? t('admin.venueApproved') : t('admin.venueStatusChanged'))
   }
 
   if (isLoading) {
@@ -87,8 +99,8 @@ export default function AdminVenuesPage() {
     return (
       <EmptyState
         icon={<Building2 className="w-12 h-12" />}
-        title="Joylar yo'q"
-        description="Hozircha hech qanday joy mavjud emas."
+        title={t('admin.venuesPage.noVenues')}
+        description={t('admin.venuesPage.noVenuesDesc')}
       />
     )
   }
@@ -96,8 +108,8 @@ export default function AdminVenuesPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-xl font-display font-semibold text-ink">Barcha joylar</h1>
-        <p className="mt-1 text-sm text-ink-tertiary">Platformadagi barcha joylarni boshqarish.</p>
+        <h1 className="text-xl font-display font-semibold text-ink">{t('admin.venuesPage.title')}</h1>
+        <p className="mt-1 text-sm text-ink-tertiary">{t('admin.venuesPage.subtitle')}</p>
       </div>
 
       <div className="lg:hidden space-y-3">
@@ -107,24 +119,24 @@ export default function AdminVenuesPage() {
               <div>
                 <p className="text-sm font-medium text-ink">{venue.name}</p>
                 <p className="text-xs text-ink-tertiary mt-0.5">
-                  {ownerMap.get(venue.owner_id) || 'Noma\'lum'} • {venue.categories?.name_uz || ''}
+                  {ownerMap.get(venue.owner_id) || t('admin.unknown')} • {venue.categories?.name_uz || ''}
                 </p>
                 <p className="text-xs text-ink-tertiary">{venue.city}</p>
               </div>
-              <Badge variant={statusConfig[venue.status]?.variant || 'default'} size="sm">
-                {statusConfig[venue.status]?.label || venue.status}
+              <Badge variant={statusConfig[venue.status] || 'default'} size="sm">
+                {statusLabel(venue.status)}
               </Badge>
             </div>
             <div className="mt-3 flex items-center justify-between">
               <span className="text-sm font-semibold text-ink">
-                {venue.price_per_slot.toLocaleString()} so'm
+                  {venue.price_per_slot.toLocaleString()} {t('common.sum')}
               </span>
               {venue.status === 'pending' && (
                 <div className="flex items-center gap-1">
-                  <button onClick={() => updateStatus(venue.id, 'active')} className="p-1.5 rounded-lg text-success hover:bg-success-bg transition-colors" title="Tasdiqlash">
+                  <button onClick={() => updateStatus(venue.id, 'active')} className="p-1.5 rounded-lg text-success hover:bg-success-bg transition-colors" title={t('admin.approve')}>
                     <CheckCircle className="w-4 h-4" />
                   </button>
-                  <button onClick={() => updateStatus(venue.id, 'rejected')} className="p-1.5 rounded-lg text-error hover:bg-error-bg transition-colors" title="Rad etish">
+                  <button onClick={() => updateStatus(venue.id, 'rejected')} className="p-1.5 rounded-lg text-error hover:bg-error-bg transition-colors" title={t('admin.reject')}>
                     <XCircle className="w-4 h-4" />
                   </button>
                 </div>
@@ -138,29 +150,29 @@ export default function AdminVenuesPage() {
         <table className="w-full">
           <thead>
             <tr className="border-b border-border">
-              <th className="text-left text-xs font-medium text-ink-tertiary uppercase tracking-wider px-6 py-4">Joy nomi</th>
-              <th className="text-left text-xs font-medium text-ink-tertiary uppercase tracking-wider px-6 py-4">Egasi</th>
-              <th className="text-left text-xs font-medium text-ink-tertiary uppercase tracking-wider px-6 py-4">Kategoriya</th>
-              <th className="text-left text-xs font-medium text-ink-tertiary uppercase tracking-wider px-6 py-4">Shahar</th>
-              <th className="text-left text-xs font-medium text-ink-tertiary uppercase tracking-wider px-6 py-4">Holat</th>
-              <th className="text-right text-xs font-medium text-ink-tertiary uppercase tracking-wider px-6 py-4">Narxi</th>
-              <th className="text-right text-xs font-medium text-ink-tertiary uppercase tracking-wider px-6 py-4">Amallar</th>
+              <th className="text-left text-xs font-medium text-ink-tertiary uppercase tracking-wider px-6 py-4">{t('admin.venuesPage.venueName')}</th>
+              <th className="text-left text-xs font-medium text-ink-tertiary uppercase tracking-wider px-6 py-4">{t('admin.venuesPage.owner')}</th>
+              <th className="text-left text-xs font-medium text-ink-tertiary uppercase tracking-wider px-6 py-4">{t('common.category')}</th>
+              <th className="text-left text-xs font-medium text-ink-tertiary uppercase tracking-wider px-6 py-4">{t('common.city')}</th>
+              <th className="text-left text-xs font-medium text-ink-tertiary uppercase tracking-wider px-6 py-4">{t('common.status')}</th>
+              <th className="text-right text-xs font-medium text-ink-tertiary uppercase tracking-wider px-6 py-4">{t('common.price')}</th>
+              <th className="text-right text-xs font-medium text-ink-tertiary uppercase tracking-wider px-6 py-4">{t('common.action')}</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
             {venues.map((venue) => (
               <tr key={venue.id} className="hover:bg-surface-subtle transition-colors">
                 <td className="px-6 py-4 text-sm font-medium text-ink">{venue.name}</td>
-                <td className="px-6 py-4 text-sm text-ink-secondary">{ownerMap.get(venue.owner_id) || 'Noma\'lum'}</td>
+                <td className="px-6 py-4 text-sm text-ink-secondary">{ownerMap.get(venue.owner_id) || t('admin.unknown')}</td>
                 <td className="px-6 py-4 text-sm text-ink-secondary">{venue.categories?.name_uz || ''}</td>
                 <td className="px-6 py-4 text-sm text-ink-secondary">{venue.city}</td>
                 <td className="px-6 py-4">
-                  <Badge variant={statusConfig[venue.status]?.variant || 'default'} size="sm">
-                    {statusConfig[venue.status]?.label || venue.status}
+                  <Badge variant={statusConfig[venue.status] || 'default'} size="sm">
+                    {statusLabel(venue.status)}
                   </Badge>
                 </td>
                 <td className="px-6 py-4 text-sm font-semibold text-ink text-right">
-                  {venue.price_per_slot.toLocaleString()} so'm
+                {venue.price_per_slot.toLocaleString()} {t('common.sum')}
                 </td>
                 <td className="px-6 py-4 text-right">
                   {venue.status === 'pending' ? (
@@ -168,14 +180,14 @@ export default function AdminVenuesPage() {
                       <button
                         onClick={() => updateStatus(venue.id, 'active')}
                         className="p-2 rounded-xl text-success hover:bg-success-bg transition-colors"
-                        title="Tasdiqlash"
+                        title={t('admin.approve')}
                       >
                         <CheckCircle className="w-4 h-4" />
                       </button>
                       <button
                         onClick={() => updateStatus(venue.id, 'rejected')}
                         className="p-2 rounded-xl text-error hover:bg-error-bg transition-colors"
-                        title="Rad etish"
+                        title={t('admin.reject')}
                       >
                         <XCircle className="w-4 h-4" />
                       </button>
@@ -184,7 +196,7 @@ export default function AdminVenuesPage() {
                     <button
                       onClick={() => updateStatus(venue.id, venue.status === 'active' ? 'rejected' : 'active')}
                       className="p-2 rounded-xl text-ink-tertiary hover:bg-surface-subtle hover:text-error transition-colors"
-                      title={venue.status === 'active' ? 'Nofaol qilish' : 'Faol qilish'}
+                      title={venue.status === 'active' ? t('admin.venuesPage.deactivate') : t('admin.venuesPage.activate')}
                     >
                       <XCircle className="w-4 h-4" />
                     </button>

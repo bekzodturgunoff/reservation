@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import Link from 'next/link'
 import { ChevronRight, MapPin } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { supabase } from '@/lib/supabase'
 import { showRating } from '@/lib/validation'
 import { Skeleton } from '@/components/ui/Skeleton'
@@ -12,16 +13,17 @@ import { EmptyState } from '@/components/ui/EmptyState'
 import type { Venue } from '@/types'
 
 const filterPills = [
-  { label: 'Hammasi', value: '' },
-  { label: 'Kafeler', value: 'cafe' },
-  { label: 'Restoranlar', value: 'restaurant' },
-  { label: 'Futbol', value: 'football' },
-  { label: 'Sport', value: 'sport' },
-  { label: 'Karaoke', value: 'karaoke' },
-  { label: 'Kovorking', value: 'coworking' },
+  { label: 'home.allCategories', value: '' },
+  { label: 'home.filterCafe', value: 'cafe' },
+  { label: 'home.filterRestaurant', value: 'restaurant' },
+  { label: 'home.filterFootball', value: 'football' },
+  { label: 'home.filterSport', value: 'sport' },
+  { label: 'home.filterKaraoke', value: 'karaoke' },
+  { label: 'home.filterCoworking', value: 'coworking' },
 ]
 
 export function FeaturedVenues() {
+  const { t } = useTranslation()
   const [activeFilter, setActiveFilter] = useState('')
 
   const { data: venues = [], isLoading } = useQuery({
@@ -48,11 +50,11 @@ export function FeaturedVenues() {
       <div className="max-w-7xl mx-auto">
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8">
           <div>
-            <h2 className="font-display text-3xl sm:text-4xl font-bold text-ink">Mashhur joylar</h2>
-            <p className="mt-1 text-sm text-ink-tertiary">Eng ko'p bron qilinadigan joylar</p>
+            <h2 className="font-display text-3xl sm:text-4xl font-bold text-ink">{t('home.popularTitle')}</h2>
+            <p className="mt-1 text-sm text-ink-tertiary">{t('home.popularDescription')}</p>
           </div>
           <Link href="/search" className="hidden sm:flex items-center gap-1 text-sm font-medium text-brand-600 hover:text-brand-700 transition-colors">
-            Hammasini ko'rish
+            {t('common.viewAll')}
             <ChevronRight className="w-4 h-4" />
           </Link>
         </div>
@@ -69,7 +71,7 @@ export function FeaturedVenues() {
                   : 'bg-surface-muted text-ink-secondary hover:bg-line'
               }`}
             >
-              {pill.label}
+              {t(pill.label)}
             </button>
           ))}
         </div>
@@ -92,9 +94,9 @@ export function FeaturedVenues() {
         ) : filtered.length === 0 ? (
           <EmptyState
             icon={<MapPin className="w-10 h-10" />}
-            title="Bu toifada joy topilmadi"
-            description="Boshqa toifani sinab ko'ring"
-            action={{ label: 'Barcha joylarni ko\'rish', onClick: () => setActiveFilter('') }}
+            title={t('home.filterEmpty')}
+            description={t('home.filterEmptyDesc')}
+            action={{ label: t('home.filterEmptyAction'), onClick: () => setActiveFilter('') }}
           />
         ) : (
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
@@ -142,20 +144,20 @@ export function FeaturedVenues() {
                     {/* Feature chips */}
                     <div className="mt-2 flex flex-wrap gap-1">
                       <span className="text-[10px] font-medium bg-surface-muted text-ink-secondary px-2 py-0.5 rounded-full">Wi-Fi</span>
-                      <span className="text-[10px] font-medium bg-surface-muted text-ink-secondary px-2 py-0.5 rounded-full">Avto-turargoh</span>
-                      <span className="text-[10px] font-medium bg-surface-muted text-ink-secondary px-2 py-0.5 rounded-full">+2 ta</span>
+                      <span className="text-[10px] font-medium bg-surface-muted text-ink-secondary px-2 py-0.5 rounded-full">{t('home.featureParking')}</span>
+                      <span className="text-[10px] font-medium bg-surface-muted text-ink-secondary px-2 py-0.5 rounded-full">{t('home.featureMore', { count: 2 })}</span>
                     </div>
 
                     {/* Price row */}
                     <div className="mt-3 pt-3 border-t border-line flex items-center justify-between">
                       <div>
-                        <span className="text-[10px] text-ink-muted uppercase tracking-wider">soatiga</span>
+                        <span className="text-[10px] text-ink-muted uppercase tracking-wider">{t('common.pricing_units.per_hour')}</span>
                         <p className="text-lg font-display font-bold text-ink">
                           {(venue.price_per_slot || 0).toLocaleString()} UZS
                         </p>
                       </div>
                       <span className="text-xs font-semibold text-brand-600 group-hover:underline flex items-center gap-1">
-                        Bron qilish
+                        {t('common.book')}
                         <ChevronRight className="w-3 h-3" />
                       </span>
                     </div>

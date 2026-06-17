@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { DayPicker } from 'react-day-picker'
 import { format } from 'date-fns'
 import { uz } from 'date-fns/locale'
+import { useTranslation } from 'react-i18next'
 import { CalendarDays, Clock, Star, Shield, CreditCard } from 'lucide-react'
 import { useAuthStore } from '@/store/auth'
 import toast from 'react-hot-toast'
@@ -21,6 +22,7 @@ interface BookingWidgetProps {
 }
 
 export function BookingWidget({ venue }: BookingWidgetProps) {
+  const { t } = useTranslation()
   const user = useAuthStore((s) => s.user)
   const router = useRouter()
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined)
@@ -43,11 +45,11 @@ export function BookingWidget({ venue }: BookingWidgetProps) {
 
   const handleBook = () => {
     if (!canBook) {
-      toast.error('Iltimos, sana va vaqtni tanlang')
+      toast.error(t('booking.selectDateTime'))
       return
     }
     if (!user) {
-      toast.error('Bron qilish uchun tizimga kiring')
+      toast.error(t('booking.loginRequired'))
       router.push('/login')
       return
     }
@@ -61,7 +63,7 @@ export function BookingWidget({ venue }: BookingWidgetProps) {
         <span className="text-2xl font-bold text-ink">
           {rate.toLocaleString()} UZS
         </span>
-        <span className="text-sm text-ink-tertiary">/ soat</span>
+        <span className="text-sm text-ink-tertiary">{t('venue.perHour')}</span>
       </div>
 
       <div className="flex items-center gap-1 text-sm mb-6">
@@ -71,8 +73,8 @@ export function BookingWidget({ venue }: BookingWidgetProps) {
         </span>
         <span className="text-ink-tertiary">
           {(venue.review_count ?? 0) >= 1
-            ? `(${venue.review_count} ta sharh)`
-            : 'Hali sharh yo\'q'}
+            ? `(${venue.review_count} ${t('venue.reviews')})`
+            : t('venue.noReviews')}
         </span>
       </div>
 
@@ -80,7 +82,7 @@ export function BookingWidget({ venue }: BookingWidgetProps) {
         <div>
           <label className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-ink-secondary mb-2">
             <CalendarDays className="w-3.5 h-3.5" />
-            Sanani tanlang
+            {t('venue.selectDate')}
           </label>
           <div className="flex justify-center border border-border rounded-card p-2 bg-white">
             <DayPicker
@@ -121,11 +123,11 @@ export function BookingWidget({ venue }: BookingWidgetProps) {
         <div>
           <label className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-ink-secondary mb-2">
             <Clock className="w-3.5 h-3.5" />
-            Vaqtni tanlang
+            {t('venue.selectTime')}
           </label>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="text-xs text-ink-muted block mb-1.5">Boshlash</label>
+              <label className="text-xs text-ink-muted block mb-1.5">{t('common.start')}</label>
               <div className="relative">
                 <select
                   value={startTime}
@@ -144,7 +146,7 @@ export function BookingWidget({ venue }: BookingWidgetProps) {
               </div>
             </div>
             <div>
-              <label className="text-xs text-ink-muted block mb-1.5">Tugash</label>
+              <label className="text-xs text-ink-muted block mb-1.5">{t('common.end')}</label>
               <div className="relative">
                 <select
                   value={endTime}
@@ -166,18 +168,18 @@ export function BookingWidget({ venue }: BookingWidgetProps) {
         {hours > 0 && (
           <div className="p-4 bg-surface-bg rounded-card space-y-2 text-sm">
             <div className="flex items-center justify-between text-ink-secondary">
-              <span>{hours} soat × {rate.toLocaleString()} UZS</span>
+              <span>{hours} {t('common.hour')} × {rate.toLocaleString()} UZS</span>
               <span>{subtotal.toLocaleString()} UZS</span>
             </div>
             <div className="flex items-center justify-between text-ink-secondary">
               <span className="flex items-center gap-1">
                 <Shield className="w-3.5 h-3.5" />
-                Xizmat haqi (5%)
+                {t('venue.serviceFee')}
               </span>
               <span>{serviceFee.toLocaleString()} UZS</span>
             </div>
             <div className="border-t border-border pt-2 flex items-center justify-between font-semibold text-ink text-base">
-              <span>Jami</span>
+              <span>{t('booking.total')}</span>
               <span>{total.toLocaleString()} UZS</span>
             </div>
           </div>
@@ -189,12 +191,12 @@ export function BookingWidget({ venue }: BookingWidgetProps) {
           className="w-full h-[52px] bg-brand hover:bg-brand-dark disabled:bg-brand/40 text-white font-semibold text-base rounded-btn shadow-btn transition-all flex items-center justify-center gap-2 disabled:cursor-not-allowed disabled:shadow-none enabled:hover:-translate-y-0.5"
         >
           <CalendarDays className="w-4 h-4" />
-          Bron qilish
+          {t('common.book')}
         </button>
 
         <div className="flex items-center justify-center gap-1.5 text-xs text-ink-tertiary">
           <CreditCard className="w-3.5 h-3.5" />
-          Kredit karta talab etilmaydi
+          {t('venue.noCardRequired')}
         </div>
       </div>
     </div>

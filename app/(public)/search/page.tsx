@@ -2,6 +2,7 @@
 
 import { Suspense, useState, useMemo } from 'react'
 import { useSearchParams } from 'next/navigation'
+import Image from 'next/image'
 import { useQuery } from '@tanstack/react-query'
 import Link from 'next/link'
 import {
@@ -9,6 +10,7 @@ import {
   Map as MapIcon, ChevronLeft, ChevronRight, ChevronDown,
 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
+import { useTranslation } from 'react-i18next'
 import { useTitle } from '@/hooks/useTitle'
 import { SearchFilters } from '@/components/search/SearchFilters'
 import { SearchMap } from '@/components/search/SearchMap'
@@ -22,6 +24,7 @@ import type { FilterState } from '@/components/search/SearchFilters'
 const ITEMS_PER_PAGE = 12
 
 function VenueCard({ venue }: { venue: Venue }) {
+  const { t } = useTranslation()
   const rating = venue.review_count && venue.review_count >= 3
     ? venue.avg_rating?.toFixed(1)
     : venue.review_count && venue.review_count >= 1 ? '—' : null
@@ -32,10 +35,12 @@ function VenueCard({ venue }: { venue: Venue }) {
       className="group bg-white rounded-card border border-border shadow-card hover:shadow-card-hover hover:-translate-y-1 transition-all duration-300 overflow-hidden"
     >
       <div className="relative h-[200px] sm:h-[220px] overflow-hidden">
-        <img
+        <Image
           src={venue.photos?.[0] || 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=400&q=80'}
-          alt={venue.name}
-          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+          alt={`${venue.name} — BronUz'da bron qilish`}
+          fill
+          className="object-cover group-hover:scale-105 transition-transform duration-500"
+          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-transparent to-transparent" />
 
@@ -63,13 +68,13 @@ function VenueCard({ venue }: { venue: Venue }) {
 
         <div className="mt-3 pt-3 border-t border-border flex items-center justify-between">
           <div>
-            <span className="text-[10px] text-ink-muted uppercase tracking-wider">soatiga</span>
+            <span className="text-[10px] text-ink-muted uppercase tracking-wider">{t('common.perHour')}</span>
             <p className="text-lg font-display font-bold text-ink">
               {(venue.price_per_slot || 0).toLocaleString()} UZS
             </p>
           </div>
           <span className="text-xs font-semibold text-brand group-hover:underline flex items-center gap-1">
-            Bron qilish
+            {t('common.book')}
             <ChevronDown className="w-3 h-3 -rotate-90" />
           </span>
         </div>
@@ -79,16 +84,19 @@ function VenueCard({ venue }: { venue: Venue }) {
 }
 
 function VenueListItem({ venue }: { venue: Venue }) {
+  const { t } = useTranslation()
   return (
     <Link
       href={`/venues/${venue.id}`}
       className="group flex gap-4 p-4 bg-white rounded-card border border-border shadow-card hover:shadow-card-hover hover:-translate-y-0.5 transition-all duration-300"
     >
-      <div className="w-28 sm:w-36 h-24 sm:h-28 shrink-0 rounded-lg overflow-hidden">
-        <img
+      <div className="relative w-28 sm:w-36 h-24 sm:h-28 shrink-0 rounded-lg overflow-hidden">
+        <Image
           src={venue.photos?.[0] || 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=400&q=80'}
-          alt={venue.name}
-          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+          alt={`${venue.name} — BronUz'da bron qilish`}
+          fill
+          className="object-cover group-hover:scale-105 transition-transform duration-500"
+          sizes="(max-width: 640px) 25vw, 10vw"
         />
       </div>
       <div className="flex-1 min-w-0 flex flex-col justify-between">
@@ -106,7 +114,7 @@ function VenueListItem({ venue }: { venue: Venue }) {
         </div>
         <div className="flex items-center justify-between mt-2">
           <div>
-            <span className="text-[10px] text-ink-muted uppercase tracking-wider">soatiga</span>
+            <span className="text-[10px] text-ink-muted uppercase tracking-wider">{t('common.perHour')}</span>
             <p className="text-base font-bold text-ink">
               {(venue.price_per_slot || 0).toLocaleString()} UZS
             </p>
@@ -119,7 +127,7 @@ function VenueListItem({ venue }: { venue: Venue }) {
               </div>
             )}
             <span className="text-xs font-semibold text-brand group-hover:underline">
-              Bron qilish
+              {t('common.book')}
             </span>
           </div>
         </div>
@@ -129,7 +137,8 @@ function VenueListItem({ venue }: { venue: Venue }) {
 }
 
 const SearchPageInner = () => {
-  useTitle('Qidirish — BronUz')
+  const { t } = useTranslation()
+  useTitle(t('search.title') + ' — BronUz')
   const searchParams = useSearchParams()
 
   const [filters, setFilters] = useState<FilterState>({
@@ -202,10 +211,10 @@ const SearchPageInner = () => {
               className="flex items-center gap-1.5 text-sm text-ink-secondary hover:text-ink transition-colors"
             >
               <ChevronLeft className="w-4 h-4" />
-              Ro'yxat
+              {t('search.grid')}
             </button>
             <span className="text-sm text-ink-tertiary">
-              <span className="font-semibold text-ink">{sorted.length}</span> ta joy
+              <span className="font-semibold text-ink">{sorted.length}</span> {t('search.results')}
             </span>
           </div>
         </div>
@@ -235,10 +244,10 @@ const SearchPageInner = () => {
                 onChange={(e) => setSortBy(e.target.value)}
                 className="h-[42px] px-3 text-xs bg-white border border-border rounded-input outline-none text-ink-secondary"
               >
-                <option value="">Standart</option>
-                <option value="price-asc">Narx: arzon → qimmat</option>
-                <option value="price-desc">Narx: qimmat → arzon</option>
-                <option value="rating">Reyting bo'yicha</option>
+                <option value="">{t('common.default')}</option>
+                <option value="price-asc">{t('common.price')}: {t('common.asc')}</option>
+                <option value="price-desc">{t('common.price')}: {t('common.desc')}</option>
+                <option value="rating">{t('common.rating')}</option>
               </select>
 
               {/* View toggle */}
@@ -246,14 +255,14 @@ const SearchPageInner = () => {
                 <button
                   onClick={() => setViewMode('grid')}
                   className={`p-2.5 transition-colors ${viewMode === 'grid' ? 'bg-brand text-white' : 'bg-white text-ink-muted hover:text-ink'}`}
-                  aria-label="Grid ko'rinishi"
+                  aria-label={t('common.gridView')}
                 >
                   <LayoutGrid className="w-4 h-4" />
                 </button>
                 <button
                   onClick={() => setViewMode('list')}
                   className={`p-2.5 transition-colors ${viewMode === 'list' ? 'bg-brand text-white' : 'bg-white text-ink-muted hover:text-ink'}`}
-                  aria-label="Ro'yxat ko'rinishi"
+                  aria-label={t('common.listView')}
                 >
                   <List className="w-4 h-4" />
                 </button>
@@ -265,7 +274,7 @@ const SearchPageInner = () => {
                 className="flex items-center gap-1.5 h-[42px] px-4 text-xs border border-border rounded-input text-ink-secondary hover:text-ink hover:border-border-strong transition-colors"
               >
                 <MapIcon className="w-4 h-4" />
-                Xarita
+                {t('search.map')}
               </button>
             </div>
           </div>
@@ -280,7 +289,7 @@ const SearchPageInner = () => {
                   : 'bg-surface-bg text-ink-secondary border-border hover:border-border-strong'
               }`}
             >
-              Hammasi
+              {t('search.allCategories')}
             </button>
             {categories.map((cat) => (
               <button
@@ -320,10 +329,10 @@ const SearchPageInner = () => {
             <div className="flex items-center justify-between mb-5">
               <p className="text-sm text-ink-tertiary">
                 {isLoading ? (
-                  <span className="animate-pulse">Qidirilmoqda...</span>
+                  <span className="animate-pulse">{t('search.searching')}</span>
                 ) : (
                   <>
-                    <span className="font-semibold text-ink">{sorted.length}</span> ta joy topildi
+                    <span className="font-semibold text-ink">{sorted.length}</span> {t('search.results')}
                     {activeCategory && (
                       <span className="ml-1">— {activeCategory.icon} {activeCategory.name_uz}</span>
                     )}
@@ -338,10 +347,10 @@ const SearchPageInner = () => {
                 onChange={(e) => setSortBy(e.target.value)}
                 className="sm:hidden h-[36px] px-2 text-xs bg-white border border-border rounded-input outline-none text-ink-secondary"
               >
-                <option value="">Standart</option>
-                <option value="price-asc">Narx: ↑</option>
-                <option value="price-desc">Narx: ↓</option>
-                <option value="rating">Reyting</option>
+                <option value="">{t('common.default')}</option>
+                <option value="price-asc">{t('common.price')}: ↑</option>
+                <option value="price-desc">{t('common.price')}: ↓</option>
+                <option value="rating">{t('common.rating')}</option>
               </select>
             </div>
 
@@ -365,10 +374,10 @@ const SearchPageInner = () => {
             ) : paginated.length === 0 ? (
               <EmptyState
                 icon={<MapPin className="w-10 h-10 text-ink-muted" />}
-                title="Hech narsa topilmadi"
-                description="Boshqa qidiruv so'rovini kiriting yoki filtrlarni o'zgartiring"
+                title={t('search.empty')}
+                description={t('search.emptyDesc')}
                 action={{
-                  label: 'Filtrlarni tozalash',
+                  label: t('search.clear'),
                   onClick: clearFilters,
                 }}
               />
@@ -396,7 +405,7 @@ const SearchPageInner = () => {
                       onClick={() => setPage(Math.max(1, page - 1))}
                       disabled={page === 1}
                       className="w-10 h-10 flex items-center justify-center rounded-lg border border-border hover:border-border-strong disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-                      aria-label="Oldingi sahifa"
+                      aria-label={t('common.previousPage')}
                     >
                       <ChevronLeft className="w-4 h-4 text-ink-secondary" />
                     </button>
@@ -426,7 +435,7 @@ const SearchPageInner = () => {
                       onClick={() => setPage(Math.min(totalPages, page + 1))}
                       disabled={page === totalPages}
                       className="w-10 h-10 flex items-center justify-center rounded-lg border border-border hover:border-border-strong disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-                      aria-label="Keyingi sahifa"
+                      aria-label={t('common.nextPage')}
                     >
                       <ChevronRight className="w-4 h-4 text-ink-secondary" />
                     </button>

@@ -2,6 +2,7 @@
 
 import { useRouter } from 'next/navigation'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useTranslation } from 'react-i18next'
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
 import { Card } from '@/components/ui/Card'
@@ -15,23 +16,25 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import toast from 'react-hot-toast'
 import type { Category } from '@/types'
-
-const venueSchema = z.object({
-  name: z.string().min(3, 'Joy nomi kamida 3 ta harf bo\'lishi kerak').max(100),
-  description: z.string().max(1000).optional().default(''),
-  category_id: z.string().min(1, 'Kategoriya tanlang'),
-  city: z.string().min(2, 'Shahar nomini kiriting'),
-  district: z.string().optional().default(''),
-  address: z.string().optional().default(''),
-  phone: z.string().optional().default(''),
-  price_per_slot: z.string().min(1, 'Narxni kiriting').regex(/^\d+$/, 'Faqat raqam kiriting'),
-  photos: z.string().optional().default(''),
-})
+import { useMemo } from 'react'
 
 export default function AddVenuePage() {
+  const { t } = useTranslation()
   const { profile } = useAuthStore()
   const router = useRouter()
   const queryClient = useQueryClient()
+
+  const venueSchema = useMemo(() => z.object({
+    name: z.string().min(3, t('business.setup.nameMin')).max(100),
+    description: z.string().max(1000).optional().default(''),
+    category_id: z.string().min(1, t('business.setup.categoryRequired')),
+    city: z.string().min(2, t('business.setup.cityRequired')),
+    district: z.string().optional().default(''),
+    address: z.string().optional().default(''),
+    phone: z.string().optional().default(''),
+    price_per_slot: z.string().min(1, t('business.setup.priceRequired')).regex(/^\d+$/, t('business.setup.priceRequired')),
+    photos: z.string().optional().default(''),
+  }), [t])
 
   const { data: categories = [], isLoading: catsLoading } = useQuery({
     queryKey: ['add-venue-categories'],
@@ -75,11 +78,11 @@ export default function AddVenuePage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['my-venues-count'] })
-      toast.success('Joy qo\'shildi va tekshiruvga yuborildi')
+      toast.success(t('business.setup.created'))
       router.push('/business/venues')
     },
     onError: (err: Error) => {
-      toast.error(err.message || 'Xatolik yuz berdi')
+      toast.error(err.message || t('common.error'))
     },
   })
 
@@ -91,10 +94,10 @@ export default function AddVenuePage() {
           className="inline-flex items-center gap-1.5 text-sm text-ink-secondary hover:text-ink transition-colors mb-2"
         >
           <ArrowLeft className="w-4 h-4" />
-          Orqaga
+          {t('common.back')}
         </Link>
-        <h1 className="text-xl font-display font-semibold text-ink">Yangi joy qo'shish</h1>
-        <p className="text-sm text-ink-tertiary mt-1">Venue ma'lumotlarini to'ldiring va tekshiruvga yuboring.</p>
+        <h1 className="text-xl font-display font-semibold text-ink">{t('business.setup.newTitle')}</h1>
+        <p className="text-sm text-ink-tertiary mt-1">{t('business.setup.newDescription')}</p>
       </div>
 
       <form onSubmit={handleSubmit((data) => createVenue(data))}>
@@ -102,16 +105,16 @@ export default function AddVenuePage() {
           <div className="grid sm:grid-cols-2 gap-4">
             <div className="sm:col-span-2">
               <Input
-                label="Joy nomi *"
+                label={t('business.setup.name')}
                 {...register('name')}
                 error={errors.name?.message}
-                placeholder="Masalan: Grand Ballroom"
+                placeholder={t('business.setup.namePlaceholder')}
               />
             </div>
 
             <div>
               <label className="text-xs font-semibold uppercase tracking-wider text-ink-secondary mb-1.5 block">
-                Kategoriya *
+                {t('business.setup.category')}
               </label>
               {catsLoading ? (
                 <Skeleton className="h-[44px] w-full rounded-input" />
@@ -120,7 +123,7 @@ export default function AddVenuePage() {
                   {...register('category_id')}
                   className="w-full h-[44px] px-3 text-sm bg-white border border-border rounded-input outline-none focus:border-brand focus:shadow-[0_0_0_3px_rgba(5,150,105,0.12)] transition-shadow text-ink"
                 >
-                  <option value="">Tanlang</option>
+                  <option value="">{t('business.setup.categoryPlaceholder')}</option>
                   {categories.map((cat) => (
                     <option key={cat.id} value={cat.id}>{cat.name_uz}</option>
                   ))}
@@ -132,34 +135,34 @@ export default function AddVenuePage() {
             </div>
 
             <div>
-              <Input
-                label="Shahar *"
-                {...register('city')}
-                error={errors.city?.message}
-                placeholder="Toshkent"
-              />
+            <Input
+              label={t('business.setup.city')}
+              {...register('city')}
+              error={errors.city?.message}
+              placeholder={t('business.setup.cityPlaceholder')}
+            />
             </div>
 
             <Input
-              label="Tuman"
+              label={t('business.setup.district')}
               {...register('district')}
               placeholder="Yunusobod"
             />
 
             <Input
-              label="Manzil"
+              label={t('business.setup.address')}
               {...register('address')}
-              placeholder="Ko'cha, uy raqami"
+              placeholder={t('business.setup.addressPlaceholder')}
             />
 
             <Input
-              label="Telefon"
+              label={t('common.phone')}
               {...register('phone')}
               placeholder="+998 90 123 45 67"
             />
 
             <Input
-              label="Soatlik narx (UZS) *"
+              label={t('business.setup.hourlyPrice')}
               type="number"
               {...register('price_per_slot')}
               error={errors.price_per_slot?.message}
@@ -168,21 +171,21 @@ export default function AddVenuePage() {
 
             <div className="sm:col-span-2">
               <label className="text-xs font-semibold uppercase tracking-wider text-ink-secondary mb-1.5 block">
-                Tavsif
+                {t('business.setup.description')}
               </label>
               <textarea
                 {...register('description')}
                 rows={3}
-                placeholder="Joy haqida qisqacha ma'lumot..."
+                placeholder={t('business.setup.descriptionPlaceholder')}
                 className="w-full px-4 py-2.5 text-sm bg-white border border-border rounded-input outline-none focus:border-brand focus:shadow-[0_0_0_3px_rgba(5,150,105,0.12)] transition-shadow resize-none text-ink placeholder:text-ink-tertiary"
               />
             </div>
 
             <div className="sm:col-span-2">
               <Input
-                label="Rasm URL lari (vergul bilan ajrating)"
+                label={t('business.setup.photosUrl')}
                 {...register('photos')}
-                placeholder="https://example.com/photo1.jpg, https://example.com/photo2.jpg"
+                placeholder={t('business.setup.photosUrlPlaceholder')}
               />
             </div>
           </div>
@@ -193,10 +196,10 @@ export default function AddVenuePage() {
             href="/business/venues"
             className="h-[48px] px-6 border border-border rounded-btn text-sm font-medium text-ink-secondary hover:bg-surface-bg transition-colors flex items-center"
           >
-            Bekor qilish
+            {t('common.cancel')}
           </Link>
           <Button variant="primary" type="submit" loading={saving}>
-            {saving ? 'Saqlanmoqda...' : 'Joyni qo\'shish'}
+            {saving ? t('common.saving') : t('business.setup.create')}
           </Button>
         </div>
       </form>

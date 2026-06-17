@@ -1,6 +1,7 @@
 'use client'
 
 import { useQuery } from '@tanstack/react-query'
+import { useTranslation } from 'react-i18next'
 import { CalendarCheck } from 'lucide-react'
 import { useAuthStore } from '@/store/auth'
 import { Card } from '@/components/ui/Card'
@@ -11,13 +12,13 @@ import { supabase } from '@/lib/supabase'
 import type { BadgeVariant } from '@/components/ui/Badge'
 import type { Booking } from '@/types'
 
-const statusConfig: Record<string, { label: string; variant: BadgeVariant }> = {
-  confirmed: { label: 'Tasdiqlangan', variant: 'success' },
-  completed: { label: 'Yakunlangan', variant: 'default' },
-  cancelled: { label: 'Bekor qilingan', variant: 'error' },
-}
-
 export default function BookingsPage() {
+  const { t } = useTranslation()
+  const statusConfig: Record<string, { label: string; variant: BadgeVariant }> = {
+    confirmed: { label: t('common.confirmed'), variant: 'success' },
+    completed: { label: t('common.completed'), variant: 'default' },
+    cancelled: { label: t('common.cancelled'), variant: 'error' },
+  }
   const { profile } = useAuthStore()
 
   const { data: bookings = [], isLoading } = useQuery({
@@ -64,15 +65,15 @@ export default function BookingsPage() {
     return (
       <EmptyState
         icon={<CalendarCheck className="w-12 h-12" />}
-        title="Buyurtmalar yo'q"
-        description="Hozircha hech qanday buyurtma mavjud emas."
+        title={t('business.bookingsEmpty')}
+        description={t('business.bookingsEmptyDesc')}
       />
     )
   }
 
   return (
     <div className="space-y-6">
-      <h1 className="text-xl font-display font-semibold text-ink">Buyurtmalar</h1>
+      <h1 className="text-xl font-display font-semibold text-ink">{t('business.bookings')}</h1>
 
       {/* Mobile: card view */}
       <div className="lg:hidden space-y-4">
@@ -81,7 +82,7 @@ export default function BookingsPage() {
             <div className="flex items-start justify-between">
               <div>
                 <p className="font-medium text-ink">{booking.venues?.name || booking.service_name}</p>
-                <p className="text-sm text-ink-tertiary mt-1">{booking.profiles?.full_name || 'Noma\'lum'}</p>
+                <p className="text-sm text-ink-tertiary mt-1">{booking.profiles?.full_name || t('common.unknown')}</p>
               </div>
               <Badge variant={statusConfig[booking.status]?.variant || 'default'} size="sm">
                 {statusConfig[booking.status]?.label || booking.status}
@@ -92,7 +93,7 @@ export default function BookingsPage() {
                 {new Date(booking.created_at).toLocaleDateString('uz-UZ')}
               </span>
               <span className="font-semibold text-ink">
-                {booking.total_price.toLocaleString()} so'm
+                {booking.total_price.toLocaleString()} {t('common.sum')}
               </span>
             </div>
           </Card>
@@ -104,18 +105,18 @@ export default function BookingsPage() {
         <table className="w-full">
           <thead>
             <tr className="border-b border-border">
-              <th className="text-left text-xs font-medium text-ink-tertiary uppercase tracking-wider px-6 py-4">Joy</th>
-              <th className="text-left text-xs font-medium text-ink-tertiary uppercase tracking-wider px-6 py-4">Mijoz</th>
-              <th className="text-left text-xs font-medium text-ink-tertiary uppercase tracking-wider px-6 py-4">Sana</th>
-              <th className="text-left text-xs font-medium text-ink-tertiary uppercase tracking-wider px-6 py-4">Holat</th>
-              <th className="text-right text-xs font-medium text-ink-tertiary uppercase tracking-wider px-6 py-4">Summa</th>
+              <th className="text-left text-xs font-medium text-ink-tertiary uppercase tracking-wider px-6 py-4">{t('business.venue')}</th>
+              <th className="text-left text-xs font-medium text-ink-tertiary uppercase tracking-wider px-6 py-4">{t('business.customer')}</th>
+              <th className="text-left text-xs font-medium text-ink-tertiary uppercase tracking-wider px-6 py-4">{t('common.date')}</th>
+              <th className="text-left text-xs font-medium text-ink-tertiary uppercase tracking-wider px-6 py-4">{t('common.status')}</th>
+              <th className="text-right text-xs font-medium text-ink-tertiary uppercase tracking-wider px-6 py-4">{t('business.amount')}</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
             {bookings.map((booking) => (
               <tr key={booking.id} className="hover:bg-surface-subtle transition-colors">
                 <td className="px-6 py-4 text-sm font-medium text-ink">{booking.venues?.name || booking.service_name}</td>
-                <td className="px-6 py-4 text-sm text-ink-secondary">{booking.profiles?.full_name || 'Noma\'lum'}</td>
+                <td className="px-6 py-4 text-sm text-ink-secondary">{booking.profiles?.full_name || t('common.unknown')}</td>
                 <td className="px-6 py-4 text-sm text-ink-secondary">{new Date(booking.created_at).toLocaleDateString('uz-UZ')}</td>
                 <td className="px-6 py-4">
                   <Badge variant={statusConfig[booking.status]?.variant || 'default'} size="sm">
@@ -123,7 +124,7 @@ export default function BookingsPage() {
                   </Badge>
                 </td>
                 <td className="px-6 py-4 text-sm font-semibold text-ink text-right">
-                  {booking.total_price.toLocaleString()} so'm
+                  {booking.total_price.toLocaleString()} {t('common.sum')}
                 </td>
               </tr>
             ))}

@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/auth'
 import { Skeleton } from '@/components/ui/Skeleton'
@@ -11,6 +12,7 @@ import { User, Mail, Phone, Calendar } from 'lucide-react'
 import type { Profile } from '@/types'
 
 export default function ProfilePage() {
+  const { t } = useTranslation()
   const { user } = useAuthStore()
   const [profile, setProfile] = useState<Profile | null>(null)
   const [loading, setLoading] = useState(true)
@@ -48,26 +50,26 @@ export default function ProfilePage() {
     return (
       <EmptyState
         icon={<User className="w-12 h-12" />}
-        title="Profil topilmadi"
-        description="Profil ma'lumotlarini yuklashda xatolik yuz berdi."
-        action={{ label: 'Qayta urinish', onClick: () => window.location.reload() }}
+        title={t('profile.title')}
+        description={t('profile.error')}
+        action={{ label: t('errorBoundary.retry'), onClick: () => window.location.reload() }}
       />
     )
   }
 
   const infoItems = [
-    { label: 'Ism familiya', value: profile.full_name, icon: User },
-    { label: 'Email', value: user?.email || '', icon: Mail },
-    { label: 'Telefon', value: profile.phone, icon: Phone },
-    { label: "Ro'yxatdan o'tilgan", value: new Date(profile.created_at).toLocaleDateString('uz-UZ'), icon: Calendar },
+    { label: t('profile.fullName'), value: profile.full_name, icon: User },
+    { label: t('common.email'), value: user?.email || '', icon: Mail },
+    { label: t('common.phone'), value: profile.phone, icon: Phone },
+    { label: t('profile.registeredAt'), value: new Date(profile.created_at).toLocaleDateString('uz-UZ'), icon: Calendar },
   ]
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-display font-semibold text-ink">Shaxsiy ma&apos;lumotlar</h1>
+        <h1 className="text-2xl font-display font-semibold text-ink">{t('profile.title')}</h1>
         <Button variant="primary" size="sm">
-          Tahrirlash
+          {t('common.edit')}
         </Button>
       </div>
 
