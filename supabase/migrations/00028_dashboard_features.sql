@@ -1,6 +1,7 @@
 -- Dashboard features: columns, tables, RLS
 
 -- Venues table additions
+ALTER TABLE venues ADD COLUMN IF NOT EXISTS district text;
 ALTER TABLE venues ADD COLUMN IF NOT EXISTS approved_at timestamptz;
 ALTER TABLE venues ADD COLUMN IF NOT EXISTS approved_by uuid REFERENCES profiles(id);
 ALTER TABLE venues ADD COLUMN IF NOT EXISTS rejection_reason text;
@@ -53,3 +54,14 @@ CREATE POLICY "owners_manage_blocked_dates" ON blocked_dates FOR ALL
   USING (venue_id IN (SELECT id FROM venues WHERE owner_id = auth.uid()))
   WITH CHECK (venue_id IN (SELECT id FROM venues WHERE owner_id = auth.uid()));
 CREATE POLICY "public_read_blocked_dates" ON blocked_dates FOR SELECT USING (true);
+
+-- Storage bucket for venue images
+INSERT INTO storage.buckets (id, name, public, avif_autodetection, file_size_limit, allowed_mime_types)
+VALUES ('venue-images', 'venue-images', true, false, 5242880, '{image/jpeg,image/png,image/webp}')
+ON CONFLICT (id) DO NOTHING;
+
+-- Public read access on venue-images bucket
+CREATE POLICY "public_read_venue_images" ON storage.objects FOR SELECT
+  USING (bucket_id = 'venue-images');
+CREATE POLICY "authenticated_upload_venue_images" ON storage.objects FOR INSERT
+  WITH CHECK (bucket_id = 'venue-images' AND auth.role() = 'authenticated');

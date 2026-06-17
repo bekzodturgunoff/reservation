@@ -1,10 +1,10 @@
 'use client'
 
-import { use } from 'react'
+import { use, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import Link from 'next/link'
-import { ArrowLeft } from 'lucide-react'
+import { ArrowLeft, Upload, X } from 'lucide-react'
 import { Card } from '@/components/ui/Card'
 import { Input } from '@/components/ui/Input'
 import { Button } from '@/components/ui/Button'
@@ -13,8 +13,16 @@ import { supabase } from '@/lib/supabase'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
+import { uploadImage, validateFile } from '@/lib/upload'
 import toast from 'react-hot-toast'
 import type { Category, Venue } from '@/types'
+
+const PRICING_UNITS = [
+  { value: 'per_hour', label: 'Soatlik' },
+  { value: 'per_session', label: 'Bir martalik' },
+  { value: 'per_person', label: 'Kishi boshiga' },
+  { value: 'negotiable', label: 'Kelishilgan' },
+]
 
 const venueEditSchema = z.object({
   name: z.string().min(3).max(100),
@@ -25,20 +33,26 @@ const venueEditSchema = z.object({
   address: z.string().optional().default(''),
   phone: z.string().optional().default(''),
   price_per_slot: z.string().min(1, 'Narxni kiriting'),
+  pricing_unit: z.string().optional().default('per_hour'),
 })
 
 export default function EditVenuePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
   const router = useRouter()
   const queryClient = useQueryClient()
+  const [uploading, setUploading] = useState(false)
+  const [uploadedPhotos, setUploadedPhotos] = useState<string[]>([])
+  const [uploadError, setUploadError] = useState<string | null>(null)
 
   const { data: venue, isLoading: venueLoading } = useQuery({
     queryKey: ['venue-edit', id],
     queryFn: async () => {
-      const { data } = await supabase.from('venues').select('*').eq('id', id).single()
+      const { data } = await supabase.from('venues').select('id, owner_id, category_id, name, description, address, city, phone, photos, price_per_slot, pricing_unit, status, created_at').eq('id', id).single()
       return data as Venue | null
     },
   })
+
+  const photoUrls = [...(venue?.photos || []), ...uploadedPhotos]
 
   const { data: categories = [] } = useQuery({
     queryKey: ['categories'],
@@ -59,8 +73,34 @@ export default function EditVenuePage({ params }: { params: Promise<{ id: string
       address: venue?.address || '',
       phone: venue?.phone || '',
       price_per_slot: venue?.price_per_slot?.toString() || '',
+      pricing_unit: venue?.pricing_unit || 'per_hour',
     },
   })
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    const validationError = validateFile(file)
+    if (validationError) { setUploadError(validationError); return }
+    setUploadError(null)
+    setUploading(true)
+    try {
+      const url = await uploadImage(file, `venues/${id}`)
+      if (url) { setUploadedPhotos(prev => [...prev, url]); toast.success('Rasm yuklandi') }
+    } catch (err) {
+      setUploadError(err instanceof Error ? err.message : 'Xatolik')
+    } finally { setUploading(false) }
+  }
+
+  const removePhoto = (index: number) => {
+    const originalLen = (venue?.photos || []).length
+    if (index < originalLen) {
+      // Can't remove original photos in this version - just skip
+      toast.error('Asl rasmlarni o\'chirish mumkin emas')
+    } else {
+      setUploadedPhotos(prev => prev.filter((_, i) => i !== index - originalLen))
+    }
+  }
 
   const saveMutation = useMutation({
     mutationFn: async (data: z.infer<typeof venueEditSchema>) => {
@@ -73,6 +113,8 @@ export default function EditVenuePage({ params }: { params: Promise<{ id: string
         address: data.address || data.city,
         phone: data.phone || '',
         price_per_slot: parseInt(data.price_per_slot) || 0,
+        pricing_unit: data.pricing_unit || 'per_hour',
+        photos: photoUrls,
       }).eq('id', id)
       if (error) throw error
     },
@@ -131,10 +173,41 @@ export default function EditVenuePage({ params }: { params: Promise<{ id: string
             <Input label="Tuman" {...form.register('district')} />
             <Input label="Manzil" {...form.register('address')} />
             <Input label="Telefon" {...form.register('phone')} />
-            <Input label="Soatlik narx" type="number" {...form.register('price_per_slot')} error={form.formState.errors.price_per_slot?.message} />
+            <div>
+              <label className="text-xs font-semibold uppercase tracking-wider text-ink-secondary mb-1.5 block">Narx turi</label>
+              <select {...form.register('pricing_unit')} className="w-full h-[44px] px-3 text-sm bg-white border border-border rounded-input outline-none focus:border-brand text-ink">
+                {PRICING_UNITS.map(u => <option key={u.value} value={u.value}>{u.label}</option>)}
+              </select>
+            </div>
+            <Input label="Narx (UZS)" type="number" {...form.register('price_per_slot')} error={form.formState.errors.price_per_slot?.message} />
             <div className="sm:col-span-2">
               <label className="text-xs font-semibold uppercase tracking-wider text-ink-secondary mb-1.5 block">Tavsif</label>
               <textarea {...form.register('description')} rows={3} className="w-full px-4 py-2.5 text-sm bg-white border border-border rounded-input outline-none focus:border-brand resize-none text-ink" />
+            </div>
+            <div className="sm:col-span-2">
+              <label className="text-xs font-semibold uppercase tracking-wider text-ink-secondary mb-1.5 block">Rasmlar</label>
+              <div className="flex flex-wrap gap-3 mb-3">
+                {photoUrls.map((url, i) => (
+                  <div key={i} className="relative w-20 h-20 rounded-xl overflow-hidden border border-border group">
+                    <img src={url} alt="" className="w-full h-full object-cover" />
+                    <button type="button" onClick={() => removePhoto(i)} className="absolute top-0.5 right-0.5 w-5 h-5 bg-white/90 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                      <X className="w-3 h-3" />
+                    </button>
+                  </div>
+                ))}
+                <label className="w-20 h-20 rounded-xl border-2 border-dashed border-border flex flex-col items-center justify-center cursor-pointer hover:border-brand transition-colors">
+                  {uploading ? (
+                    <div className="w-5 h-5 border-2 border-brand border-t-transparent rounded-full animate-spin" />
+                  ) : (
+                    <>
+                      <Upload className="w-5 h-5 text-ink-muted" />
+                      <span className="text-[10px] text-ink-muted mt-1">Yuklash</span>
+                    </>
+                  )}
+                  <input type="file" accept="image/jpeg,image/png,image/webp" onChange={handleFileUpload} className="hidden" disabled={uploading} />
+                </label>
+              </div>
+              {uploadError && <p className="text-sm text-error">{uploadError}</p>}
             </div>
           </div>
         </Card>

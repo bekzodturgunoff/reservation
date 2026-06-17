@@ -3,13 +3,14 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Users, Edit3, Ban, CheckCircle } from 'lucide-react'
+import { Users, Edit3, Ban, CheckCircle, Save } from 'lucide-react'
 import { Card } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { Modal } from '@/components/ui/Modal'
 import { Skeleton } from '@/components/ui/Skeleton'
 import { EmptyState } from '@/components/ui/EmptyState'
+import { Drawer } from '@/components/shared/Drawer'
 import { supabase } from '@/lib/supabase'
 import toast from 'react-hot-toast'
 import type { BadgeVariant } from '@/components/ui/Badge'
@@ -19,12 +20,17 @@ const roleConfig: Record<string, { variant: BadgeVariant; className: string }> =
   admin: { variant: 'default', className: 'bg-purple-100 text-purple-700' },
   business: { variant: 'success', className: '' },
   user: { variant: 'default', className: 'bg-surface-subtle text-ink-secondary' },
+  blocked: { variant: 'error', className: '' },
 }
+
+const ROLE_OPTIONS = ['user', 'business', 'admin', 'blocked'] as const
 
 export default function AdminUsersPage() {
   const { t } = useTranslation()
   const queryClient = useQueryClient()
   const [blockUserId, setBlockUserId] = useState<string | null>(null)
+  const [editUser, setEditUser] = useState<Profile | null>(null)
+  const [selectedRole, setSelectedRole] = useState<string>('user')
 
   const { data: users = [], isLoading } = useQuery({
     queryKey: ['admin-users'],
@@ -55,10 +61,33 @@ export default function AdminUsersPage() {
     },
   })
 
+  const roleMutation = useMutation({
+    mutationFn: async ({ id, role }: { id: string; role: string }) => {
+      const { error } = await supabase.rpc('admin_set_user_role', {
+        target_user_id: id,
+        new_role: role,
+      })
+      if (error) throw error
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-users'] })
+      setEditUser(null)
+      toast.success('Rol o\'zgartirildi')
+    },
+    onError: (err: Error) => {
+      toast.error(err.message)
+    },
+  })
+
   const handleBlockToggle = (id: string) => {
     const user = users.find(u => u.id === id)
     const isCurrentlyBlocked = user?.role === 'blocked'
     blockMutation.mutate({ id, block: !isCurrentlyBlocked })
+  }
+
+  const openEdit = (user: Profile) => {
+    setSelectedRole(user.role || 'user')
+    setEditUser(user)
   }
 
   if (isLoading) {
@@ -122,7 +151,7 @@ export default function AdminUsersPage() {
                 </Badge>
               </div>
               <div className="flex items-center gap-1">
-                <button className="p-1.5 rounded-lg text-ink-tertiary hover:bg-surface-subtle hover:text-info transition-colors" aria-label={t('admin.usersPage.edit')}>
+                <button onClick={() => openEdit(user)} className="p-1.5 rounded-lg text-ink-tertiary hover:bg-surface-subtle hover:text-info transition-colors" aria-label={t('admin.usersPage.edit')}>
                   <Edit3 className="w-3.5 h-3.5" />
                 </button>
                 <button
@@ -174,6 +203,7 @@ export default function AdminUsersPage() {
                 <td className="px-6 py-4 text-right">
                   <div className="flex items-center justify-end gap-1">
                     <button
+                      onClick={() => openEdit(user)}
                       className="p-2 rounded-xl text-ink-tertiary hover:bg-surface-subtle hover:text-info transition-colors"
                       aria-label={t('admin.usersPage.edit')}
                     >
@@ -193,6 +223,81 @@ export default function AdminUsersPage() {
           </tbody>
         </table>
       </Card>
+
+      {/* Role edit drawer */}
+      <Drawer isOpen={!!editUser} onClose={() => setEditUser(null)} title="Rolni o'zgartirish">
+        {editUser && (
+          <div className="space-y-6">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-full bg-surface-subtle flex items-center justify-center text-base font-semibold text-ink-tertiary">
+                {editUser.full_name?.charAt(0) || '?'}
+              </div>
+              <div>
+                <p className="font-semibold text-ink">{editUser.full_name}</p>
+                <p className="text-sm text-ink-tertiary">{editUser.phone || '—'}</p>
+              </div>
+            </div>
+
+            <div className="h-px bg-border" />
+
+            <div>
+              <label className="text-xs font-semibold uppercase tracking-wider text-ink-secondary mb-2 block">Rol</label>
+              <div className="space-y-2">
+                {ROLE_OPTIONS.map(role => (
+                  <label
+                    key={role}
+                    className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-colors ${
+                      selectedRole === role
+                        ? 'border-brand bg-brand-50'
+                        : 'border-border hover:bg-surface-bg'
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      name="role"
+                      value={role}
+                      checked={selectedRole === role}
+                      onChange={e => setSelectedRole(e.target.value)}
+                      className="w-4 h-4 text-brand accent-brand"
+                    />
+                    <div>
+                      <p className="text-sm font-medium text-ink">
+                        {role === 'user' && 'Foydalanuvchi'}
+                        {role === 'business' && 'Biznes egasi'}
+                        {role === 'admin' && 'Admin'}
+                        {role === 'blocked' && 'Bloklangan'}
+                      </p>
+                      <p className="text-xs text-ink-tertiary">
+                        {role === 'user' && 'Oddiy foydalanuvchi, bron qilish huquqi'}
+                        {role === 'business' && 'Joylarni boshqarish, bronlarni ko\'rish'}
+                        {role === 'admin' && 'To\'liq boshqaruv huquqi'}
+                        {role === 'blocked' && 'Tizimga kirish taqiqlangan'}
+                      </p>
+                    </div>
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            <div className="flex gap-3 pt-2">
+              <button
+                onClick={() => setEditUser(null)}
+                className="flex-1 h-11 rounded-xl border border-border text-sm font-medium text-ink-secondary hover:bg-surface-bg transition-colors"
+              >
+                Bekor
+              </button>
+              <button
+                onClick={() => roleMutation.mutate({ id: editUser.id, role: selectedRole })}
+                disabled={selectedRole === editUser.role}
+                className="flex-1 h-11 rounded-xl bg-brand text-white text-sm font-semibold hover:bg-brand-dark transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+              >
+                <Save className="w-4 h-4" />
+                Saqlash
+              </button>
+            </div>
+          </div>
+        )}
+      </Drawer>
 
       <Modal isOpen={!!blockUserId} onClose={() => setBlockUserId(null)} title={t('admin.usersPage.confirmBlockTitle')}>
         <p className="text-sm text-ink-secondary">

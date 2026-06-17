@@ -2,7 +2,8 @@
 
 import { useTranslation } from 'react-i18next'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { Building2, CheckCircle, XCircle } from 'lucide-react'
+import Link from 'next/link'
+import { Building2, CheckCircle, XCircle, Edit3 } from 'lucide-react'
 import { Card } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
 import { Skeleton } from '@/components/ui/Skeleton'
@@ -129,9 +130,9 @@ export default function AdminVenuesPage() {
             </div>
             <div className="mt-3 flex items-center justify-between">
               <span className="text-sm font-semibold text-ink">
-                  {venue.price_per_slot.toLocaleString()} {t('common.sum')}
+                  {(venue.price_per_slot ?? 0).toLocaleString()} {t('common.sum')}
               </span>
-              {venue.status === 'pending' && (
+              {venue.status === 'pending' ? (
                 <div className="flex items-center gap-1">
                   <button onClick={() => updateStatus(venue.id, 'active')} className="p-1.5 rounded-lg text-success hover:bg-success-bg transition-colors" title={t('admin.approve')}>
                     <CheckCircle className="w-4 h-4" />
@@ -140,6 +141,10 @@ export default function AdminVenuesPage() {
                     <XCircle className="w-4 h-4" />
                   </button>
                 </div>
+              ) : (
+                <Link href={`/business/venues/${venue.id}/edit`} className="p-1.5 rounded-lg text-ink-tertiary hover:bg-surface-subtle hover:text-info transition-colors">
+                  <Edit3 className="w-4 h-4" />
+                </Link>
               )}
             </div>
           </Card>
@@ -172,35 +177,44 @@ export default function AdminVenuesPage() {
                   </Badge>
                 </td>
                 <td className="px-6 py-4 text-sm font-semibold text-ink text-right">
-                {venue.price_per_slot.toLocaleString()} {t('common.sum')}
+                {(venue.price_per_slot ?? 0).toLocaleString()} {t('common.sum')}
                 </td>
                 <td className="px-6 py-4 text-right">
-                  {venue.status === 'pending' ? (
-                    <div className="flex items-center justify-end gap-1">
+                  <div className="flex items-center justify-end gap-1">
+                    <Link
+                      href={`/business/venues/${venue.id}/edit`}
+                      className="p-2 rounded-xl text-ink-tertiary hover:bg-surface-subtle hover:text-info transition-colors"
+                      title="Tahrirlash"
+                    >
+                      <Edit3 className="w-4 h-4" />
+                    </Link>
+                    {venue.status === 'pending' ? (
+                      <>
+                        <button
+                          onClick={() => updateStatus(venue.id, 'active')}
+                          className="p-2 rounded-xl text-success hover:bg-success-bg transition-colors"
+                          title={t('admin.approve')}
+                        >
+                          <CheckCircle className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => updateStatus(venue.id, 'rejected')}
+                          className="p-2 rounded-xl text-error hover:bg-error-bg transition-colors"
+                          title={t('admin.reject')}
+                        >
+                          <XCircle className="w-4 h-4" />
+                        </button>
+                      </>
+                    ) : (
                       <button
-                        onClick={() => updateStatus(venue.id, 'active')}
-                        className="p-2 rounded-xl text-success hover:bg-success-bg transition-colors"
-                        title={t('admin.approve')}
-                      >
-                        <CheckCircle className="w-4 h-4" />
-                      </button>
-                      <button
-                        onClick={() => updateStatus(venue.id, 'rejected')}
-                        className="p-2 rounded-xl text-error hover:bg-error-bg transition-colors"
-                        title={t('admin.reject')}
+                        onClick={() => updateStatus(venue.id, venue.status === 'active' ? 'rejected' : 'active')}
+                        className="p-2 rounded-xl text-ink-tertiary hover:bg-surface-subtle hover:text-error transition-colors"
+                        title={venue.status === 'active' ? t('admin.venuesPage.deactivate') : t('admin.venuesPage.activate')}
                       >
                         <XCircle className="w-4 h-4" />
                       </button>
-                    </div>
-                  ) : (
-                    <button
-                      onClick={() => updateStatus(venue.id, venue.status === 'active' ? 'rejected' : 'active')}
-                      className="p-2 rounded-xl text-ink-tertiary hover:bg-surface-subtle hover:text-error transition-colors"
-                      title={venue.status === 'active' ? t('admin.venuesPage.deactivate') : t('admin.venuesPage.activate')}
-                    >
-                      <XCircle className="w-4 h-4" />
-                    </button>
-                  )}
+                    )}
+                  </div>
                 </td>
               </tr>
             ))}

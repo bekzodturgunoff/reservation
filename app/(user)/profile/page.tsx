@@ -21,16 +21,17 @@ export default function ProfilePage() {
     if (!user) return
 
     const loadProfile = async () => {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('profiles')
-        .select('id, full_name, phone, avatar_url, role, total_points, created_at')
+        .select('id, full_name, phone, avatar_url, role, created_at')
         .eq('id', user.id)
         .single()
+      if (error) console.error('Profile load error:', error)
       setProfile(data)
       setLoading(false)
     }
 
-    loadProfile().catch(() => setLoading(false))
+    loadProfile()
   }, [user])
 
   if (loading) {

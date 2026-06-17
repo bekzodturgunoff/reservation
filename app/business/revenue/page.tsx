@@ -43,7 +43,7 @@ export default function RevenuePage() {
   })
 
   const confirmed = useMemo(() => bookings.filter(b => b.status === 'confirmed'), [bookings])
-  const totalRevenue = confirmed.reduce((sum, b) => sum + b.total_price, 0)
+  const totalRevenue = confirmed.reduce((sum, b) => sum + (b.total_price || 0), 0)
   const activeCount = confirmed.length
   const avgOrder = activeCount > 0 ? totalRevenue / activeCount : 0
 
@@ -53,10 +53,10 @@ export default function RevenuePage() {
 
   const thisMonthRevenue = confirmed
     .filter(b => b.created_at?.startsWith(thisMonth))
-    .reduce((s, b) => s + b.total_price, 0)
+    .reduce((s, b) => s + (b.total_price || 0), 0)
   const lastMonthRevenue = confirmed
     .filter(b => b.created_at?.startsWith(lastMonth))
-    .reduce((s, b) => s + b.total_price, 0)
+    .reduce((s, b) => s + (b.total_price || 0), 0)
 
   const revenueChange = lastMonthRevenue > 0
     ? Math.round(((thisMonthRevenue - lastMonthRevenue) / lastMonthRevenue) * 100)
@@ -76,7 +76,7 @@ export default function RevenuePage() {
   confirmed.forEach(b => {
     const dateKey = b.created_at?.split('T')[0]
     if (dateKey && dateKey >= startStr && dateKey in dailyMap) {
-      dailyMap[dateKey] += b.total_price
+      dailyMap[dateKey] += (b.total_price || 0)
     }
   })
 
@@ -226,14 +226,14 @@ export default function RevenuePage() {
               <div key={tx.id} className="px-6 py-4 flex items-center justify-between hover:bg-surface-subtle transition-colors">
                 <div>
                   <p className="text-sm font-medium text-ink">{tx.venues?.name || tx.service_name}</p>
-                  <p className="text-xs text-ink-tertiary">{new Date(tx.created_at).toLocaleDateString('uz-UZ')}</p>
+                  <p className="text-xs text-ink-tertiary">{tx.created_at ? new Date(tx.created_at).toLocaleDateString('uz-UZ') : '—'}</p>
                 </div>
                 <div className="flex items-center gap-2">
                   <span className={`text-xs font-medium ${tx.status === 'cancelled' ? 'text-error' : 'text-success'}`}>
                     {tx.status === 'cancelled' ? 'Qaytarildi' : "To'landi"}
                   </span>
                   <span className={`text-sm font-semibold ${tx.status === 'cancelled' ? 'text-error' : 'text-ink'}`}>
-                    {tx.status === 'cancelled' ? '-' : '+'}{tx.total_price.toLocaleString()} so'm
+                    {tx.status === 'cancelled' ? '-' : '+'}{(tx.total_price || 0).toLocaleString()} so'm
                   </span>
                 </div>
               </div>
