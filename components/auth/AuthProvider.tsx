@@ -13,32 +13,36 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     if (initialized.current) return
     initialized.current = true
 
-    supabase.auth.getSession().then(async ({ data: { session }, error }) => {
-      if (error) {
-        console.error('Session error:', error)
+    supabase.auth.getSession()
+      .then(async ({ data: { session }, error }) => {
+        if (error) {
+          console.error('Session error:', error)
+          return
+        }
+
+        if (session?.user) {
+          setUser(session.user)
+          try {
+            const { data: profile } = await supabase
+              .from('profiles')
+              .select('id, full_name, phone, avatar_url, role, created_at')
+              .eq('id', session.user.id)
+              .single()
+            setProfile(profile as Profile | null)
+          } catch {
+            setProfile(null)
+          }
+        } else {
+          logout()
+        }
+      })
+      .catch((err) => {
+        console.error('getSession failed:', err)
+      })
+      .finally(() => {
         setLoading(false)
         setInitialized(true)
-        return
-      }
-
-      if (session?.user) {
-        setUser(session.user)
-        try {
-          const { data: profile } = await supabase
-            .from('profiles')
-            .select('id, full_name, phone, avatar_url, role, created_at')
-            .eq('id', session.user.id)
-            .single()
-          setProfile(profile as Profile | null)
-        } catch {
-          setProfile(null)
-        }
-      } else {
-        logout()
-      }
-      setLoading(false)
-      setInitialized(true)
-    })
+      })
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
