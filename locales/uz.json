@@ -42,6 +42,7 @@
     "tashkentUzbekistan": "Toshkent, O'zbekiston",
     "tashkentUzbekistanEmoji": "Toshkent, O'zbekiston 🇺🇿",
     "perHour": "/ soat",
+    "negotiablePrice": "Kelishilgan narx",
     "perSession": "martaba",
     "perDay": "kun",
     "perMonth": "oy",
@@ -587,7 +588,15 @@
       "weeklyReport": "Haftalik hisobot",
       "weeklyReportDesc": "Har hafta daromad va statistika hisobotini yuborish",
       "saved": "Sozlamalar saqlandi",
-      "phoneFormat": "Telefon: +998901234567 formatida kiriting"
+      "phoneFormat": "Telefon: +998901234567 formatida kiriting",
+      "venueDefaults": "Joy standartlari",
+      "venueDefaultsDesc": "Yangi joylar uchun standart sozlamalar. Yangi joy qo'shishda bu qiymatlar avtomatik to'ldiriladi.",
+      "noVenueDefaults": "Avval birinchi joyingizni yarating, keyin standartlarni sozlashingiz mumkin.",
+      "defaultsSaved": "Joy standartlari saqlandi",
+      "noVenue": "Joy topilmadi. Avval joy yarating.",
+      "defaultCancellation": "Standart bekor qilish siyosati",
+      "defaultMaxGroup": "Standart maksimal kishi soni",
+      "defaultMinNotice": "Standart minimal bildirish vaqti (soat)"
     }
   },
   "telegram": {
@@ -721,7 +730,9 @@
     "adminPanel": "Admin panel",
     "categories": "Kategoriyalar",
     "venues": "Joylar",
-    "favorites": "Sevimlilar"
+    "favorites": "Sevimlilar",
+    "notifications": "Bildirishnomalar",
+    "noNotifications": "Hozircha bildirishnomalar yo'q"
   },
   "footer": {
     "description": "O'zbekistondagi istalgan joy yoki xizmatni oson bron qiling.",

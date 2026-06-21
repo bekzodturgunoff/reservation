@@ -1,0 +1,5 @@
+export { HeroSection } from './components/HeroSection'
+export { SearchBar } from './components/SearchBar'
+export { CategoryGrid } from './components/CategoryGrid'
+export { FeaturedVenues } from './components/FeaturedVenues'
+export { HowItWorks } from './components/HowItWorks'

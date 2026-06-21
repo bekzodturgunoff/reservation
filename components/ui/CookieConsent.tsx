@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import { ROUTES } from '@/lib/constants/routes'
 
 const COOKIE_KEY = 'bronuz-cookie-consent'
 
@@ -28,7 +29,7 @@ export function CookieConsent() {
       <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center gap-4">
         <p className="text-sm text-ink-secondary flex-1">
           Biz saytimiz ishlashi va foydalanuvchi tajribasini yaxshilash uchun cookie fayllaridan foydalanamiz.{' '}
-          <Link href="/privacy" className="text-brand hover:underline">Batafsil</Link>
+          <Link href={ROUTES.PRIVACY} className="text-brand hover:underline">Batafsil</Link>
         </p>
         <div className="flex items-center gap-3 shrink-0">
           <button

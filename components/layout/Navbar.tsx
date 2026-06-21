@@ -4,15 +4,19 @@ import { useState, useRef, useEffect, useCallback } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { useTranslation } from 'react-i18next'
+import { useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
+import { ROUTES } from '@/lib/constants/routes'
 import { useAuthStore } from '@/store/auth'
 import { Menu, X, ChevronDown, LogOut, User, Building2, Shield, Heart } from 'lucide-react'
+import { NotificationBell } from '@/features/notifications/components/NotificationBell'
 
 export const Navbar = () => {
   const { t, i18n } = useTranslation()
-  const { user, profile, logout } = useAuthStore()
+  const { user, profile, loading, logout } = useAuthStore()
   const router = useRouter()
   const pathname = usePathname()
+  const queryClient = useQueryClient()
 
   const [scrolled, setScrolled] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
@@ -47,9 +51,10 @@ export const Navbar = () => {
 
   const handleLogout = useCallback(async () => {
     await supabase.auth.signOut()
+    queryClient.clear()
     logout()
-    router.push('/')
-  }, [logout, router])
+    router.push(ROUTES.HOME)
+  }, [logout, router, queryClient])
 
   const navLinks = [
     { href: '/', label: t('common.home') },
@@ -133,8 +138,10 @@ export const Navbar = () => {
               ))}
             </div>
 
-            {user && profile ? (
-              <div ref={userRef} className="relative">
+            {loading ? (
+              <div className="w-8 h-8 rounded-full bg-surface-muted animate-pulse hidden md:block" />
+            ) : user && profile ? (
+              <><NotificationBell /><div ref={userRef} className="relative">
                 <button
                   onClick={() => setUserMenuOpen(!userMenuOpen)}
                   aria-haspopup="true"
@@ -165,22 +172,22 @@ export const Navbar = () => {
                       <p className="text-xs text-ink-tertiary capitalize mt-0.5">{profile.role}</p>
                     </div>
                     <div className="py-1">
-                      <Link href="/profile" className="flex items-center gap-3 px-4 py-2.5 text-sm text-ink-secondary hover:bg-surface-muted transition-colors">
+                      <Link href={ROUTES.PROFILE} className="flex items-center gap-3 px-4 py-2.5 text-sm text-ink-secondary hover:bg-surface-muted transition-colors">
                         <User className="w-4 h-4" />
                         {t('nav.profile')}
                       </Link>
-                      <Link href="/profile/favorites" className="flex items-center gap-3 px-4 py-2.5 text-sm text-ink-secondary hover:bg-surface-muted transition-colors">
+                      <Link href={ROUTES.PROFILE_FAVORITES} className="flex items-center gap-3 px-4 py-2.5 text-sm text-ink-secondary hover:bg-surface-muted transition-colors">
                         <Heart className="w-4 h-4" />
                         {t('nav.favorites')}
                       </Link>
                       {(profile.role === 'business' || profile.role === 'admin') && (
-                        <Link href="/business" className="flex items-center gap-3 px-4 py-2.5 text-sm text-ink-secondary hover:bg-surface-muted transition-colors">
+                        <Link href={ROUTES.BUSINESS} className="flex items-center gap-3 px-4 py-2.5 text-sm text-ink-secondary hover:bg-surface-muted transition-colors">
                           <Building2 className="w-4 h-4" />
                           {t('nav.businessPanel')}
                         </Link>
                       )}
                       {profile.role === 'admin' && (
-                        <Link href="/admin" className="flex items-center gap-3 px-4 py-2.5 text-sm text-ink-secondary hover:bg-surface-muted transition-colors">
+                        <Link href={ROUTES.ADMIN} className="flex items-center gap-3 px-4 py-2.5 text-sm text-ink-secondary hover:bg-surface-muted transition-colors">
                           <Shield className="w-4 h-4" />
                           {t('nav.adminPanel')}
                         </Link>
@@ -197,11 +204,11 @@ export const Navbar = () => {
                     </div>
                   </div>
                 )}
-              </div>
+              </div></>
             ) : (
               <div className="hidden md:flex items-center gap-2">
                 <Link
-                  href="/login"
+                  href={ROUTES.LOGIN}
                   className={`text-sm font-medium px-4 py-2 rounded-xl transition-colors ${
                     scrolled || !isHome
                       ? 'text-ink-secondary hover:bg-surface-muted'
@@ -211,7 +218,7 @@ export const Navbar = () => {
                   {t('common.login')}
                 </Link>
                 <Link
-                  href="/register"
+                  href={ROUTES.REGISTER}
                   className="text-sm font-semibold text-white bg-brand-600 hover:bg-brand-700 px-5 py-2 rounded-xl transition-colors shadow-btn"
                 >
                   {t('common.register')}
@@ -277,16 +284,16 @@ export const Navbar = () => {
 
             {/* Auth section */}
             <div className="mt-8 pt-6 border-t border-line">
-              {!user ? (
+              {loading ? null : !user ? (
                 <div className="flex gap-3">
                   <Link
-                    href="/login"
+                    href={ROUTES.LOGIN}
                     className="flex-1 text-center py-3 rounded-xl border border-line text-sm font-medium text-ink-secondary hover:bg-surface-muted transition-colors"
                   >
                     {t('common.login')}
                   </Link>
                   <Link
-                    href="/register"
+                    href={ROUTES.REGISTER}
                     className="flex-1 text-center py-3 rounded-xl bg-brand-600 text-white text-sm font-semibold hover:bg-brand-700 transition-colors shadow-btn"
                   >
                     {t('common.register')}
@@ -295,14 +302,14 @@ export const Navbar = () => {
               ) : (
                 <div className="space-y-1">
                   <Link
-                    href="/profile"
+                    href={ROUTES.PROFILE}
                     className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-ink-secondary hover:bg-surface-muted transition-colors"
                   >
                     <User className="w-4 h-4" />
                     {t('nav.profile')}
                   </Link>
                   <Link
-                    href="/profile/favorites"
+                    href={ROUTES.PROFILE_FAVORITES}
                     className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-ink-secondary hover:bg-surface-muted transition-colors"
                   >
                     <Heart className="w-4 h-4" />
@@ -310,7 +317,7 @@ export const Navbar = () => {
                   </Link>
                   {(profile?.role === 'business' || profile?.role === 'admin') && (
                     <Link
-                      href="/business"
+                      href={ROUTES.BUSINESS}
                       className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-ink-secondary hover:bg-surface-muted transition-colors"
                     >
                       <Building2 className="w-4 h-4" />
@@ -319,7 +326,7 @@ export const Navbar = () => {
                   )}
                   {profile?.role === 'admin' && (
                     <Link
-                      href="/admin"
+                      href={ROUTES.ADMIN}
                       className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-ink-secondary hover:bg-surface-muted transition-colors"
                     >
                       <Shield className="w-4 h-4" />

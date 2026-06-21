@@ -7,7 +7,7 @@ const STATUS_CONFIG: Record<string, { label: string; bg: string; text: string; b
 }
 
 export function BookingStatusBadge({ status }: { status: string }) {
-  const config = STATUS_CONFIG[status] ?? STATUS_CONFIG.pending
+  const config = STATUS_CONFIG[status] ?? STATUS_CONFIG.pending ?? { bg: 'bg-gray-50', text: 'text-gray-500', border: 'border-gray-200', label: 'Noma\'lum' }
   return (
     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold border ${config.bg} ${config.text} ${config.border}`}>
       {config.label}

@@ -3,7 +3,7 @@
 import { useEffect } from 'react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { Toaster } from 'react-hot-toast'
-import { AuthProvider } from '@/components/auth/AuthProvider'
+import { AuthProvider } from '@/features/auth/components/AuthProvider'
 import { useLenis } from '@/lib/lenis'
 import i18n from '@/lib/i18n'
 
