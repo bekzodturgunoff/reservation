@@ -11,9 +11,11 @@ import { Skeleton } from '@/components/ui/Skeleton'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { BookingStatusBadge } from '@/components/shared/BookingStatusBadge'
 import { Drawer } from '@/components/shared/Drawer'
+import { useTitle } from '@/hooks/useTitle'
 
 export default function UserBookings() {
   const { user } = useAuthStore()
+  useTitle('Buyurtmalarim — BronUz')
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState('')
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

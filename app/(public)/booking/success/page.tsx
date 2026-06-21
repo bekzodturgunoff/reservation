@@ -6,9 +6,11 @@ import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { CheckCircle2 } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
+import { useTitle } from '@/hooks/useTitle'
 
 function BookingSuccessInner() {
   const { t } = useTranslation()
+  useTitle('Bron tasdiqlandi — BronUz')
   const searchParams = useSearchParams()
 
   const details = {

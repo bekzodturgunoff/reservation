@@ -2,9 +2,11 @@
 
 import { useTranslation } from 'react-i18next'
 import Link from 'next/link'
+import { useTitle } from '@/hooks/useTitle'
 
 export default function NotFound() {
   const { t } = useTranslation()
+  useTitle('404 — Sahifa topilmadi — BronUz')
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-surface-bg px-6">
       <h1 className="text-[120px] sm:text-[160px] font-display font-bold text-brand leading-none tracking-tight">

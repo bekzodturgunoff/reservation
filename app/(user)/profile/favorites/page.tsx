@@ -7,9 +7,11 @@ import { useAuthStore } from '@/store/auth'
 import { supabase } from '@/lib/supabase'
 import { Skeleton } from '@/components/ui/Skeleton'
 import { EmptyState } from '@/components/ui/EmptyState'
+import { useTitle } from '@/hooks/useTitle'
 
 export default function FavoritesPage() {
   const { user } = useAuthStore()
+  useTitle('Sevimlilar — BronUz')
 
   const { data: favorites = [], isLoading } = useQuery({
     queryKey: ['my-favorites', user?.id],

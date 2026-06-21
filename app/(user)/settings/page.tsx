@@ -11,9 +11,11 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import toast from 'react-hot-toast'
+import { useTitle } from '@/hooks/useTitle'
 
 export default function UserSettingsPage() {
   const { profile } = useAuthStore()
+  useTitle('Sozlamalar — BronUz')
   const queryClient = useQueryClient()
 
   const profileSchema = useMemo(() => z.object({

@@ -4,6 +4,12 @@ import Link from 'next/link'
 
 export const metadata: Metadata = {
   title: 'Maxfiylik siyosati',
+  description: 'BronUz platformasida shaxsiy ma\'lumotlarni qayta ishlash va himoya qilish siyosati bilan tanishing.',
+  openGraph: {
+    title: 'Maxfiylik siyosati — BronUz',
+    description: 'BronUz platformasida shaxsiy ma\'lumotlarni qayta ishlash va himoya qilish siyosati.',
+  },
+  robots: { index: true, follow: true },
 }
 
 export default function PrivacyPage() {

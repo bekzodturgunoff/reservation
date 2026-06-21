@@ -4,6 +4,12 @@ import Link from 'next/link'
 
 export const metadata: Metadata = {
   title: 'Foydalanish shartlari',
+  description: 'BronUz platformasidan foydalanish shartlari va qoidalari. Ro\'yxatdan o\'tish orqali ushbu shartlarni qabul qilgan hisoblanasiz.',
+  openGraph: {
+    title: 'Foydalanish shartlari — BronUz',
+    description: 'BronUz platformasidan foydalanish shartlari va qoidalari.',
+  },
+  robots: { index: true, follow: true },
 }
 
 export default function TermsPage() {

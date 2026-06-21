@@ -7,6 +7,7 @@ import { useQuery } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/auth'
 import { useTranslation } from 'react-i18next'
+import { useTitle } from '@/hooks/useTitle'
 import { getErrorMessage } from '@/lib/handleError'
 import toast from 'react-hot-toast'
 import { Skeleton } from '@/components/ui/Skeleton'
@@ -15,6 +16,7 @@ import type { Venue } from '@/types'
 
 export default function BookPage() {
   const { t } = useTranslation()
+  useTitle('Bron qilish — BronUz')
   const router = useRouter()
   const searchParams = useSearchParams()
   const user = useAuthStore((s) => s.user)

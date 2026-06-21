@@ -125,26 +125,40 @@ export default function VenueDetailPage() {
 
   const jsonLd = {
     '@context': 'https://schema.org',
-    '@type': 'LocalBusiness',
-    name: venue.name,
-    description: venue.description || '',
-    ...(venue.photos && venue.photos.length > 0 ? { image: venue.photos[0] } : {}),
-    priceRange: `${(venue.price_per_slot || 0).toLocaleString()} UZS/soat`,
-    address: {
-      '@type': 'PostalAddress',
-      addressLocality: venue.city,
-      addressCountry: 'UZ',
-    },
-    ...(venue.lat && venue.lng ? {
-      geo: { '@type': 'GeoCoordinates', latitude: venue.lat, longitude: venue.lng },
-    } : {}),
-    aggregateRating: (venue.review_count ?? 0) > 0 ? {
-      '@type': 'AggregateRating',
-      ratingValue: venue.avg_rating,
-      reviewCount: venue.review_count,
-      bestRating: 5,
-    } : undefined,
-    url: `https://bronuz.uz/venues/${slug}`,
+    '@graph': [
+      {
+        '@type': 'LocalBusiness',
+        name: venue.name,
+        description: venue.description || '',
+        ...(venue.photos && venue.photos.length > 0 ? { image: venue.photos[0] } : {}),
+        priceRange: `${(venue.price_per_slot || 0).toLocaleString()} UZS/soat`,
+        address: {
+          '@type': 'PostalAddress',
+          addressLocality: venue.city,
+          addressCountry: 'UZ',
+        },
+        ...(venue.lat && venue.lng ? {
+          geo: { '@type': 'GeoCoordinates', latitude: venue.lat, longitude: venue.lng },
+        } : {}),
+        aggregateRating: (venue.review_count ?? 0) > 0 ? {
+          '@type': 'AggregateRating',
+          ratingValue: venue.avg_rating,
+          reviewCount: venue.review_count,
+          bestRating: 5,
+        } : undefined,
+        url: `https://bronuz.uz/venues/${slug}`,
+      },
+      {
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+          { '@type': 'ListItem', position: 1, name: 'Bosh sahifa', item: 'https://bronuz.uz/' },
+          ...(venue.categories
+            ? [{ '@type': 'ListItem', position: 2, name: venue.categories.name_uz, item: `https://bronuz.uz/search?category=${venue.categories.slug}` }]
+            : []),
+          { '@type': 'ListItem', position: venue.categories ? 3 : 2, name: venue.name, item: `https://bronuz.uz/venues/${slug}` },
+        ],
+      },
+    ],
   }
 
   return (
