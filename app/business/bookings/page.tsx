@@ -1,7 +1,7 @@
 import { createSupabaseServerClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { ROUTES } from '@/lib/constants/routes'
-import BusinessBookingsClient from './page.client'
+import BusinessBookingsClient, { type BusinessBooking } from './page.client'
 
 export const dynamic = 'force-dynamic'
 
@@ -17,8 +17,7 @@ export default async function BusinessBookingsPage() {
 
   const venueIds = (myVenues || []).map(v => v.id)
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  let initialBookings: any[] = []
+  let initialBookings: BusinessBooking[] = []
 
   if (venueIds.length > 0) {
     const { data } = await supabase
@@ -27,7 +26,7 @@ export default async function BusinessBookingsPage() {
       .in('venue_id', venueIds)
       .order('booking_date', { ascending: false })
       .order('start_time', { ascending: false })
-    initialBookings = data || []
+    initialBookings = (data || []) as BusinessBooking[]
   }
 
   return (

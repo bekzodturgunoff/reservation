@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import Image from 'next/image'
 import Link from 'next/link'
 import { cookies } from 'next/headers'
 import { MapPin, Star, Phone, Users, Shield, Wifi, Car, Tv, Fan } from 'lucide-react'
@@ -8,6 +9,7 @@ import { PLACEHOLDER_IMAGE } from '@/lib/constants'
 import { ROUTES } from '@/lib/constants/routes'
 import { createServerT } from '@/lib/i18n/server'
 import { VenueDetailClient } from '@/features/venues/components/VenueDetailClient'
+import { BookingWidget } from '@/features/venues/components/BookingWidget'
 import type { Venue, Review } from '@/types'
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://bronuz.uz'
@@ -193,26 +195,28 @@ export default async function VenueDetailPage({ params }: Props) {
 
             {/* Description */}
             {venue.description && (
-              <div>
+              <div className="relative pt-8">
+                <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-brand-200 to-transparent" />
                 <h2 className="font-display text-xl font-semibold text-ink mb-3">{t('venue.about')}</h2>
                 <p className="text-base text-ink-secondary leading-relaxed whitespace-pre-line">{venue.description}</p>
               </div>
             )}
 
             {/* Features */}
-            <div>
+            <div className="relative pt-8">
+              <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-brand-200 to-transparent" />
               <h2 className="font-display text-xl font-semibold text-ink mb-4">{t('venue.features')}</h2>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                 {featureItems.map((f) => (
-                  <div key={f.label} className="flex items-center gap-3 p-3 rounded-card bg-surface-bg">
-                    <div className="w-9 h-9 rounded-lg bg-brand-light flex items-center justify-center text-brand shrink-0">
+                  <div key={f.label} className="flex items-center gap-3 p-3 rounded-card bg-surface-bg transition-all duration-normal hover:shadow-card hover:-translate-y-0.5 hover:bg-surface-subtle">
+                    <div className="w-9 h-9 rounded-lg bg-brand-light flex items-center justify-center text-brand shrink-0 transition-transform duration-normal group-hover:scale-110">
                       <f.icon className="w-4 h-4" />
                     </div>
                     <span className="text-sm text-ink-secondary">{f.label}</span>
                   </div>
                 ))}
                 {venue.phone && (
-                  <a href={`tel:${venue.phone}`} className="flex items-center gap-3 p-3 rounded-card bg-surface-bg hover:bg-surface-subtle transition-colors">
+                  <a href={`tel:${venue.phone}`} className="flex items-center gap-3 p-3 rounded-card bg-surface-bg hover:bg-surface-subtle transition-all duration-normal hover:shadow-card hover:-translate-y-0.5">
                     <div className="w-9 h-9 rounded-lg bg-brand-light flex items-center justify-center text-brand shrink-0">
                       <Phone className="w-4 h-4" />
                     </div>
@@ -223,7 +227,8 @@ export default async function VenueDetailPage({ params }: Props) {
             </div>
 
             {/* Location */}
-            <div>
+            <div className="relative pt-8">
+              <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-brand-200 to-transparent" />
               <h2 className="font-display text-xl font-semibold text-ink mb-3">{t('common.address')}</h2>
               <div className="h-[280px] sm:h-[320px] rounded-card overflow-hidden mb-3">
                 {venue.lat && venue.lng ? (
@@ -252,7 +257,8 @@ export default async function VenueDetailPage({ params }: Props) {
 
             {/* Cancellation Policy */}
             {venue.cancellation_policy && (
-              <div>
+              <div className="relative pt-8">
+                <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-brand-200 to-transparent" />
                 <h2 className="font-display text-xl font-semibold text-ink mb-3">{t('venue.cancellationPolicy')}</h2>
                 <div className="flex items-start gap-3 p-4 rounded-card bg-surface-bg">
                   <Shield className="w-5 h-5 text-brand shrink-0 mt-0.5" />
@@ -282,7 +288,8 @@ export default async function VenueDetailPage({ params }: Props) {
             )}
 
             {/* Reviews */}
-            <div>
+            <div className="relative pt-8">
+              <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-brand-200 to-transparent" />
               <h2 className="font-display text-xl font-semibold text-ink mb-4">
                 {t('venue.reviewsTitle')}
                 {reviews.length > 0 && (
@@ -341,7 +348,7 @@ export default async function VenueDetailPage({ params }: Props) {
                     {reviews.map((review) => {
                       const isVerified = !!review.profiles?.full_name
                       return (
-                        <div key={review.id} className="p-4 rounded-card bg-white border border-border transition-shadow hover:shadow-sm">
+                        <div key={review.id} className="p-4 rounded-card bg-white border border-border transition-all duration-normal hover:shadow-card hover:-translate-y-0.5">
                           <div className="flex items-start gap-3">
                             <div className="w-10 h-10 rounded-full bg-brand-light flex items-center justify-center text-sm font-semibold text-brand shrink-0">
                               {review.profiles?.full_name?.charAt(0)?.toUpperCase() || 'A'}
@@ -384,14 +391,15 @@ export default async function VenueDetailPage({ params }: Props) {
           </div>
 
           {/* Right - Booking Widget (client) */}
-          <div className="lg:col-span-1">
-            <VenueDetailClient.BookingWidget venue={venue} />
+          <div id="booking-widget" className="lg:col-span-1">
+            <BookingWidget venue={venue} />
           </div>
         </div>
 
         {/* Similar Venues */}
         {similarVenues.length > 0 && (
-          <div className="mt-16 border-t border-border pt-10">
+          <div className="mt-16 pt-10 relative">
+            <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-brand-200 to-transparent" />
             <div className="flex items-center justify-between mb-6">
               <h2 className="font-display text-2xl font-bold text-ink">{t('venue.similarVenues')}</h2>
               <Link href={`/search?category=${venue.categories?.slug || ''}`} className="text-sm font-medium text-brand hover:underline">
@@ -405,10 +413,12 @@ export default async function VenueDetailPage({ params }: Props) {
                   <Link key={v.id} href={`/venues/${v.id}`} className="group block">
                     <Card className="p-0 overflow-hidden">
                       <div className="relative h-44 overflow-hidden">
-                        <img
+                        <Image
                           src={v.photos?.[0] || PLACEHOLDER_IMAGE}
                           alt={`${v.name} — ${t('venue.about')}`}
-                          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                          fill
+                          className="object-cover transition-transform duration-500 group-hover:scale-105"
+                          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
                         />
                         {v.categories && (
                           <span className="absolute top-3 left-3 inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-white/90 text-ink-secondary backdrop-blur-sm">

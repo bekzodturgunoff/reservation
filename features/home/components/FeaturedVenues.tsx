@@ -56,7 +56,7 @@ export function FeaturedVenues() {
             <h2 className="font-display text-3xl sm:text-4xl font-bold text-ink">{t('home.popularTitle')}</h2>
             <p className="mt-1 text-sm text-ink-tertiary">{t('home.popularDescription')}</p>
           </div>
-          <Link href={ROUTES.SEARCH} className="hidden sm:flex items-center gap-1 text-sm font-medium text-brand-600 hover:text-brand-700 transition-colors">
+          <Link href={ROUTES.SEARCH} className="hidden sm:flex items-center gap-1 text-sm font-medium text-brand hover:text-brand-dark transition-colors">
             {t('common.viewAll')}
             <ChevronRight className="w-4 h-4" />
           </Link>
@@ -68,9 +68,9 @@ export function FeaturedVenues() {
             <button
               key={pill.value}
               onClick={() => setActiveFilter(pill.value)}
-              className={`shrink-0 h-9 px-4 rounded-full text-xs font-medium transition-colors ${
+              className={`shrink-0 h-9 px-4 rounded-full text-xs font-medium transition-all duration-fast active:scale-95 ${
                 activeFilter === pill.value
-                  ? 'bg-brand-600 text-white'
+                  ? 'bg-brand text-white'
                   : 'bg-surface-muted text-ink-secondary hover:bg-line'
               }`}
             >
@@ -114,12 +114,12 @@ export function FeaturedVenues() {
                   {/* Image area */}
                   <div className="relative h-[220px] overflow-hidden">
                     <div
-                      className="w-full h-full bg-cover bg-center group-hover:scale-105 transition-transform duration-500"
+                      className="w-full h-full bg-cover bg-center group-hover:scale-105 transition-transform duration-700 ease-out-quart"
                       style={{
                         backgroundImage: `url(${venue.photos?.[0] || PLACEHOLDER_IMAGE})`,
                       }}
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-transparent to-transparent" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-transparent to-transparent transition-opacity duration-500 group-hover:opacity-80" />
 
                     {/* Category pill */}
                     <span className="absolute top-3 left-3 inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-medium bg-white/20 backdrop-blur-sm border border-white/30 text-white">
@@ -152,16 +152,16 @@ export function FeaturedVenues() {
                     </div>
 
                     {/* Price row */}
-                    <div className="mt-3 pt-3 border-t border-line flex items-center justify-between">
+                    <div className="mt-3 pt-3 border-t border-line group-hover:border-brand/20 transition-colors duration-normal flex items-center justify-between">
                       <div>
                         <span className="text-[10px] text-ink-muted uppercase tracking-wider">{t('common.pricing_units.per_hour')}</span>
                         <p className="text-lg font-display font-bold text-ink">
                           {(venue.price_per_slot ?? 0) > 0 ? `${(venue.price_per_slot).toLocaleString()} UZS` : t('common.negotiablePrice')}
                         </p>
                       </div>
-                      <span className="text-xs font-semibold text-brand-600 group-hover:underline flex items-center gap-1">
+                      <span className="text-xs font-semibold text-brand group-hover:underline flex items-center gap-1 transition-all duration-normal group-hover:translate-x-0.5">
                         {t('common.book')}
-                        <ChevronRight className="w-3 h-3" />
+                        <ChevronRight className="w-3 h-3 transition-transform duration-normal group-hover:translate-x-0.5" />
                       </span>
                     </div>
                   </div>

@@ -27,15 +27,15 @@ const sidebarLinks: SidebarLink[] = [
 ]
 
 export default function BusinessLayout({ children }: { children: React.ReactNode }) {
-  const { user, profile, loading, logout } = useAuthStore()
+  const { user, profile, loading, initialized, logout } = useAuthStore()
   const router = useRouter()
   const queryClient = useQueryClient()
 
   useEffect(() => {
-    if (loading) return
+    if (loading || !initialized) return
     if (!user) { router.replace(`${ROUTES.LOGIN}?returnTo=${ROUTES.BUSINESS}`); return }
     if (profile?.role !== 'business' && profile?.role !== 'admin') { router.replace(ROUTES.HOME) }
-  }, [user, profile, loading, router])
+  }, [user, profile, loading, initialized, router])
 
   const { data: pendingCount = 0 } = useQuery({
     queryKey: ['business-pending-count', profile?.id],

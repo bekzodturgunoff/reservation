@@ -29,11 +29,11 @@ const sidebarLinks: SidebarLink[] = [
 ]
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
-  const { user, profile, loading } = useAuthStore()
+  const { user, profile, loading, initialized } = useAuthStore()
   const router = useRouter()
 
   useEffect(() => {
-    if (loading) return
+    if (loading || !initialized) return
     if (!user) {
       router.replace(`${ROUTES.LOGIN}?returnTo=${ROUTES.ADMIN}`)
       return
@@ -41,7 +41,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     if (profile?.role !== 'admin') {
       router.replace(ROUTES.HOME)
     }
-  }, [user, profile, loading, router])
+  }, [user, profile, loading, initialized, router])
 
   if (loading || !user || profile?.role !== 'admin') {
     return (

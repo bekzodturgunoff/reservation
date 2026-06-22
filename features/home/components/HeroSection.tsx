@@ -32,7 +32,7 @@ export function HeroSection() {
   return (
     <section className="relative min-h-screen flex items-center overflow-hidden">
       <div
-        className="absolute inset-0"
+        className="absolute inset-0 animate-gradient-shift"
         style={{
           background: 'radial-gradient(ellipse 70% 60% at 65% 20%, #065F46 0%, #022c22 55%, #0A0A0A 100%)',
         }}
@@ -42,13 +42,13 @@ export function HeroSection() {
         <div className="flex items-center min-h-screen">
           <div className="max-w-2xl mx-auto lg:mx-0 text-center lg:text-left">
             {/* Trust badge */}
-            <div className="inline-flex items-center gap-1.5 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full px-3.5 py-1.5 text-xs font-medium text-white tracking-[0.05em] mb-8">
+            <div className="inline-flex items-center gap-1.5 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full px-3.5 py-1.5 text-xs font-medium text-white tracking-[0.05em] mb-8 animate-fade-in-up" style={{ animationDelay: '0ms' }}>
               <span>🇺🇿</span>
               <span>{t('home.heroBadge')}</span>
             </div>
 
             {/* Headline */}
-            <h1 className="font-display text-[68px] sm:text-[68px] leading-[1.05] -tracking-[0.04em] font-extrabold text-white">
+            <h1 className="font-display text-[36px] sm:text-[68px] leading-[1.05] -tracking-[0.04em] font-extrabold text-white animate-fade-in-up" style={{ animationDelay: '100ms' }}>
               {t('home.heroTitle1')}
               <br />
               <span className="text-[#34D399]">{t('home.heroTitleHighlight')}</span>
@@ -57,22 +57,22 @@ export function HeroSection() {
             </h1>
 
             {/* Subtext */}
-            <p className="mt-6 text-[17px] text-white/65 max-w-[460px] leading-relaxed">
+            <p className="mt-6 text-[17px] text-white/65 max-w-[460px] leading-relaxed animate-fade-in-up" style={{ animationDelay: '200ms' }}>
               {t('home.heroDescription')}
             </p>
 
             {/* CTA Buttons */}
-            <div className="mt-9 flex flex-col sm:flex-row gap-3">
+            <div className="mt-9 flex flex-col sm:flex-row gap-3 animate-fade-in-up" style={{ animationDelay: '300ms' }}>
               <Link
                 href={ROUTES.SEARCH}
-                className="inline-flex items-center justify-center gap-2 h-[52px] px-7 bg-brand-600 hover:bg-brand-700 text-white font-semibold text-base rounded-xl shadow-btn transition-all hover:-translate-y-[1px] active:translate-y-0"
+                className="inline-flex items-center justify-center gap-2 h-[52px] px-7 bg-brand hover:bg-brand-dark text-white font-semibold text-base rounded-xl shadow-btn transition-all duration-normal ease-out-quart hover:-translate-y-0.5 active:scale-[0.97]"
               >
                 {t('home.searchButton')}
-                <ArrowRight className="w-4 h-4" />
+                <ArrowRight className="w-4 h-4 transition-transform duration-normal group-hover:translate-x-0.5" />
               </Link>
               <a
                 href="#how-it-works"
-                className="inline-flex items-center justify-center gap-2 h-[52px] px-7 bg-white/12 backdrop-blur-sm border border-white/20 hover:bg-white/20 text-white font-medium text-base rounded-xl transition-all"
+                className="inline-flex items-center justify-center gap-2 h-[52px] px-7 bg-white/12 backdrop-blur-sm border border-white/20 hover:bg-white/20 text-white font-medium text-base rounded-xl transition-all duration-normal ease-out-quart hover:-translate-y-0.5 active:scale-[0.97]"
               >
                 <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <circle cx="12" cy="12" r="10" />
@@ -83,7 +83,7 @@ export function HeroSection() {
             </div>
 
             {/* Social proof */}
-            <div ref={statsRef} className="mt-12 flex gap-8">
+            <div ref={statsRef} className="mt-12 flex flex-col sm:flex-row gap-8 animate-fade-in-up" style={{ animationDelay: '400ms' }}>
               {stats.map((stat, i) => (
                 <div key={stat.label} className="flex items-center gap-6">
                   <div>

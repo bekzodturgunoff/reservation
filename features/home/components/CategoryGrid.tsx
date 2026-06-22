@@ -27,7 +27,7 @@ export function CategoryGrid() {
   const { data: rawCategories = [], isLoading } = useQuery({
     queryKey: ['categories-with-counts'],
     queryFn: async () => {
-      const { data: cats } = await supabase.from('categories').select('*')
+      const { data: cats } = await supabase.from('categories').select('id, slug, name_uz, name_ru, icon')
       if (!cats) return []
       const { data: venues } = await supabase.from('venues').select('category_id').eq('status', 'active')
       const counts: Record<number, number> = {}
@@ -74,9 +74,9 @@ export function CategoryGrid() {
                 <Link
                   key={cat.id}
                   href={`/search?category=${cat.slug}`}
-                  className="group flex flex-col items-center p-5 rounded-2xl bg-surface-subtle hover:bg-brand hover:text-white transition-all duration-300 hover:-translate-y-1 hover:shadow-card-hover"
+                  className="group flex flex-col items-center p-5 rounded-2xl bg-surface-subtle hover:bg-brand hover:text-white transition-all duration-300 ease-out-quart hover:-translate-y-1.5 hover:shadow-card-hover active:scale-[0.98]"
                 >
-                  <span className="text-3xl group-hover:scale-110 transition-transform duration-300">
+                  <span className="relative flex items-center justify-center w-14 h-14 rounded-xl bg-white/60 group-hover:bg-white/20 transition-all duration-300 ease-out-quart text-3xl group-hover:scale-110 group-hover:-translate-y-0.5">
                     {cat.icon || '🏢'}
                   </span>
                   <span className="mt-3 text-sm font-semibold text-center group-hover:text-white transition-colors">
@@ -93,7 +93,7 @@ export function CategoryGrid() {
               <div className="mt-6 text-center">
                 <button
                   onClick={() => setExpanded(!expanded)}
-                  className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-full text-sm font-medium text-brand border border-brand/30 hover:bg-brand-light transition-colors"
+                  className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-full text-sm font-medium text-brand border border-brand/30 hover:bg-brand-light transition-all duration-fast active:scale-95"
                 >
                   {expanded ? t('home.showLess') : t('home.showMore', { count: extra.length })}
                 </button>

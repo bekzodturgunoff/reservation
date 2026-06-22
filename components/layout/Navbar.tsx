@@ -57,9 +57,9 @@ export const Navbar = () => {
   }, [logout, router, queryClient])
 
   const navLinks = [
-    { href: '/', label: t('common.home') },
-    { href: '/search', label: t('nav.venues') },
-    { href: '/#how-it-works', label: t('home.howItWorks') },
+    { href: ROUTES.HOME, label: t('common.home') },
+    { href: ROUTES.SEARCH, label: t('nav.venues') },
+    { href: `${ROUTES.HOME}#how-it-works`, label: t('home.howItWorks') },
   ]
 
   const isHome = pathname === '/'
@@ -76,7 +76,7 @@ export const Navbar = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full flex items-center justify-between">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-0.5 shrink-0 no-underline">
-            <span className="font-display text-[22px] font-extrabold text-brand-600 -tracking-[0.03em]">
+            <span className="font-display text-[22px] font-extrabold text-brand -tracking-[0.03em]">
               Bron
             </span>
             <span
@@ -94,17 +94,20 @@ export const Navbar = () => {
               <Link
                 key={link.href}
                 href={link.href}
-                className={`px-4 py-2 rounded-xl text-[15px] font-body font-medium transition-colors ${
+                className={`relative px-4 py-2 rounded-xl text-[15px] font-body font-medium transition-all duration-fast ${
                   pathname === link.href
                     ? scrolled || !isHome
-                      ? 'text-brand-600 font-semibold'
+                      ? 'text-brand font-semibold'
                       : 'text-white font-semibold'
                     : scrolled || !isHome
-                      ? 'text-ink-secondary hover:text-brand-600'
+                      ? 'text-ink-secondary hover:text-brand'
                       : 'text-white/80 hover:text-white'
                 }`}
               >
                 {link.label}
+                {pathname === link.href && (
+                  <span className="absolute -bottom-0.5 left-1/2 -translate-x-1/2 w-5 h-0.5 bg-brand rounded-full" />
+                )}
               </Link>
             ))}
           </div>
@@ -120,13 +123,17 @@ export const Navbar = () => {
               ].map((l, i) => (
                 <button
                   key={l.code}
-                  onClick={() => { i18n.changeLanguage(l.code); localStorage.setItem('lang', l.code) }}
+                  onClick={() => {
+                    i18n.changeLanguage(l.code)
+                    localStorage.setItem('lang', l.code)
+                    document.cookie = `NEXT_LOCALE=${l.code};path=/;max-age=31536000`
+                  }}
                   className={`px-2.5 py-1 text-[11px] font-semibold transition-all ${
                     i === 0 ? 'rounded-l-lg' : i === 2 ? 'rounded-r-lg' : ''
                   } ${
                     i18n.language === l.code
                       ? scrolled || !isHome
-                        ? 'bg-brand-600 text-white'
+                        ? 'bg-brand text-white'
                         : 'bg-white/20 text-white'
                       : scrolled || !isHome
                         ? 'text-ink-muted hover:text-ink-secondary'
@@ -152,7 +159,7 @@ export const Navbar = () => {
                       : 'bg-white/10 border border-white/20 hover:bg-white/20'
                   }`}
                 >
-                  <div className="w-7 h-7 rounded-full bg-brand-100 flex items-center justify-center text-xs font-bold text-brand-600">
+                  <div className="w-7 h-7 rounded-full bg-brand-light flex items-center justify-center text-xs font-bold text-brand">
                     {profile.full_name?.charAt(0)?.toUpperCase() || 'U'}
                   </div>
                   <span
@@ -166,7 +173,7 @@ export const Navbar = () => {
                 </button>
 
                 {userMenuOpen && (
-                  <div className="absolute top-full right-0 mt-2 w-56 bg-white rounded-2xl shadow-modal border border-line overflow-hidden z-50">
+                  <div className="absolute top-full right-0 mt-2 w-56 bg-white rounded-2xl shadow-modal border border-line overflow-hidden z-50 animate-fade-in-up" style={{ animationDuration: '0.15s' }}>
                     <div className="px-4 py-3 border-b border-line">
                       <p className="text-sm font-semibold text-ink">{profile.full_name}</p>
                       <p className="text-xs text-ink-tertiary capitalize mt-0.5">{profile.role}</p>
@@ -219,7 +226,7 @@ export const Navbar = () => {
                 </Link>
                 <Link
                   href={ROUTES.REGISTER}
-                  className="text-sm font-semibold text-white bg-brand-600 hover:bg-brand-700 px-5 py-2 rounded-xl transition-colors shadow-btn"
+                  className="text-sm font-semibold text-white bg-brand hover:bg-brand-dark px-5 py-2 rounded-xl transition-colors shadow-btn"
                 >
                   {t('common.register')}
                 </Link>
@@ -247,7 +254,7 @@ export const Navbar = () => {
         <div className="fixed inset-0 z-40 md:hidden" onClick={() => setMobileOpen(false)}>
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
           <div
-            className="absolute top-[68px] left-0 right-0 bg-white min-h-[calc(100vh-68px)] p-6 overflow-y-auto"
+            className="absolute top-[68px] left-0 right-0 bg-white min-h-[calc(100vh-68px)] p-6 pb-[env(safe-area-inset-bottom)] overflow-y-auto animate-slide-in-right"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Lang switcher */}
@@ -259,7 +266,11 @@ export const Navbar = () => {
               ].map((l) => (
                 <button
                   key={l.code}
-                  onClick={() => { i18n.changeLanguage(l.code); localStorage.setItem('lang', l.code) }}
+                  onClick={() => {
+                    i18n.changeLanguage(l.code)
+                    localStorage.setItem('lang', l.code)
+                    document.cookie = `NEXT_LOCALE=${l.code};path=/;max-age=31536000`
+                  }}
                   className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${
                     i18n.language === l.code ? 'bg-white text-ink shadow-sm' : 'text-ink-muted'
                   }`}
@@ -275,7 +286,7 @@ export const Navbar = () => {
                 <Link
                   key={link.href}
                   href={link.href}
-                  className="block px-4 py-3 rounded-xl text-base font-medium text-ink-secondary hover:bg-surface-muted transition-colors"
+                  className="block px-4 py-3.5 rounded-xl text-base font-medium text-ink-secondary hover:bg-surface-muted transition-colors min-h-[44px]"
                 >
                   {link.label}
                 </Link>
@@ -288,13 +299,13 @@ export const Navbar = () => {
                 <div className="flex gap-3">
                   <Link
                     href={ROUTES.LOGIN}
-                    className="flex-1 text-center py-3 rounded-xl border border-line text-sm font-medium text-ink-secondary hover:bg-surface-muted transition-colors"
+                    className="flex-1 text-center py-3.5 rounded-xl border border-line text-sm font-medium text-ink-secondary hover:bg-surface-muted transition-colors min-h-[44px]"
                   >
                     {t('common.login')}
                   </Link>
                   <Link
                     href={ROUTES.REGISTER}
-                    className="flex-1 text-center py-3 rounded-xl bg-brand-600 text-white text-sm font-semibold hover:bg-brand-700 transition-colors shadow-btn"
+                    className="flex-1 text-center py-3.5 rounded-xl bg-brand text-white text-sm font-semibold hover:bg-brand-dark transition-colors shadow-btn min-h-[44px]"
                   >
                     {t('common.register')}
                   </Link>
@@ -303,14 +314,14 @@ export const Navbar = () => {
                 <div className="space-y-1">
                   <Link
                     href={ROUTES.PROFILE}
-                    className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-ink-secondary hover:bg-surface-muted transition-colors"
+                    className="flex items-center gap-3 px-4 py-3.5 rounded-xl text-sm font-medium text-ink-secondary hover:bg-surface-muted transition-colors min-h-[44px]"
                   >
                     <User className="w-4 h-4" />
                     {t('nav.profile')}
                   </Link>
                   <Link
                     href={ROUTES.PROFILE_FAVORITES}
-                    className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-ink-secondary hover:bg-surface-muted transition-colors"
+                    className="flex items-center gap-3 px-4 py-3.5 rounded-xl text-sm font-medium text-ink-secondary hover:bg-surface-muted transition-colors min-h-[44px]"
                   >
                     <Heart className="w-4 h-4" />
                     {t('nav.favorites')}
@@ -318,7 +329,7 @@ export const Navbar = () => {
                   {(profile?.role === 'business' || profile?.role === 'admin') && (
                     <Link
                       href={ROUTES.BUSINESS}
-                      className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-ink-secondary hover:bg-surface-muted transition-colors"
+                      className="flex items-center gap-3 px-4 py-3.5 rounded-xl text-sm font-medium text-ink-secondary hover:bg-surface-muted transition-colors min-h-[44px]"
                     >
                       <Building2 className="w-4 h-4" />
                       {t('nav.businessPanel')}
@@ -327,7 +338,7 @@ export const Navbar = () => {
                   {profile?.role === 'admin' && (
                     <Link
                       href={ROUTES.ADMIN}
-                      className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-ink-secondary hover:bg-surface-muted transition-colors"
+                      className="flex items-center gap-3 px-4 py-3.5 rounded-xl text-sm font-medium text-ink-secondary hover:bg-surface-muted transition-colors min-h-[44px]"
                     >
                       <Shield className="w-4 h-4" />
                       {t('nav.adminPanel')}
@@ -335,7 +346,7 @@ export const Navbar = () => {
                   )}
                   <button
                     onClick={handleLogout}
-                    className="w-full text-left flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-status-error hover:bg-status-error-bg transition-colors"
+                    className="w-full text-left flex items-center gap-3 px-4 py-3.5 rounded-xl text-sm font-medium text-status-error hover:bg-status-error-bg transition-colors min-h-[44px]"
                   >
                     <LogOut className="w-4 h-4" />
                     {t('common.logout')}

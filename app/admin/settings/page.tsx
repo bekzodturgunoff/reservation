@@ -12,7 +12,7 @@ export default async function AdminSettingsPage() {
   if (!user) redirect(ROUTES.LOGIN)
 
   const [profileRes, profilesRes, venuesRes] = await Promise.all([
-    supabase.from('profiles').select('*').eq('id', user.id).single(),
+    supabase.from('profiles').select('id, full_name, phone, avatar_url, role, created_at').eq('id', user.id).single(),
     supabase.from('profiles').select('role'),
     supabase.from('venues').select('status'),
   ])

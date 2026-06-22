@@ -1,7 +1,7 @@
 /** @type {import('tailwindcss').Config} */
 export default {
   darkMode: 'class',
-  content: ['./app/**/*.{ts,tsx}', './components/**/*.{ts,tsx}', './lib/**/*.{ts,tsx}'],
+  content: ['./app/**/*.{ts,tsx}', './components/**/*.{ts,tsx}', './features/**/*.{ts,tsx}', './lib/**/*.{ts,tsx}'],
   theme: {
     extend: {
       fontFamily: {
@@ -30,6 +30,7 @@ export default {
           secondary: '#374151',
           tertiary: '#6B7280',
           muted: '#9CA3AF',
+          disabled: '#D1D5DB',
         },
         line: {
           DEFAULT: '#E5E7EB',

@@ -27,6 +27,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
     const saved = localStorage.getItem('lang')
     if (saved && saved !== i18n.language) {
       i18n.changeLanguage(saved)
+      document.cookie = `NEXT_LOCALE=${saved};path=/;max-age=31536000`
     }
   }, [])
 

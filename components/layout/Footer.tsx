@@ -62,7 +62,7 @@ export const Footer = () => {
           {/* Brand column */}
           <div className="col-span-2 md:col-span-1">
             <div className="mb-4">
-              <span className="font-display text-xl font-bold text-brand-600 -tracking-[0.03em]">Bron</span>
+              <span className="font-display text-xl font-bold text-brand -tracking-[0.03em]">Bron</span>
               <span className="font-display text-xl font-bold text-white -tracking-[0.03em]">Uz</span>
             </div>
             <p className="text-sm text-white/50 leading-relaxed max-w-[200px]">
@@ -73,7 +73,7 @@ export const Footer = () => {
                 <a
                   key={s.name}
                   href={s.href}
-                  className="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center hover:bg-brand-600 transition-colors duration-200"
+                  className="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center hover:bg-brand transition-colors duration-200"
                   aria-label={s.name}
                 >
                   <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">

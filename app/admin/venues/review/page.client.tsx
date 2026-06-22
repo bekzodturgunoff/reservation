@@ -13,9 +13,19 @@ import toast from 'react-hot-toast'
 import Link from 'next/link'
 import { ROUTES } from '@/lib/constants/routes'
 
+export interface PendingVenue {
+  id: string
+  name: string
+  city: string | null
+  district: string | null
+  description: string | null
+  status: string | null
+  created_at: string | null
+  profiles: { full_name: string | null; phone: string | null; email: string | null } | null
+}
+
 interface AdminVenueReviewClientProps {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  initialPendingVenues: any[]
+  initialPendingVenues: PendingVenue[]
 }
 
 export default function AdminVenueReviewClient({ initialPendingVenues }: AdminVenueReviewClientProps) {

@@ -1,4 +1,5 @@
 import type { CSSProperties } from 'react'
+import { cn } from '@/lib/utils/cn'
 
 type SkeletonVariant = 'text' | 'circle' | 'rect'
 
@@ -27,7 +28,7 @@ function Skeleton({
       <div
         aria-hidden="true"
         style={{ ...style, ...(width ? {} : { width: '2.5rem' }), ...(height ? {} : { height: '2.5rem' }) }}
-        className={`${base} rounded-full shrink-0 ${className}`}
+        className={cn('rounded-full shrink-0', base, className)}
       />
     )
   }
@@ -37,7 +38,7 @@ function Skeleton({
       <div
         aria-hidden="true"
         style={style}
-        className={`${base} ${className}`}
+        className={cn(base, className)}
       />
     )
   }
@@ -46,7 +47,7 @@ function Skeleton({
     <div
       aria-hidden="true"
       style={{ ...style, ...(height ? {} : { height: '1rem' }) }}
-      className={`${base} w-full ${className}`}
+      className={cn('w-full', base, className)}
     />
   )
 }

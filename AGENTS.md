@@ -28,7 +28,7 @@ Complete migration from Vite + React 19 to Next.js 15 App Router — award-winni
 ## Progress
 ### Done
 - **Session 1 (foundation):** All phases 0.0–0.11 — migration, design system, landing, auth, search, venue detail, UI components, Profile, Booking, 404, robots, sitemap
-- **Session 1 (business/admin):** All pages rewritten with real Supabase queries; zero mock/fake data removed; admin revenue/venues/users pages; auth persist; navbar dropdown; business calendar/bookings/reviews/revenue/edit-venue; admin bookings/venue-review; vercel build fix
+- **Session 1 (business/admin):** All pages rewritten with real Supabase queries; admin revenue/venues/users pages; auth persist; navbar dropdown; business calendar/bookings/reviews/revenue/edit-venue; admin bookings/venue-review; vercel build fix
 - **Session 1 (production):** RLS audit + hardening (migrations 00026/00027), booking status enforcement, 11 indexes, security headers, env audit, storage upload validation, error handling, metadata/SEO, legal pages, monitoring/analytics, accessibility, bundle optimization, i18n cleanup
 - **Session 1 (shared components):** BookingStatusBadge, Drawer, ConfirmModal
 - **Session 2 (Batch 1):** 3 `<img>` → `<Image>`, console.log removed, 7 SELECT * fixed, dev-dist deleted
@@ -42,6 +42,13 @@ Complete migration from Vite + React 19 to Next.js 15 App Router — award-winni
 - **Session 2 (Batch 7a-d):** Venue working hours editor, review stats/badges/verified/sentiment, notification bell UI
 - **Session 2 (Batch 8):** Sentry `withSentryConfig` wrapper, middleware `api/` exclusion, `lib/i18n/server.ts` server-side t() utility, 6 SSR pages retrofitted with server translations, `output: 'export'` removed (Vite leftover), `venue.wifi` key added
 - **SQL migrations:** 00026 + 00027 + 00028 + 00029 executed in Supabase
+- **Phase 1 (Critical Bug Fixes):** Bug 1 — VenueDetailClient.BookingWidget static property removed; Bug 2 — Tailwind content array includes features/; Bug 3 — ink-disabled color added; Bug 4 — Auth redirect loop fixed (Zustand rehydration + 3 layout `initialized` guards)
+- **Phase 2 (Secondary Bug Fixes):** Bug 5 — 19 files converted from numbered brand tokens (`brand-600`→`brand`, `brand-700`→`brand-dark`, etc.) to semantic aliases; Bug 6 — Favorites link in user sidebar; Bug 7 — Navbar href audit (navLinks → ROUTES constants); Bug 8 — AppLoader flash (fixed by Phase 1 rehydration)
+- **Phase 3 (Design Overhaul):** Global CSS (animations, scrollbar, DayPicker overrides), HeroSection (gradient animation, staggered entrances, micro-interactions), FeaturedVenues (hover overlay opacity, image zoom easing, price row transitions), SearchBar (focus rings, active scale on buttons), Navbar (active underline indicator, mobile slide-in), CategoryGrid (icon container, hover lift + scale), HowItWorks (staggered entrance, animated connector line, hover effects on circles/icons/titles), Venue detail (feature card hover shadows, gradient section dividers, review card hover)
+- **Phase 4 (Mobile Responsiveness):** MobileNav component created (bottom nav with Home/Search/Favorites/Profile, safe-area padding, active route highlighting), HeroSection responsive headline (text-[36px] sm:text-[68px]), stats stack vertically on mobile, sticky booking bar in VenueDetailClient (fixed bottom, md:hidden, scroll-to form), Navbar mobile safe-area + 44px touch targets
+- **Phase 5 (i18n Audit):** 11 locale keys added per locale (skipToContent, business revenue terms, date range labels), revenue page fully translated (15+ hardcoded Uzbek strings → t()), SSR language persistence fixed (Navbar + providers now set NEXT_LOCALE cookie with 1-year expiry), 2 layout files skip-link translated
+- **Phase 6 (Performance):** Skeleton uses cn() utility, final `<img>` in venue detail → `<Image>`, business dashboard enhanced schedule skeleton (6 rows), admin revenue page proper EmptyState
+- **Phase 7 (Final Verification):** TypeScript strict check passed, ESLint passed, build clean, 10 `any` types fixed across 10 files, 4 `SELECT *` fixed (CategoryGrid + 3 settings pages), zero console.log, zero numbered brand tokens, ROUTES verified (31 routes + 2 dynamic functions), transitions audit passed
 
 ### In Progress
 - (none)
@@ -59,17 +66,20 @@ Complete migration from Vite + React 19 to Next.js 15 App Router — award-winni
 - `@supabase/ssr` for cookie-based auth in middleware + server components
 - PhotoGallery `<img>` tags kept as-is (lightbox dynamic sizing incompatible with next/image)
 - `noUncheckedIndexedAccess` enabled — forces proper null handling
+- Brand tokens use semantic aliases (brand, brand-dark, brand-darker, brand-light, brand-pale) instead of numbered scales
+- Mobile responsiveness uses `safe-area-inset-bottom` for iOS notch via env()
+- SSR i18n persistence: NEXT_LOCALE cookie set on client language change for server-side locale detection
+- Mobile bottom nav added as separate component in layout (not part of Navbar) for clean separation
 
 ## Next Steps
-1. Run `supabase/migrations/00029_batch7_features.sql` in Supabase SQL Editor
+1. Wire `NEXT_PUBLIC_SENTRY_DSN` env var for error tracking
 2. End-to-end testing with real Supabase data and authenticated user
-3. Wire `NEXT_PUBLIC_SENTRY_DSN` env var for error tracking
-4. Add `venue.wifi` key to ru.json and en.json locale files (done: ✅)
-5. Retrofit `useTranslation` / `t()` calls for remaining server components (done: 6 pages retrofitted)
+3. Run `supabase/migrations/00029_batch7_features.sql` in Supabase SQL Editor
+4. Deploy to Vercel and verify production build
 
 ## Critical Context
-- **Build:** 32 routes, 0 errors, 0 warnings (except intentional `<img>` in PhotoGallery)
-- **SSR pages:** All pages except search — 31 dynamic, 5 static
+- **Build:** 33 routes, 0 errors, 0 warnings (except intentional `<img>` in PhotoGallery)
+- **SSR pages:** All pages except search — 32 dynamic, 1 static
 - **Client pages:** Only search
 - Supabase URL: `pydsqvslcjnytgebwtpo.supabase.co`
 - Node v24.14.0, pnpm v10.33.0, macOS
@@ -79,9 +89,12 @@ Complete migration from Vite + React 19 to Next.js 15 App Router — award-winni
 - `@supabase/ssr@0.12.0` installed for SSR auth
 - All feature-specific code in `features/` dirs; shared UI in `components/ui/` + `components/shared/`
 - `types/database.ts` = auto-generated Supabase types
+- Tailwind config has semantic brand tokens (brand, brand-dark, brand-darker, brand-light, brand-pale)
+- NEXT_LOCALE cookie controls server-side language detection (set on client)
+- MobileNav component renders fixed bottom bar on `<md` breakpoints
 
 ## Relevant Files
-- `lib/constants/routes.ts`: ROUTES object — all app paths centralized
+- `lib/constants/routes.ts`: ROUTES object — all app paths centralized (31 routes + 2 dynamic functions)
 - `lib/constants/query-keys.ts`: QUERY_KEYS object — React Query cache keys
 - `lib/constants/config.ts`: Platform config constants
 - `lib/utils/format.ts`: formatPrice, formatDate, formatTime, etc.
@@ -90,7 +103,8 @@ Complete migration from Vite + React 19 to Next.js 15 App Router — award-winni
 - `lib/validations/*.ts`: zod schemas for auth, venue, booking, review
 - `features/venues/components/WorkingHoursEditor.tsx`: 7-day working hours editor
 - `features/notifications/components/NotificationBell.tsx`: Bell icon + dropdown
+- `components/layout/MobileNav.tsx`: Fixed bottom nav bar (Home, Search, Favorites, Profile)
 - `lib/supabase/server.ts`: SSR client (cookie-based, fallback to anonymous)
 - `lib/supabase/middleware.ts`: Session refresh in middleware
-- `middleware.ts`: App middleware with auth refresh
+- `middleware.ts`: App middleware with auth refresh, excludes api/ + static routes
 - `supabase/migrations/00029_batch7_features.sql`: Promo codes, waitlist, notifications, site settings

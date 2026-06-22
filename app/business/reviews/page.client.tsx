@@ -113,8 +113,8 @@ export default function BusinessReviewsClient({ userId, initialVenues, initialRe
                 <p className="text-sm text-ink-secondary">{r.comment}</p>
 
                 {r.owner_response ? (
-                  <div className="mt-3 p-3 bg-brand-50 rounded-xl border border-brand-100">
-                    <p className="text-xs font-semibold text-brand-700 mb-1">Sizning javobingiz:</p>
+                  <div className="mt-3 p-3 bg-brand-pale rounded-xl border border-brand-light">
+                    <p className="text-xs font-semibold text-brand-dark mb-1">Sizning javobingiz:</p>
                     <p className="text-sm text-ink-secondary">{r.owner_response}</p>
                   </div>
                 ) : replyingTo === r.id ? (

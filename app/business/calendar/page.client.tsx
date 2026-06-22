@@ -12,13 +12,22 @@ import { Drawer } from '@/components/shared/Drawer'
 import { ConfirmModal } from '@/components/shared/ConfirmModal'
 import toast from 'react-hot-toast'
 
+interface CalendarBooking {
+  id: string
+  booking_date: string
+  start_time: string | null
+  end_time: string | null
+  status: string
+  profiles: { full_name: string | null } | null
+  venues: { name: string | null } | null
+}
+
 const WEEKDAYS = ['Du', 'Se', 'Ch', 'Pa', 'Ju', 'Sh', 'Ya']
 const today = new Date()
 
 interface BusinessCalendarClientProps {
   userId: string
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  initialBookings: any[]
+  initialBookings: CalendarBooking[]
   initialBlockedDates: string[]
   initialVenues: { id: string; name: string }[]
 }
@@ -61,7 +70,7 @@ export default function BusinessCalendarClient({ userId, initialBookings, initia
         .gte('booking_date', fromDate)
         .lte('booking_date', toDate)
         .not('status', 'in', '("cancelled","no_show")')
-      return data || []
+      return (data || []) as unknown as CalendarBooking[]
     },
     enabled: venueIds.length > 0,
     initialData: initialBookings,
@@ -101,8 +110,7 @@ export default function BusinessCalendarClient({ userId, initialBookings, initia
   })
 
   const bookingsByDate = useMemo(() => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const map: Record<string, any[]> = {}
+    const map: Record<string, CalendarBooking[]> = {}
     monthBookings.forEach(b => {
       const d = b.booking_date
       if (!map[d]) map[d] = []
@@ -153,7 +161,7 @@ export default function BusinessCalendarClient({ userId, initialBookings, initia
               >
                 <span className={`text-xs font-medium ${isToday(d) ? 'text-brand' : 'text-ink'}`}>{i + 1}</span>
                 {bks.slice(0, 2).map(b => (
-                  <div key={b.id} className={`mt-0.5 px-1 py-0.5 rounded text-[10px] leading-tight truncate ${b.status === 'confirmed' ? 'bg-brand-100 text-brand-700' : 'bg-amber-100 text-amber-700'}`}>
+                  <div key={b.id} className={`mt-0.5 px-1 py-0.5 rounded text-[10px] leading-tight truncate ${b.status === 'confirmed' ? 'bg-brand-light text-brand-dark' : 'bg-amber-100 text-amber-700'}`}>
                     {b.start_time?.slice(0, 5)} {b.profiles?.full_name?.split(' ')[0]}
                   </div>
                 ))}

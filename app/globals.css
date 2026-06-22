@@ -25,6 +25,29 @@
     border-color: var(--color-border);
   }
 
+  ::selection {
+    background-color: #059669;
+    color: white;
+  }
+
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: #D1D5DB;
+    border-radius: 3px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: #9CA3AF;
+  }
+
   body {
     background-color: var(--color-bg);
     color: var(--color-text-primary);
@@ -57,6 +80,89 @@
   .scrollbar-hide::-webkit-scrollbar {
     display: none;
   }
+}
+
+@keyframes gradient-shift {
+  0%, 100% { transform: scale(1) rotate(0deg); }
+  33% { transform: scale(1.03) rotate(1deg); }
+  66% { transform: scale(0.98) rotate(-0.5deg); }
+}
+
+@keyframes fade-in-up {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fade-in-left {
+  from { opacity: 0; transform: translateX(-12px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes slide-in-right {
+  from { opacity: 0; transform: translateX(100%); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes dash-scroll {
+  to { background-position: 40px 0; }
+}
+
+.animate-gradient-shift {
+  animation: gradient-shift 8s ease-in-out infinite;
+}
+
+.animate-fade-in-up {
+  animation: fade-in-up 0.6s ease-out both;
+}
+
+.animate-fade-in-left {
+  animation: fade-in-left 0.5s ease-out both;
+}
+
+.animate-slide-in-right {
+  animation: slide-in-right 0.3s ease-out;
+}
+
+.animate-connector-line {
+  background-image: repeating-linear-gradient(90deg, #D1FAE5 0px, #D1FAE5 8px, transparent 8px, transparent 16px);
+  height: 2px;
+  animation: dash-scroll 1s linear infinite;
+}
+
+.rdp {
+  --rdp-cell-size: 38px;
+  --rdp-accent-color: #059669;
+  --rdp-background-color: #D1FAE5;
+  margin: 0;
+}
+
+.rdp-day_selected,
+.rdp-day_selected:focus-visible,
+.rdp-day_selected:hover {
+  background-color: #059669 !important;
+  color: white !important;
+}
+
+.rdp-day_today {
+  font-weight: 700 !important;
+  color: #059669 !important;
+}
+
+.rdp-button:hover:not(.rdp-day_selected) {
+  background-color: #F3F4F6 !important;
+}
+
+.rdp-caption_label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #0A0A0A;
+}
+
+.rdp-head_cell {
+  font-size: 11px;
+  font-weight: 500;
+  color: #9CA3AF;
+  text-transform: uppercase;
 }
 
 html.lenis {

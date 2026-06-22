@@ -137,7 +137,7 @@ export const RegisterClient = () => {
         <div className="w-full max-w-[400px]">
           {/* Logo */}
           <Link href="/" className="inline-flex items-center gap-0.5 no-underline mb-10">
-            <span className="font-display text-2xl font-extrabold text-brand-600 -tracking-[0.03em]">Bron</span>
+            <span className="font-display text-2xl font-extrabold text-brand -tracking-[0.03em]">Bron</span>
             <span className="font-display text-2xl font-extrabold text-ink -tracking-[0.03em]">Uz</span>
           </Link>
 
@@ -151,7 +151,7 @@ export const RegisterClient = () => {
               onClick={() => setRole('user')}
               className={`flex-1 p-4 rounded-xl border-2 text-left relative transition-all ${
                 role === 'user'
-                  ? 'border-brand-600 bg-brand-50'
+                  ? 'border-brand bg-brand-pale'
                   : 'border-line hover:border-line-strong'
               }`}
             >
@@ -159,7 +159,7 @@ export const RegisterClient = () => {
               <p className="text-sm font-semibold text-ink mt-1">{t('auth.user')}</p>
               <p className="text-xs text-ink-tertiary">{t('auth.userDesc')}</p>
               {role === 'user' && (
-                <span className="absolute top-2 right-2 w-5 h-5 bg-brand-600 rounded-full flex items-center justify-center text-white text-[10px]">✓</span>
+                <span className="absolute top-2 right-2 w-5 h-5 bg-brand rounded-full flex items-center justify-center text-white text-[10px]">✓</span>
               )}
             </button>
             <button
@@ -167,7 +167,7 @@ export const RegisterClient = () => {
               onClick={() => setRole('business')}
               className={`flex-1 p-4 rounded-xl border-2 text-left relative transition-all ${
                 role === 'business'
-                  ? 'border-brand-600 bg-brand-50'
+                  ? 'border-brand bg-brand-pale'
                   : 'border-line hover:border-line-strong'
               }`}
             >
@@ -175,7 +175,7 @@ export const RegisterClient = () => {
               <p className="text-sm font-semibold text-ink mt-1">{t('auth.business')}</p>
               <p className="text-xs text-ink-tertiary">{t('auth.businessDesc')}</p>
               {role === 'business' && (
-                <span className="absolute top-2 right-2 w-5 h-5 bg-brand-600 rounded-full flex items-center justify-center text-white text-[10px]">✓</span>
+                <span className="absolute top-2 right-2 w-5 h-5 bg-brand rounded-full flex items-center justify-center text-white text-[10px]">✓</span>
               )}
             </button>
           </div>
@@ -197,7 +197,7 @@ export const RegisterClient = () => {
                   className={`w-full h-[52px] pl-11 pr-4 bg-white border rounded-input text-base text-ink placeholder:text-ink-muted outline-none transition-all ${
                     errors.full_name
                       ? 'border-status-error shadow-[0_0_0_3px_rgba(239,68,68,0.12)]'
-                      : 'border-line focus:border-brand-600 focus:shadow-[0_0_0_3px_rgba(5,150,105,0.12)]'
+                      : 'border-line focus:border-brand focus:shadow-[0_0_0_3px_rgba(5,150,105,0.12)]'
                   }`}
                 />
               </div>
@@ -220,7 +220,7 @@ export const RegisterClient = () => {
                   className={`w-full h-[52px] pl-11 pr-4 bg-white border rounded-input text-base text-ink placeholder:text-ink-muted outline-none transition-all ${
                     errors.phone
                       ? 'border-status-error shadow-[0_0_0_3px_rgba(239,68,68,0.12)]'
-                      : 'border-line focus:border-brand-600 focus:shadow-[0_0_0_3px_rgba(5,150,105,0.12)]'
+                      : 'border-line focus:border-brand focus:shadow-[0_0_0_3px_rgba(5,150,105,0.12)]'
                   }`}
                 />
               </div>
@@ -243,7 +243,7 @@ export const RegisterClient = () => {
                   className={`w-full h-[52px] pl-11 pr-4 bg-white border rounded-input text-base text-ink placeholder:text-ink-muted outline-none transition-all ${
                     errors.email
                       ? 'border-status-error shadow-[0_0_0_3px_rgba(239,68,68,0.12)]'
-                      : 'border-line focus:border-brand-600 focus:shadow-[0_0_0_3px_rgba(5,150,105,0.12)]'
+                      : 'border-line focus:border-brand focus:shadow-[0_0_0_3px_rgba(5,150,105,0.12)]'
                   }`}
                 />
               </div>
@@ -266,7 +266,7 @@ export const RegisterClient = () => {
                   className={`w-full h-[52px] pl-11 pr-11 bg-white border rounded-input text-base text-ink placeholder:text-ink-muted outline-none transition-all ${
                     errors.password
                       ? 'border-status-error shadow-[0_0_0_3px_rgba(239,68,68,0.12)]'
-                      : 'border-line focus:border-brand-600 focus:shadow-[0_0_0_3px_rgba(5,150,105,0.12)]'
+                      : 'border-line focus:border-brand focus:shadow-[0_0_0_3px_rgba(5,150,105,0.12)]'
                   }`}
                 />
                 <button
@@ -312,7 +312,7 @@ export const RegisterClient = () => {
             <button
               type="submit"
               disabled={loading}
-              className="w-full h-[52px] bg-brand-600 hover:bg-brand-700 disabled:opacity-40 disabled:cursor-not-allowed text-white font-semibold text-base rounded-btn shadow-btn transition-all hover:-translate-y-0.5 active:translate-y-0 flex items-center justify-center gap-2"
+              className="w-full h-[52px] bg-brand hover:bg-brand-dark disabled:opacity-40 disabled:cursor-not-allowed text-white font-semibold text-base rounded-btn shadow-btn transition-all hover:-translate-y-0.5 active:translate-y-0 flex items-center justify-center gap-2"
             >
               {loading ? (
                 <span className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -324,7 +324,7 @@ export const RegisterClient = () => {
 
           <p className="text-sm text-ink-tertiary text-center mt-6">
             {t('auth.haveAccount')}{' '}
-            <Link href={ROUTES.LOGIN} className="text-brand-600 font-medium hover:underline">
+            <Link href={ROUTES.LOGIN} className="text-brand font-medium hover:underline">
               {t('common.login')}
             </Link>
           </p>
