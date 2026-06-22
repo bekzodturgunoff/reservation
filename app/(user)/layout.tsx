@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { User, Calendar, Settings } from 'lucide-react'
 import { useAuthStore } from '@/store/auth'
 import { Navbar } from '@/components/layout/Navbar'
+import { ROUTES } from '@/lib/constants/routes'
 
 const sidebarLinks = [
   { href: '/profile', label: 'Shaxsiy ma\'lumotlar', icon: User },
@@ -20,7 +21,7 @@ export default function UserLayout({ children }: { children: React.ReactNode }) 
 
   useEffect(() => {
     if (!loading && !user) {
-      router.replace('/login')
+      router.replace(ROUTES.LOGIN)
     }
   }, [user, loading, router])
 

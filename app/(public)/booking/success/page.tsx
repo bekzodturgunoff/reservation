@@ -1,22 +1,34 @@
-'use client'
-
-import { Suspense } from 'react'
-import { useTranslation } from 'react-i18next'
-import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
+import { cookies } from 'next/headers'
 import { CheckCircle2 } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
-import { useTitle } from '@/hooks/useTitle'
+import { ROUTES } from '@/lib/constants/routes'
+import { createServerT } from '@/lib/i18n/server'
 
-function BookingSuccessInner() {
-  const { t } = useTranslation()
-  useTitle('Bron tasdiqlandi — BronUz')
-  const searchParams = useSearchParams()
+export const dynamic = 'force-dynamic'
+
+export async function generateMetadata() {
+  const cookieStore = await cookies()
+  const locale = cookieStore.get('NEXT_LOCALE')?.value ?? 'uz'
+  const t = createServerT(locale)
+  return { title: `${t('confirmation.title')} — BronUz` }
+}
+
+export default async function Page({
+  searchParams,
+}: {
+  searchParams: Promise<{ bookingId?: string; date?: string; time?: string; venue?: string }>
+}) {
+  const params = await searchParams
+
+  const cookieStore = await cookies()
+  const locale = cookieStore.get('NEXT_LOCALE')?.value ?? 'uz'
+  const t = createServerT(locale)
 
   const details = {
-    date: searchParams.get('date') || '',
-    time: searchParams.get('time') || '',
-    venue: searchParams.get('venue') || '',
+    date: params.date || '',
+    time: params.time || '',
+    venue: params.venue || '',
   }
 
   const hasDetails = details.date || details.time || details.venue
@@ -63,10 +75,10 @@ function BookingSuccessInner() {
         <div className="mt-8 flex flex-col sm:flex-row gap-3 w-full">
           <Link href="/" className="flex-1">
             <Button variant="secondary" className="w-full">
-              {t('confirmation.backHome')}
+              {t('booking.backHome')}
             </Button>
           </Link>
-          <Link href="/search" className="flex-1">
+          <Link href={ROUTES.SEARCH} className="flex-1">
             <Button variant="primary" className="w-full">
               {t('common.search')}
             </Button>
@@ -74,17 +86,5 @@ function BookingSuccessInner() {
         </div>
       </div>
     </div>
-  )
-}
-
-export default function BookingSuccessPage() {
-  return (
-    <Suspense fallback={
-      <div className="min-h-[80vh] flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-brand border-t-transparent rounded-full animate-spin" />
-      </div>
-    }>
-      <BookingSuccessInner />
-    </Suspense>
   )
 }

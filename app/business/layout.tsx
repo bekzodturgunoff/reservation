@@ -3,7 +3,7 @@
 import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   LayoutDashboard, CalendarCheck, CalendarDays,
   Building2, PlusCircle, Star, TrendingUp, Settings,
@@ -11,6 +11,7 @@ import {
 } from 'lucide-react'
 import { useAuthStore } from '@/store/auth'
 import { supabase } from '@/lib/supabase'
+import { ROUTES } from '@/lib/constants/routes'
 import { DashboardSidebar, MobileBottomNav } from '@/components/layout/DashboardSidebar'
 import type { SidebarLink } from '@/components/layout/DashboardSidebar'
 
@@ -28,22 +29,23 @@ const sidebarLinks: SidebarLink[] = [
 export default function BusinessLayout({ children }: { children: React.ReactNode }) {
   const { user, profile, loading, logout } = useAuthStore()
   const router = useRouter()
+  const queryClient = useQueryClient()
 
   useEffect(() => {
     if (loading) return
-    if (!user) { router.replace('/login'); return }
-    if (profile?.role !== 'business' && profile?.role !== 'admin') { router.replace('/') }
+    if (!user) { router.replace(`${ROUTES.LOGIN}?returnTo=${ROUTES.BUSINESS}`); return }
+    if (profile?.role !== 'business' && profile?.role !== 'admin') { router.replace(ROUTES.HOME) }
   }, [user, profile, loading, router])
 
   const { data: pendingCount = 0 } = useQuery({
     queryKey: ['business-pending-count', profile?.id],
     queryFn: async () => {
       const { data: venues } = await supabase
-        .from('venues').select('id').eq('owner_id', profile!.id)
+        .from('venues').select('id').eq('owner_id', profile?.id)
       const ids = venues?.map(v => v.id) ?? []
       if (ids.length === 0) return 0
       const { count } = await supabase
-        .from('bookings').select('*', { count: 'exact', head: true })
+        .from('bookings').select('id', { count: 'exact', head: true })
         .in('venue_id', ids).eq('status', 'pending')
       return count || 0
     },
@@ -53,8 +55,9 @@ export default function BusinessLayout({ children }: { children: React.ReactNode
 
   const handleLogout = async () => {
     await supabase.auth.signOut()
+    queryClient.clear()
     logout()
-    router.push('/')
+    router.push(ROUTES.HOME)
   }
 
   if (loading || !user || (profile?.role !== 'business' && profile?.role !== 'admin')) {
@@ -77,7 +80,7 @@ export default function BusinessLayout({ children }: { children: React.ReactNode
           </div>
           <div className="flex items-center gap-3">
             <Link
-              href="/business/bookings"
+              href={ROUTES.BUSINESS_BOOKINGS}
               className="relative p-2 rounded-xl hover:bg-surface-muted transition-colors"
               aria-label="Kutilayotgan bronlar"
             >

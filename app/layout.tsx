@@ -1,4 +1,3 @@
-/* eslint-disable react-refresh/only-export-components */
 import type { Metadata, Viewport } from 'next'
 import { Inter, Plus_Jakarta_Sans, JetBrains_Mono } from 'next/font/google'
 import './globals.css'
@@ -29,7 +28,7 @@ const mono = JetBrains_Mono({
   weight: ['400', '500'],
 })
 
-const siteUrl = 'https://bronuz.uz'
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://bronuz.uz'
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
@@ -62,7 +61,7 @@ export const metadata: Metadata = {
     url: siteUrl,
     images: [
       {
-        url: '/og-image.png',
+        url: '/opengraph-image',
         width: 1200,
         height: 630,
         alt: 'BronUz — Onlayn bron qilish',
@@ -74,7 +73,7 @@ export const metadata: Metadata = {
     title: 'BronUz — Onlayn bron qilish',
     description:
       'O\'zbekistondagi eng yaxshi joylarni bir joydan topib, tezda bron qiling.',
-    images: ['/og-image.png'],
+    images: ['/opengraph-image'],
   },
   robots: {
     index: true,

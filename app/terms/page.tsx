@@ -1,22 +1,31 @@
-/* eslint-disable react-refresh/only-export-components */
-import type { Metadata } from 'next'
 import Link from 'next/link'
+import { cookies } from 'next/headers'
+import { createServerT } from '@/lib/i18n/server'
 
-export const metadata: Metadata = {
-  title: 'Foydalanish shartlari',
-  description: 'BronUz platformasidan foydalanish shartlari va qoidalari. Ro\'yxatdan o\'tish orqali ushbu shartlarni qabul qilgan hisoblanasiz.',
-  openGraph: {
-    title: 'Foydalanish shartlari — BronUz',
-    description: 'BronUz platformasidan foydalanish shartlari va qoidalari.',
-  },
-  robots: { index: true, follow: true },
+export async function generateMetadata() {
+  const cookieStore = await cookies()
+  const locale = cookieStore.get('NEXT_LOCALE')?.value ?? 'uz'
+  const t = createServerT(locale)
+  return {
+    title: t('footer.terms'),
+    description: t('footer.description'),
+    openGraph: {
+      title: `${t('footer.terms')} — BronUz`,
+      description: t('footer.description'),
+    },
+    robots: { index: true, follow: true },
+  }
 }
 
-export default function TermsPage() {
+export default async function TermsPage() {
+  const cookieStore = await cookies()
+  const locale = cookieStore.get('NEXT_LOCALE')?.value ?? 'uz'
+  const t = createServerT(locale)
+
   return (
     <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-      <Link href="/" className="text-sm text-brand hover:underline mb-8 inline-block">&larr; Bosh sahifaga</Link>
-      <h1 className="font-display text-3xl font-bold text-ink mb-8">Foydalanish shartlari</h1>
+      <Link href="/" className="text-sm text-brand hover:underline mb-8 inline-block">&larr; {t('common.home')}</Link>
+      <h1 className="font-display text-3xl font-bold text-ink mb-8">{t('footer.terms')}</h1>
 
       <div className="prose prose-sm max-w-none text-ink-secondary space-y-6">
         <p><strong>Oxirgi yangilanish:</strong> 14-iyun, 2025</p>

@@ -13,6 +13,7 @@ import {
   ClipboardCheck,
 } from 'lucide-react'
 import { Badge } from '@/components/ui/Badge'
+import { ROUTES } from '@/lib/constants/routes'
 import { useAuthStore } from '@/store/auth'
 import { DashboardSidebar, MobileBottomNav } from '@/components/layout/DashboardSidebar'
 import type { SidebarLink } from '@/components/layout/DashboardSidebar'
@@ -34,11 +35,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   useEffect(() => {
     if (loading) return
     if (!user) {
-      router.replace('/login')
+      router.replace(`${ROUTES.LOGIN}?returnTo=${ROUTES.ADMIN}`)
       return
     }
     if (profile?.role !== 'admin') {
-      router.replace('/')
+      router.replace(ROUTES.HOME)
     }
   }, [user, profile, loading, router])
 

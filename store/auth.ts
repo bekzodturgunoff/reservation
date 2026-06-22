@@ -33,6 +33,11 @@ export const useAuthStore = create<AuthState>()(
     {
       name: 'auth-storage',
       partialize: (state) => ({ user: state.user, profile: state.profile }),
+      onRehydrateStorage: () => (state) => {
+        if (state?.user) {
+          useAuthStore.setState({ loading: true, initialized: true })
+        }
+      },
     },
   ),
 )

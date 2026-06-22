@@ -1,5 +1,5 @@
 ## Goal
-- Complete migration from Vite + React 19 to Next.js 15 App Router with award-winning redesign, all bug fixes, new design system, comprehensive UI/UX fixes, and real Supabase data throughout.
+Complete migration from Vite + React 19 to Next.js 15 App Router — award-winning redesign, all bug fixes, new design system, comprehensive UI/UX fixes, and real Supabase data throughout.
 
 ## Constraints & Preferences
 - Next.js 15 App Router; brand color emerald #059669
@@ -8,107 +8,89 @@
 - Tailwind v3 with custom design tokens; no inline styles
 - Every interactive element needs transition; every data view needs skeleton + empty state
 - pnpm with `node-linker=hoisted` (`.npmrc`)
+- `'use client'` must NOT be on any `page.tsx` — SSR mandatory (except search)
+- Use Drawer for detail views, ConfirmModal for destructive actions
+- No new npm packages unless explicitly called for
+- Named exports only (except Next.js special files)
+- One component per file
+- Props interfaces at top of every component file
+- Explicit return types on all functions
+- Early returns over nested if/else
+- `cn()` utility for ALL className merging
+- `ROUTES` constants for all paths
+- `QUERY_KEYS` constants for React Query
+- Constants for all magic values
+- No `any` types
+- No console.log (except error boundaries)
+- No SELECT * in Supabase queries
+- Server Actions for mutations where practical
 
 ## Progress
 ### Done
-- All phases 0.0–0.11: migration foundation, design system, landing, auth, search, venue detail, UI components accessibility overhaul (Button, Input, Badge, Card, Modal, Skeleton, EmptyState), Profile, Booking Success, 404, robots.txt, sitemap.xml
-- Business pages (dashboard, venues, venues/add, bookings, revenue, settings) and admin pages (dashboard, users, venues, revenue, settings) — all rewritten to use real Supabase queries; zero hardcoded mock data
-- Removed all fake data arrays (`mockBookings`, `mockVenues`, `mockUsers`, fake stats, fake transactions, fake chart data) — every value comes from `useQuery` calls to Supabase
-- `.npmrc` created with `node-linker=hoisted` to fix `next: command not found` on pnpm
-- Admin revenue page: real booking totals, weekly chart, breakdown with platform fee (8%), month-over-month chart
-- Admin venues page: real venues list with owner names (separate profiles query), approve/reject/block buttons, mobile + table views
-- Admin users page: block/unblock using `role` field with `'blocked'` type added to Profile union
-- Navbar broken ternary fixed (line 152 `Expected '</', got ':'`)
-- Navbar + Footer dashboard links fixed: `/business/dashboard` → `/business`, `/admin/dashboard` → `/admin`
-- Landing page null crash fixed: `categories` query returns `data || []` instead of `data as Category[]`
-- All Supabase query retries reduced from 2 to 0 to stop retry flooding on network errors
-- Login/register pages: user-friendly "Tarmoq xatosi" toast instead of raw `Failed to fetch`
-- Auth store: zustand `persist` middleware for session survival on refresh
-- Navbar: React state for dropdown (no DOM toggling), outside-click listener, added `'en'` locale
-- Venue detail: uses `react-hot-toast` properly; Booking success: `useSearchParams` + Suspense
-- Business/admin layouts: removed non‑functional bell icon, mobile nav overflow fix, aria-labels, brand colors
-- Delete venue / block user confirmation modals; aria-labels on all action buttons
-- Business settings + admin settings: form validation + toasts
-- Build passes: 22 routes, 0 errors, 0 warnings
-- **Production readiness (Sections 1–14):** RLS audit + hardening (migrations 00026/00027), admin role protection via SECURITY DEFINER, double-booking prevention trigger, booking status transition enforcement, 11 database indexes, HTTP security headers (CSP/HSTS/X-Frame-Options) in `next.config.ts`, environment variable audit, storage upload validation (`lib/upload.ts` — 5 MB, JPG/PNG/WebP only)
-- **Error handling:** `lib/handleError.ts` maps Supabase/network/DB errors to Uzbek messages; `error.tsx` boundaries at root + every route group with `ErrorView` component; `loading.tsx` at root + every route group with `PageSkeleton`
-- **Metadata & SEO:** OpenGraph + Twitter cards in root layout; `useTitle` hook per page; dynamic `sitemap.ts` fetching venue slugs; JSON-LD structured data (LocalBusiness + AggregateRating) on venue detail pages; `/robots.ts` disallows `/admin`, `/business`, `/booking`, `/profile`
-- **Legal:** `/privacy`, `/terms` with full content + footer links
-- **Monitoring:** Vercel Analytics + Speed Insights in root layout; `/api/health` endpoint returning 503 on DB failure
-- **Accessibility:** skip-to-content link in public layout; ScrollReveal GSAP dynamically imported (reduces initial bundle)
-- **Form validation:** zod schemas on business settings, venue add, login, register pages
-- **Bundle optimization:** removed unused `recharts` from `optimizePackageImports`; GSAP/ScrollTrigger lazy-loaded in ScrollReveal; sizes: max 215 kB/page, 103 kB shared JS
-- **i18n cleanup:** removed duplicate `footer` keys from all 3 locale files; confirmed uz/en/ru key structure is identical
-- **Build (session 2):** 30 routes, 0 errors, 0 warnings (Next.js 15.5.19)
-- **Phase 2 (shared components):** BookingStatusBadge (color-coded status pill), Drawer (right slide panel), ConfirmModal (confirmation dialog) — replaces inline modals
-- **Phase 3 (homepage cleanup):** removed "Kategoriyalar" navbar link, removed BugunBronSection (fake data), removed Testimonials (fake data), removed brand visual from HeroSection
-- **Phase 4 (business pages: calendar, bookings, reviews, revenue, edit venue):** built `/business/calendar` (monthly grid + booking pills + blocked dates with block/unblock), rewrote `/business/bookings` (filter bar + sortable table + Drawer detail with confirm/reject), built `/business/reviews` (star ratings + owner reply), rewrote `/business/revenue` (Recharts BarChart + date range filter + cumulative LineChart), built `/business/venues/[id]/edit` (edit form with zod validation)
-- **Phase 5 (admin pages: bookings, venue review):** built `/admin/bookings` (all-bookings table with Drawer detail), built `/admin/venues/review` (pending-venue review queue with approve/reject), updated `/admin/layout.tsx` sidebar with Tekshiruv + Bronlar links
-- **Fixed Vercel build crash:** `lib/supabase.ts` no longer throws on missing env vars; cleaned `next.config.ts` (removed security headers, added `recharts` to `optimizePackageImports`); simplified `vercel.json` to `{ "framework": "nextjs" }`
-- **Migration SQL:** created `supabase/migrations/00028_dashboard_features.sql` (blocked_dates table, platform_settings table, missing columns)
+- **Session 1 (foundation):** All phases 0.0–0.11 — migration, design system, landing, auth, search, venue detail, UI components, Profile, Booking, 404, robots, sitemap
+- **Session 1 (business/admin):** All pages rewritten with real Supabase queries; zero mock/fake data removed; admin revenue/venues/users pages; auth persist; navbar dropdown; business calendar/bookings/reviews/revenue/edit-venue; admin bookings/venue-review; vercel build fix
+- **Session 1 (production):** RLS audit + hardening (migrations 00026/00027), booking status enforcement, 11 indexes, security headers, env audit, storage upload validation, error handling, metadata/SEO, legal pages, monitoring/analytics, accessibility, bundle optimization, i18n cleanup
+- **Session 1 (shared components):** BookingStatusBadge, Drawer, ConfirmModal
+- **Session 2 (Batch 1):** 3 `<img>` → `<Image>`, console.log removed, 7 SELECT * fixed, dev-dist deleted
+- **Session 2 (Batch 2):** `lib/constants/*`, `lib/utils/*`, `lib/validations/*` created
+- **Session 2 (Batch 2.5):** Strict ESLint + tsconfig (`noUncheckedIndexedAccess`, `noImplicitReturns`), Prettier, `types/database.ts` (1106 lines), Vite eslint-comments removed
+- **Session 2 (Batch 2b):** All strict mode build errors fixed (SearchMap, Modal, BookingWidget, supabase exclusion, database.ts corruption)
+- **Session 2 (Batch 3):** Feature restructure — `features/venues/`, `features/search/`, `features/home/`, `features/auth/` with barrel exports; 13 components + 1 hook moved
+- **Session 2 (Batch 4):** Clean code — 52 hardcoded paths → `ROUTES.*`, magic numbers → config (`SERVICE_FEE_PERCENTAGE`), console.log final sweep
+- **Session 2 (Batch 5):** 20 non-null assertion warnings eliminated
+- **Session 2 (Batch 6):** Full SSR conversion — `@supabase/ssr@0.12.0` integrated; 24 `'use client'` page.tsx converted to server components with client islands; only search remains client (intentionally)
+- **Session 2 (Batch 7a-d):** Venue working hours editor, review stats/badges/verified/sentiment, notification bell UI
+- **Session 2 (Batch 8):** Sentry `withSentryConfig` wrapper, middleware `api/` exclusion, `lib/i18n/server.ts` server-side t() utility, 6 SSR pages retrofitted with server translations, `output: 'export'` removed (Vite leftover), `venue.wifi` key added
+- **SQL migrations:** 00026 + 00027 + 00028 + 00029 executed in Supabase
 
 ### In Progress
 - (none)
 
 ### Blocked
-- SQL migrations 00026–00028 need manual execution in Supabase SQL Editor
+- (none)
 
 ## Key Decisions
-- Fake/mock data removed from all business and admin pages; every number, list item, and chart value now comes from `useQuery` backed by Supabase queries (profiles, venues, bookings, reviews)
-- Admin venues uses a separate query for owner profiles (`profiles.in('id', ownerIds)`) instead of a foreign-key join, avoiding constraint-name issues
-- `'blocked'` added to Profile.role union type in both `types/index.ts` and `store/auth.ts` so admin block/unblock compiles without type overlap error
-- pnpm lockfile regenerated; `.npmrc` with `node-linker=hoisted` to create hoisted `node_modules/.bin/next`
-- Query retries dropped to 0 to avoid cascading requests when Supabase is unreachable
-- `/business/dashboard` and `/admin/dashboard` links replaced with `/business` and `/admin` (actual Next.js page routes)
-- Migration 00027 adds booking status transition enforcement (pending→confirmed→completed/cancelled/no_show) plus RLS for auxiliary tables (waitlist_bookings, promo_codes, staff, loyalty_points, loyalty_history, no_show_bookings)
-- GSAP/ScrollTrigger lazy-loaded via dynamic import in ScrollReveal to reduce initial bundle; removed `recharts` from `optimizePackageImports` since charts are inline Tailwind bars
-- i18n `t()` is never called in components — UI is hardcoded Uzbek. Locale files (uz/en/ru) are structurally identical and complete; `footer` duplicate removed
-- `recharts` is now used for revenue bar/line charts (restored to `optimizePackageImports` in next.config.ts)
-- `any` types are used sparingly for Supabase join results where TypeScript infers incorrect array shapes; suppressed with `eslint-disable-next-line` comments
+- Feature restructure uses `features/<domain>/` with components/, hooks/, actions/, types/ subdirs
+- Venue detail uses hybrid SSR: server fetches data + JSON-LD + metadata, client handles interactivity via VenueDetailClient
+- Homepage + all business/admin/user pages converted to pure server components (biggest SEO gain)
+- Search page kept as client component — inherently interactive (filters, sort, map)
+- Sentry guarded by env var — completely no-op without NEXT_PUBLIC_SENTRY_DSN
+- OG image uses edge runtime (disables static generation for that page — acceptable)
+- `@supabase/ssr` for cookie-based auth in middleware + server components
+- PhotoGallery `<img>` tags kept as-is (lightbox dynamic sizing incompatible with next/image)
+- `noUncheckedIndexedAccess` enabled — forces proper null handling
 
 ## Next Steps
-1. Apply migrations 00026 + 00027 + 00028 to Supabase via `supabase migration up` (or SQL editor)
-2. Deploy to Vercel — commit and push
-3. End-to-end testing with real Supabase data and authenticated user
-4. Optional: wire `@sentry/nextjs` for error tracking
-5. Optional: retrofit `useTranslation` / `t()` calls across all components for multi-language support
+1. Run `supabase/migrations/00029_batch7_features.sql` in Supabase SQL Editor
+2. End-to-end testing with real Supabase data and authenticated user
+3. Wire `NEXT_PUBLIC_SENTRY_DSN` env var for error tracking
+4. Add `venue.wifi` key to ru.json and en.json locale files (done: ✅)
+5. Retrofit `useTranslation` / `t()` calls for remaining server components (done: 6 pages retrofitted)
 
 ## Critical Context
-- Build: 30 routes, 0 errors, 0 warnings (`pnpm build`)
-- Dev server: all pages return 200 (`/`, `/login`, `/register`, `/search`, `/business`, `/admin`, `/business/venues`, `/admin/users`)
-- Node v24.14.0, pnpm v10.33.0
+- **Build:** 32 routes, 0 errors, 0 warnings (except intentional `<img>` in PhotoGallery)
+- **SSR pages:** All pages except search — 31 dynamic, 5 static
+- **Client pages:** Only search
 - Supabase URL: `pydsqvslcjnytgebwtpo.supabase.co`
-- Environment: macOS, project at `/Users/macintosh/Documents/code/reservation`
+- Node v24.14.0, pnpm v10.33.0, macOS
+- `lib/supabase.ts` = browser client; `lib/supabase/server.ts` = SSR client (cookie-based via @supabase/ssr)
+- `lib/supabase/middleware.ts` = middleware session refresh
+- `@sentry/nextjs@10.59.0` installed, gated by env var
+- `@supabase/ssr@0.12.0` installed for SSR auth
+- All feature-specific code in `features/` dirs; shared UI in `components/ui/` + `components/shared/`
+- `types/database.ts` = auto-generated Supabase types
 
 ## Relevant Files
-- `app/business/page.tsx` — today dashboard: pending action cards, stat cards, hourly timeline
-- `app/business/bookings/page.tsx` — filter bar + sortable table + Drawer detail with confirm/reject
-- `app/business/calendar/page.tsx` — monthly grid + booking pills + blocked dates
-- `app/business/reviews/page.tsx` — star ratings + owner reply
-- `app/business/revenue/page.tsx` — Recharts BarChart + date range filter + cumulative LineChart
-- `app/business/venues/page.tsx` — real venues owned by current user; delete modal; edit link
-- `app/business/venues/add/page.tsx` — multi-field form with zod validation
-- `app/business/venues/[id]/edit/page.tsx` — pre-populated edit form with zod validation
-- `app/business/layout.tsx` — new sidebar (Bugun, Bronlar, Kalendar, Joylarim, Sharhlar, Daromad, Sozlamalar), pending-booking bell, mobile hamburger
-- `app/admin/page.tsx` — real user/venue/booking counts, role distribution, recent users
-- `app/admin/users/page.tsx` — real profiles table; block/unblock mutation using `role='blocked'`
-- `app/admin/venues/page.tsx` — real venues list with owner names, approve/reject/block action buttons
-- `app/admin/venues/review/page.tsx` — pending-venue review queue with approve/reject
-- `app/admin/bookings/page.tsx` — all-bookings table with Drawer detail, cancel action
-- `app/admin/revenue/page.tsx` — real booking totals + breakdown + monthly chart + platform fee
-- `app/admin/layout.tsx` — sidebar with Tekshiruv + Bronlar links added
-- `components/shared/BookingStatusBadge.tsx` — color-coded status pill
-- `components/shared/Drawer.tsx` — right-slide panel with backdrop + ESC close
-- `components/shared/ConfirmModal.tsx` — confirmation dialog with danger/primary variants
-- `components/layout/Navbar.tsx` — removed "Kategoriyalar" nav link
-- `components/layout/Footer.tsx` — fixed `/business/dashboard` → `/business`
-- `components/home/HeroSection.tsx` — removed right column brand visual
-- `lib/supabase.ts` — defensive (no longer throws on missing env vars)
-- `lib/supabase/server.ts` — defensive client init with placeholder
-- `next.config.ts` — security headers removed, recharts in optimizePackageImports
-- `vercel.json` — simplified to `{ "framework": "nextjs" }`
-- `.npmrc` — `node-linker=hoisted`, `shamefully-hoist=true`
-- `app/providers.tsx` — `retry: 0` in QueryClient config
-- `types/index.ts` — `role: 'user' | 'business' | 'admin' | 'blocked'`
-- `store/auth.ts` — same role union + persist middleware
-- `supabase/migrations/00028_dashboard_features.sql` — blocked_dates table, platform_settings table, missing columns (needs manual run)
+- `lib/constants/routes.ts`: ROUTES object — all app paths centralized
+- `lib/constants/query-keys.ts`: QUERY_KEYS object — React Query cache keys
+- `lib/constants/config.ts`: Platform config constants
+- `lib/utils/format.ts`: formatPrice, formatDate, formatTime, etc.
+- `lib/utils/cn.ts`: cn utility (clsx + tailwind-merge)
+- `lib/utils/errors.ts`: getErrorMessage with Uzbek error messages
+- `lib/validations/*.ts`: zod schemas for auth, venue, booking, review
+- `features/venues/components/WorkingHoursEditor.tsx`: 7-day working hours editor
+- `features/notifications/components/NotificationBell.tsx`: Bell icon + dropdown
+- `lib/supabase/server.ts`: SSR client (cookie-based, fallback to anonymous)
+- `lib/supabase/middleware.ts`: Session refresh in middleware
+- `middleware.ts`: App middleware with auth refresh
+- `supabase/migrations/00029_batch7_features.sql`: Promo codes, waitlist, notifications, site settings

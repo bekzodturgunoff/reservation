@@ -42,6 +42,7 @@
     "tashkentUzbekistan": "Tashkent, Uzbekistan",
     "tashkentUzbekistanEmoji": "Tashkent, Uzbekistan 🇺🇿",
     "perHour": "/ hour",
+    "negotiablePrice": "Negotiable price",
     "perSession": "session",
     "perDay": "day",
     "perMonth": "month",
@@ -259,6 +260,7 @@
     "cancelStrictDesc": "Free cancellation up to 72 hours before",
     "minNotice": "Book at least {{hours}} hours in advance",
     "similarVenues": "Similar venues",
+    "wifi": "Wi-Fi",
     "parking": "Parking",
     "projector": "TV / Projector",
     "ac": "Air conditioning",
@@ -587,7 +589,15 @@
       "weeklyReport": "Weekly report",
       "weeklyReportDesc": "Send a weekly report on revenue and statistics",
       "saved": "Settings saved",
-      "phoneFormat": "Phone format: +998901234567"
+      "phoneFormat": "Phone format: +998901234567",
+      "venueDefaults": "Venue defaults",
+      "venueDefaultsDesc": "Default settings for new venues. These values will be pre-filled when you create a new venue.",
+      "noVenueDefaults": "Create your first venue first, then you can configure defaults here.",
+      "defaultsSaved": "Venue defaults saved",
+      "noVenue": "No venue found. Create a venue first.",
+      "defaultCancellation": "Default cancellation policy",
+      "defaultMaxGroup": "Default max group size",
+      "defaultMinNotice": "Default min notice hours"
     }
   },
   "telegram": {
@@ -721,7 +731,9 @@
     "adminPanel": "Admin Panel",
     "categories": "Categories",
     "venues": "Venues",
-    "favorites": "Favorites"
+    "favorites": "Favorites",
+    "notifications": "Notifications",
+    "noNotifications": "No notifications yet"
   },
   "footer": {
     "description": "Easily book any venue or service in Uzbekistan.",

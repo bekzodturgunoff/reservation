@@ -1,17 +1,38 @@
-'use client'
-
-import { useTranslation } from 'react-i18next'
-import { useTitle } from '@/hooks/useTitle'
-import { HeroSection } from '@/components/home/HeroSection'
-import { SearchBar } from '@/components/home/SearchBar'
-import { CategoryGrid } from '@/components/home/CategoryGrid'
-import { FeaturedVenues } from '@/components/home/FeaturedVenues'
-import { HowItWorks } from '@/components/home/HowItWorks'
+import { cookies } from 'next/headers'
+import { ROUTES } from '@/lib/constants/routes'
+import { createServerT } from '@/lib/i18n/server'
+import { HeroSection } from '@/features/home/components/HeroSection'
+import { SearchBar } from '@/features/home/components/SearchBar'
+import { CategoryGrid } from '@/features/home/components/CategoryGrid'
+import { FeaturedVenues } from '@/features/home/components/FeaturedVenues'
+import { HowItWorks } from '@/features/home/components/HowItWorks'
 import { ScrollReveal } from '@/components/ui/ScrollReveal'
 
-const HomePage = () => {
-  const { t } = useTranslation()
-  useTitle(t('home.title') + ' — BronUz')
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://bronuz.uz'
+
+export async function generateMetadata() {
+  const cookieStore = await cookies()
+  const locale = cookieStore.get('NEXT_LOCALE')?.value ?? 'uz'
+  const t = createServerT(locale)
+
+  return {
+    title: t('home.heroBadge'),
+    description: t('home.heroDescription'),
+    openGraph: {
+      title: t('home.heroBadge'),
+      description: t('home.heroDescription'),
+      url: siteUrl,
+    },
+    alternates: {
+      canonical: siteUrl,
+    },
+  }
+}
+
+export default async function HomePage() {
+  const cookieStore = await cookies()
+  const locale = cookieStore.get('NEXT_LOCALE')?.value ?? 'uz'
+  const t = createServerT(locale)
 
   return (
     <div>
@@ -36,17 +57,17 @@ const HomePage = () => {
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center mt-10">
               <a
-                href="/register"
+                href={ROUTES.REGISTER}
                 className="inline-flex items-center justify-center gap-2 h-14 px-8 bg-white text-brand-600 font-semibold text-base rounded-xl shadow-btn hover:bg-brand-50 transition-colors"
               >
                 {t('home.ctaButton')}
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
               </a>
               <a
-                href="#"
+                href={ROUTES.SEARCH}
                 className="inline-flex items-center justify-center gap-2 h-14 px-8 text-white font-medium text-base rounded-xl border-2 border-white/30 hover:border-white/50 transition-colors"
               >
-                {t('home.ctaMore')}
+                {t('home.filterEmptyAction')}
               </a>
             </div>
           </div>
@@ -56,5 +77,3 @@ const HomePage = () => {
     </div>
   )
 }
-
-export default HomePage

@@ -13,14 +13,14 @@ import { supabase } from '@/lib/supabase'
 import { useTranslation } from 'react-i18next'
 import { useTitle } from '@/hooks/useTitle'
 import { PLACEHOLDER_IMAGE } from '@/lib/constants'
-import { SearchFilters } from '@/components/search/SearchFilters'
-import { SearchMap } from '@/components/search/SearchMap'
-import { SearchAutocomplete } from '@/components/search/SearchAutocomplete'
+import { SearchFilters } from '@/features/search/components/SearchFilters'
+import { SearchMap } from '@/features/search/components/SearchMap'
+import { SearchAutocomplete } from '@/features/search/components/SearchAutocomplete'
 import { Skeleton } from '@/components/ui/Skeleton'
 import { EmptyState } from '@/components/ui/EmptyState'
-import { FavoriteButton } from '@/components/ui/FavoriteButton'
+import { FavoriteButton } from '@/features/venues/components/FavoriteButton'
 import type { Venue, Category } from '@/types'
-import type { FilterState } from '@/components/search/SearchFilters'
+import type { FilterState } from '@/features/search/components/SearchFilters'
 
 const ITEMS_PER_PAGE = 12
 
@@ -29,6 +29,7 @@ function VenueCard({ venue }: { venue: Venue }) {
   const rating = venue.review_count && venue.review_count >= 3
     ? venue.avg_rating?.toFixed(1)
     : venue.review_count && venue.review_count >= 1 ? '—' : null
+  const showPrice = (venue.price_per_slot ?? 0) > 0
 
   return (
     <Link
@@ -71,7 +72,7 @@ function VenueCard({ venue }: { venue: Venue }) {
           <div>
             <span className="text-[10px] text-ink-muted uppercase tracking-wider">{t('common.perHour')}</span>
             <p className="text-lg font-display font-bold text-ink">
-              {(venue.price_per_slot || 0).toLocaleString()} UZS
+              {showPrice ? `${(venue.price_per_slot).toLocaleString()} UZS` : t('common.negotiablePrice')}
             </p>
           </div>
           <span className="text-xs font-semibold text-brand group-hover:underline flex items-center gap-1">
@@ -86,6 +87,7 @@ function VenueCard({ venue }: { venue: Venue }) {
 
 function VenueListItem({ venue }: { venue: Venue }) {
   const { t } = useTranslation()
+  const showPrice = (venue.price_per_slot ?? 0) > 0
   return (
     <Link
       href={`/venues/${venue.id}`}
@@ -117,7 +119,7 @@ function VenueListItem({ venue }: { venue: Venue }) {
           <div>
             <span className="text-[10px] text-ink-muted uppercase tracking-wider">{t('common.perHour')}</span>
             <p className="text-base font-bold text-ink">
-              {(venue.price_per_slot || 0).toLocaleString()} UZS
+              {showPrice ? `${(venue.price_per_slot).toLocaleString()} UZS` : t('common.negotiablePrice')}
             </p>
           </div>
           <div className="flex items-center gap-3">
@@ -158,8 +160,8 @@ const SearchPageInner = () => {
   const { data: categories = [] } = useQuery({
     queryKey: ['categories'],
     queryFn: async () => {
-      const { data } = await supabase.from('categories').select('*')
-      return (data || []) as Category[]
+      const { data } = await supabase.from('categories').select('id, slug, name_uz, icon')
+      return (data || []) as unknown as Category[]
     },
   })
 
@@ -168,7 +170,7 @@ const SearchPageInner = () => {
     queryFn: async () => {
       let query = supabase
         .from('venues')
-        .select('*, categories(*)')
+        .select('id, name, slug, city, district, price_per_slot, avg_rating, review_count, photos, categories:category_id(id, slug, name_uz, icon)')
         .eq('status', 'active')
         .limit(100)
 
@@ -183,7 +185,7 @@ const SearchPageInner = () => {
       if (filters.minCapacity) query = query.gte('max_group_size', parseInt(filters.minCapacity))
 
       const { data } = await query
-      return (data || []) as Venue[]
+      return (data || []) as unknown as Venue[]
     },
   })
 
