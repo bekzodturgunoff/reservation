@@ -1,10 +1,12 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import { cookies } from 'next/headers'
 import { MapPin, Star, Phone, Users, Shield, Wifi, Car, Tv, Fan } from 'lucide-react'
 import { createSupabaseServerClient } from '@/lib/supabase/server'
 import { Card } from '@/components/ui/Card'
 import { PLACEHOLDER_IMAGE } from '@/lib/constants'
 import { ROUTES } from '@/lib/constants/routes'
+import { createServerT } from '@/lib/i18n/server'
 import { VenueDetailClient } from '@/features/venues/components/VenueDetailClient'
 import type { Venue, Review } from '@/types'
 
@@ -16,6 +18,9 @@ interface Props {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params
+  const cookieStore = await cookies()
+  const locale = cookieStore.get('NEXT_LOCALE')?.value ?? 'uz'
+  const t = createServerT(locale)
   const supabase = await createSupabaseServerClient()
   const { data: venue } = await supabase
     .from('venues')
@@ -24,15 +29,15 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     .single()
 
   if (!venue) {
-    return { title: 'Joy topilmadi — BronUz' }
+    return { title: `${t('venue.notFound')} — BronUz` }
   }
 
   return {
     title: `${venue.name} — BronUz`,
-    description: venue.description?.slice(0, 200) || `${venue.name} — BronUz'da bron qilish`,
+    description: venue.description?.slice(0, 200) || `${venue.name} — ${t('venue.about')}`,
     openGraph: {
       title: `${venue.name} — BronUz`,
-      description: `${venue.name} — onlayn bron qilish`,
+      description: `${venue.name} — ${t('venue.about')}`,
       url: `${siteUrl}/venues/${slug}`,
       images: venue.photos?.[0] ? [{ url: venue.photos[0], width: 1200, height: 630 }] : undefined,
     },
@@ -44,6 +49,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function VenueDetailPage({ params }: Props) {
   const { slug } = await params
+  const cookieStore = await cookies()
+  const locale = cookieStore.get('NEXT_LOCALE')?.value ?? 'uz'
+  const t = createServerT(locale)
   const supabase = await createSupabaseServerClient()
 
   const [venueResult, reviewsResult, similarResult] = await Promise.all([
@@ -65,20 +73,20 @@ export default async function VenueDetailPage({ params }: Props) {
     return (
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 text-center">
         <MapPin className="w-10 h-10 mx-auto text-ink-muted mb-4" />
-        <h1 className="text-xl font-display font-semibold text-ink">Joy topilmadi</h1>
-        <p className="text-sm text-ink-tertiary mt-2">Bu joy mavjud emas yoki o&apos;chirilgan</p>
+        <h1 className="text-xl font-display font-semibold text-ink">{t('venue.notFound')}</h1>
+        <p className="text-sm text-ink-tertiary mt-2">{t('venue.notFoundDesc')}</p>
         <Link href={ROUTES.SEARCH} className="mt-6 inline-block text-sm font-medium text-brand hover:underline">
-          Qidirishga qaytish
+          {t('venue.backToSearch')}
         </Link>
       </div>
     )
   }
 
   const featureItems = [
-    { icon: Wifi, label: 'Wi-Fi', show: true },
-    { icon: Car, label: 'Avtoturargoh', show: true },
-    { icon: Tv, label: 'Proektor', show: true },
-    { icon: Fan, label: 'Konditsioner', show: true },
+    { icon: Wifi, label: t('venue.wifi'), show: true },
+    { icon: Car, label: t('venue.parking'), show: true },
+    { icon: Tv, label: t('venue.projector'), show: true },
+    { icon: Fan, label: t('venue.ac'), show: true },
   ]
 
   const jsonLd = {
@@ -109,7 +117,7 @@ export default async function VenueDetailPage({ params }: Props) {
       {
         '@type': 'BreadcrumbList',
         itemListElement: [
-          { '@type': 'ListItem', position: 1, name: 'Bosh sahifa', item: siteUrl },
+          { '@type': 'ListItem', position: 1, name: t('common.home'), item: siteUrl },
           ...(venue.categories
             ? [{ '@type': 'ListItem', position: 2, name: venue.categories.name_uz, item: `${siteUrl}/search?category=${venue.categories.slug}` }]
             : []),
@@ -125,7 +133,7 @@ export default async function VenueDetailPage({ params }: Props) {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Breadcrumb */}
         <div className="flex items-center gap-2 text-sm text-ink-tertiary mb-6">
-          <Link href="/" className="hover:text-brand transition-colors">Bosh sahifa</Link>
+          <Link href="/" className="hover:text-brand transition-colors">{t('common.home')}</Link>
           <span>/</span>
           {venue.categories && (
             <>
@@ -156,7 +164,7 @@ export default async function VenueDetailPage({ params }: Props) {
                 {venue.max_group_size && (
                   <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium bg-surface-bg text-ink-secondary">
                     <Users className="w-3 h-3" />
-                    {venue.max_group_size} kishigacha
+                    {t('venue.minNotice', { hours: venue.max_group_size })}
                   </span>
                 )}
               </div>
@@ -172,7 +180,7 @@ export default async function VenueDetailPage({ params }: Props) {
                         <span className="font-semibold text-ink">{venue.avg_rating?.toFixed(1)}</span>
                       </div>
                     )}
-                    <span className="text-ink-tertiary">({venue.review_count} ta sharh)</span>
+                    <span className="text-ink-tertiary">({t('venue.reviews', { count: venue.review_count ?? 0 })})</span>
                     <span className="text-ink-muted">•</span>
                   </>
                 )}
@@ -186,14 +194,14 @@ export default async function VenueDetailPage({ params }: Props) {
             {/* Description */}
             {venue.description && (
               <div>
-                <h2 className="font-display text-xl font-semibold text-ink mb-3">Bu joy haqida</h2>
+                <h2 className="font-display text-xl font-semibold text-ink mb-3">{t('venue.about')}</h2>
                 <p className="text-base text-ink-secondary leading-relaxed whitespace-pre-line">{venue.description}</p>
               </div>
             )}
 
             {/* Features */}
             <div>
-              <h2 className="font-display text-xl font-semibold text-ink mb-4">Qulayliklar</h2>
+              <h2 className="font-display text-xl font-semibold text-ink mb-4">{t('venue.features')}</h2>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                 {featureItems.map((f) => (
                   <div key={f.label} className="flex items-center gap-3 p-3 rounded-card bg-surface-bg">
@@ -216,7 +224,7 @@ export default async function VenueDetailPage({ params }: Props) {
 
             {/* Location */}
             <div>
-              <h2 className="font-display text-xl font-semibold text-ink mb-3">Manzil</h2>
+              <h2 className="font-display text-xl font-semibold text-ink mb-3">{t('common.address')}</h2>
               <div className="h-[280px] sm:h-[320px] rounded-card overflow-hidden mb-3">
                 {venue.lat && venue.lng ? (
                   <iframe
@@ -225,7 +233,7 @@ export default async function VenueDetailPage({ params }: Props) {
                     allowFullScreen
                     loading="lazy"
                     referrerPolicy="no-referrer-when-downgrade"
-                    title={`${venue.name} — xaritada`}
+                    title={`${venue.name} — ${t('venue.onMap')}`}
                   />
                 ) : (
                   <div className="w-full h-full bg-surface-subtle flex items-center justify-center text-ink-tertiary">
@@ -245,27 +253,27 @@ export default async function VenueDetailPage({ params }: Props) {
             {/* Cancellation Policy */}
             {venue.cancellation_policy && (
               <div>
-                <h2 className="font-display text-xl font-semibold text-ink mb-3">Bekor qilish siyosati</h2>
+                <h2 className="font-display text-xl font-semibold text-ink mb-3">{t('venue.cancellationPolicy')}</h2>
                 <div className="flex items-start gap-3 p-4 rounded-card bg-surface-bg">
                   <Shield className="w-5 h-5 text-brand shrink-0 mt-0.5" />
                   <div>
                     <p className="text-sm font-medium text-ink">
                       {venue.cancellation_policy === 'flexible'
-                        ? 'Moslashuvchan'
+                        ? t('venue.flexible')
                         : venue.cancellation_policy === 'standard'
-                        ? 'Standart'
-                        : 'Qat\'iy'}
+                        ? t('venue.standard')
+                        : t('venue.strict')}
                     </p>
                     <p className="text-sm text-ink-secondary mt-0.5">
                       {venue.cancellation_policy === 'flexible'
-                        ? 'Boshlanishidan 24 soat oldin bepul bekor qilish'
+                        ? t('venue.cancelFlexDesc')
                         : venue.cancellation_policy === 'standard'
-                        ? 'Boshlanishidan 48 soat oldin bepul bekor qilish'
-                        : 'Boshlanishidan 72 soat oldin bepul bekor qilish'}
+                        ? t('venue.cancelStandardDesc')
+                        : t('venue.cancelStrictDesc')}
                     </p>
                     {venue.min_notice_hours > 0 && (
                       <p className="text-xs text-ink-tertiary mt-1">
-                        Kamida {venue.min_notice_hours} soat oldin bron qilish kerak
+                        {t('venue.minNotice', { hours: venue.min_notice_hours })}
                       </p>
                     )}
                   </div>
@@ -276,7 +284,7 @@ export default async function VenueDetailPage({ params }: Props) {
             {/* Reviews */}
             <div>
               <h2 className="font-display text-xl font-semibold text-ink mb-4">
-                Sharhlar
+                {t('venue.reviewsTitle')}
                 {reviews.length > 0 && (
                   <span className="text-base font-normal text-ink-tertiary ml-1">({reviews.length})</span>
                 )}
@@ -285,8 +293,8 @@ export default async function VenueDetailPage({ params }: Props) {
               {reviews.length === 0 ? (
                 <div className="flex flex-col items-center gap-2 py-8 text-center">
                   <Star className="w-8 h-8 text-ink-muted" />
-                  <p className="text-sm text-ink-secondary">Hali sharhlar yo&apos;q</p>
-                  <p className="text-xs text-ink-tertiary">Birinchi bo&apos;lib sharh qoldiring!</p>
+                  <p className="text-sm text-ink-secondary">{t('venue.noReviews')}</p>
+                  <p className="text-xs text-ink-tertiary">{t('venue.beFirst')}</p>
                 </div>
               ) : (
                 <>
@@ -306,7 +314,7 @@ export default async function VenueDetailPage({ params }: Props) {
                                 <Star key={i} className={`w-3.5 h-3.5 ${i < Math.round(avg) ? 'fill-yellow-400 text-yellow-400' : 'text-border'}`} />
                               ))}
                             </div>
-                            <p className="text-xs text-ink-tertiary mt-1">{reviews.length} ta sharh</p>
+                            <p className="text-xs text-ink-tertiary mt-1">{t('venue.reviews', { count: reviews.length })}</p>
                           </div>
                           <div className="flex-1 space-y-1.5 min-w-0">
                             {[5, 4, 3, 2, 1].map((star) => {
@@ -342,11 +350,11 @@ export default async function VenueDetailPage({ params }: Props) {
                               <div className="flex items-center justify-between gap-2">
                                 <div className="flex items-center gap-2 min-w-0">
                                   <p className="text-sm font-semibold text-ink truncate">
-                                    {review.profiles?.full_name || 'Foydalanuvchi'}
+                                    {review.profiles?.full_name || t('venue.user')}
                                   </p>
                                   {isVerified && (
                                     <span className="shrink-0 inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                                      Tasdiqlangan
+                                      {t('common.verified')}
                                     </span>
                                   )}
                                 </div>
@@ -385,9 +393,9 @@ export default async function VenueDetailPage({ params }: Props) {
         {similarVenues.length > 0 && (
           <div className="mt-16 border-t border-border pt-10">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="font-display text-2xl font-bold text-ink">O&apos;xshash joylar</h2>
+              <h2 className="font-display text-2xl font-bold text-ink">{t('venue.similarVenues')}</h2>
               <Link href={`/search?category=${venue.categories?.slug || ''}`} className="text-sm font-medium text-brand hover:underline">
-                Hammasini ko&apos;rish
+                {t('common.viewAll')}
               </Link>
             </div>
             <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -399,7 +407,7 @@ export default async function VenueDetailPage({ params }: Props) {
                       <div className="relative h-44 overflow-hidden">
                         <img
                           src={v.photos?.[0] || PLACEHOLDER_IMAGE}
-                          alt={`${v.name} — BronUz'da bron qilish`}
+                          alt={`${v.name} — ${t('venue.about')}`}
                           className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                         />
                         {v.categories && (
@@ -416,7 +424,7 @@ export default async function VenueDetailPage({ params }: Props) {
                         </div>
                         <div className="flex items-center justify-between mt-3">
                           <span className="text-sm font-bold text-ink">
-                            {simShowPrice ? `${(v.price_per_slot).toLocaleString()} UZS` : 'Kelishilgan narx'}
+                            {simShowPrice ? `${(v.price_per_slot).toLocaleString()} UZS` : t('common.negotiablePrice')}
                           </span>
                           {(v.review_count ?? 0) >= 1 && (
                             <div className="flex items-center gap-1 text-xs font-medium text-ink-secondary">

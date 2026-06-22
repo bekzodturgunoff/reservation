@@ -40,6 +40,7 @@ Complete migration from Vite + React 19 to Next.js 15 App Router — award-winni
 - **Session 2 (Batch 5):** 20 non-null assertion warnings eliminated
 - **Session 2 (Batch 6):** Full SSR conversion — `@supabase/ssr@0.12.0` integrated; 24 `'use client'` page.tsx converted to server components with client islands; only search remains client (intentionally)
 - **Session 2 (Batch 7a-d):** Venue working hours editor, review stats/badges/verified/sentiment, notification bell UI
+- **Session 2 (Batch 8):** Sentry `withSentryConfig` wrapper, middleware `api/` exclusion, `lib/i18n/server.ts` server-side t() utility, 6 SSR pages retrofitted with server translations, `output: 'export'` removed (Vite leftover), `venue.wifi` key added
 - **SQL migrations:** 00026 + 00027 + 00028 + 00029 executed in Supabase
 
 ### In Progress
@@ -63,7 +64,8 @@ Complete migration from Vite + React 19 to Next.js 15 App Router — award-winni
 1. Run `supabase/migrations/00029_batch7_features.sql` in Supabase SQL Editor
 2. End-to-end testing with real Supabase data and authenticated user
 3. Wire `NEXT_PUBLIC_SENTRY_DSN` env var for error tracking
-4. Retrofit `useTranslation` / `t()` calls for multi-language support
+4. Add `venue.wifi` key to ru.json and en.json locale files (done: ✅)
+5. Retrofit `useTranslation` / `t()` calls for remaining server components (done: 6 pages retrofitted)
 
 ## Critical Context
 - **Build:** 32 routes, 0 errors, 0 warnings (except intentional `<img>` in PhotoGallery)

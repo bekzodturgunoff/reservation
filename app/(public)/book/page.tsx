@@ -1,14 +1,18 @@
-import type { Metadata } from 'next'
 import Link from 'next/link'
+import { cookies } from 'next/headers'
 import { createSupabaseServerClient } from '@/lib/supabase/server'
 import { ROUTES } from '@/lib/constants/routes'
+import { createServerT } from '@/lib/i18n/server'
 import { BookClient } from './book.client'
 import type { Venue } from '@/types'
 
 export const dynamic = 'force-dynamic'
 
-export const metadata: Metadata = {
-  title: 'Bron qilish — BronUz',
+export async function generateMetadata() {
+  const cookieStore = await cookies()
+  const locale = cookieStore.get('NEXT_LOCALE')?.value ?? 'uz'
+  const t = createServerT(locale)
+  return { title: `${t('booking.title')} — BronUz` }
 }
 
 export default async function Page({
@@ -22,11 +26,15 @@ export default async function Page({
   const startTime = params.start
   const endTime = params.end
 
+  const cookieStore = await cookies()
+  const locale = cookieStore.get('NEXT_LOCALE')?.value ?? 'uz'
+  const t = createServerT(locale)
+
   if (!venueId || !dateStr || !startTime || !endTime) {
     return (
       <div className="max-w-lg mx-auto px-4 py-16 text-center">
-        <p className="text-ink-secondary">Ma&apos;lumot topilmadi</p>
-        <Link href={ROUTES.SEARCH} className="mt-4 text-brand hover:underline inline-block">Qidiruvga qaytish</Link>
+        <p className="text-ink-secondary">{t('booking.notFound')}</p>
+        <Link href={ROUTES.SEARCH} className="mt-4 text-brand hover:underline inline-block">{t('common.backToSearch')}</Link>
       </div>
     )
   }
@@ -41,8 +49,8 @@ export default async function Page({
   if (!venue) {
     return (
       <div className="max-w-lg mx-auto px-4 py-16 text-center">
-        <p className="text-ink-secondary">Joy topilmadi</p>
-        <Link href={ROUTES.SEARCH} className="mt-4 text-brand hover:underline inline-block">Qidiruvga qaytish</Link>
+        <p className="text-ink-secondary">{t('venue.notFound')}</p>
+        <Link href={ROUTES.SEARCH} className="mt-4 text-brand hover:underline inline-block">{t('common.backToSearch')}</Link>
       </div>
     )
   }

@@ -1,13 +1,17 @@
-import type { Metadata } from 'next'
 import Link from 'next/link'
+import { cookies } from 'next/headers'
 import { CheckCircle2 } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { ROUTES } from '@/lib/constants/routes'
+import { createServerT } from '@/lib/i18n/server'
 
 export const dynamic = 'force-dynamic'
 
-export const metadata: Metadata = {
-  title: 'Bron tasdiqlandi — BronUz',
+export async function generateMetadata() {
+  const cookieStore = await cookies()
+  const locale = cookieStore.get('NEXT_LOCALE')?.value ?? 'uz'
+  const t = createServerT(locale)
+  return { title: `${t('confirmation.title')} — BronUz` }
 }
 
 export default async function Page({
@@ -16,6 +20,10 @@ export default async function Page({
   searchParams: Promise<{ bookingId?: string; date?: string; time?: string; venue?: string }>
 }) {
   const params = await searchParams
+
+  const cookieStore = await cookies()
+  const locale = cookieStore.get('NEXT_LOCALE')?.value ?? 'uz'
+  const t = createServerT(locale)
 
   const details = {
     date: params.date || '',
@@ -30,33 +38,33 @@ export default async function Page({
       <div className="flex flex-col items-center text-center max-w-md">
         <CheckCircle2 className="w-20 h-20 text-success mb-6" strokeWidth={1.5} />
         <h1 className="text-2xl sm:text-3xl font-display font-semibold text-ink">
-          Bron tasdiqlandi!
+          {t('confirmation.successTitle')}
         </h1>
         <p className="mt-2 text-ink-tertiary">
-          Tez orada siz bilan bog'lanamiz
+          {t('confirmation.contactNote')}
         </p>
 
         {hasDetails && (
           <div className="mt-8 w-full bg-surface border border-border rounded-2xl shadow-card p-5 space-y-3 text-left">
             <h3 className="text-sm font-semibold text-ink-tertiary uppercase tracking-wider">
-              Bron ma'lumotlari
+              {t('confirmation.details')}
             </h3>
             <div className="space-y-2">
               {details.venue && (
                 <div className="flex justify-between text-sm">
-                  <span className="text-ink-tertiary">Joy</span>
+                  <span className="text-ink-tertiary">{t('common.venue')}</span>
                   <span className="text-ink font-medium">{details.venue}</span>
                 </div>
               )}
               {details.date && (
                 <div className="flex justify-between text-sm">
-                  <span className="text-ink-tertiary">Sana</span>
+                  <span className="text-ink-tertiary">{t('common.date')}</span>
                   <span className="text-ink font-medium">{details.date}</span>
                 </div>
               )}
               {details.time && (
                 <div className="flex justify-between text-sm">
-                  <span className="text-ink-tertiary">Vaqt</span>
+                  <span className="text-ink-tertiary">{t('common.time')}</span>
                   <span className="text-ink font-medium">{details.time}</span>
                 </div>
               )}
@@ -67,12 +75,12 @@ export default async function Page({
         <div className="mt-8 flex flex-col sm:flex-row gap-3 w-full">
           <Link href="/" className="flex-1">
             <Button variant="secondary" className="w-full">
-              Bosh sahifaga qaytish
+              {t('booking.backHome')}
             </Button>
           </Link>
           <Link href={ROUTES.SEARCH} className="flex-1">
             <Button variant="primary" className="w-full">
-              Qidirish
+              {t('common.search')}
             </Button>
           </Link>
         </div>

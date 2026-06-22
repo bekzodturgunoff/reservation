@@ -15,9 +15,6 @@ const nextConfig: NextConfig = {
   experimental: {
     optimizePackageImports: ['lucide-react', '@supabase/supabase-js', 'recharts'],
   },
-  output: 'export',
-  trailingSlash: true,
-  // basePath: process.env.NODE_ENV === 'production' ? '/your-repo-name' : '', // Uncomment and set if deploying to a subpath like username.github.io/repo-name
 }
 
 export default process.env.NEXT_PUBLIC_SENTRY_DSN
