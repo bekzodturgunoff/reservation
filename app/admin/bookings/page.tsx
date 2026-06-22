@@ -1,7 +1,7 @@
 import { createSupabaseServerClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { ROUTES } from '@/lib/constants/routes'
-import AdminBookingsClient from './page.client'
+import AdminBookingsClient, { type AdminBooking } from './page.client'
 
 export const dynamic = 'force-dynamic'
 
@@ -16,5 +16,5 @@ export default async function AdminBookingsPage() {
     .order('created_at', { ascending: false })
     .limit(100)
 
-  return <AdminBookingsClient initialBookings={bookings || []} />
+  return <AdminBookingsClient initialBookings={(bookings || []) as AdminBooking[]} />
 }

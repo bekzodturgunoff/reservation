@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
+import { useTranslation } from 'react-i18next'
 import {
   TrendingUp, CalendarCheck, DollarSign, ArrowUpRight, ArrowDownRight,
   ChevronDown,
@@ -22,6 +23,7 @@ interface BusinessRevenueClientProps {
 }
 
 export default function BusinessRevenueClient({ userId, initialBookings }: BusinessRevenueClientProps) {
+  const { t } = useTranslation()
   const [range, setRange] = useState<Range>('7')
 
   const { data: bookings = [] } = useQuery({
@@ -100,21 +102,21 @@ export default function BusinessRevenueClient({ userId, initialBookings }: Busin
 
   const summaryCards = [
     {
-      label: 'Jami daromad',
-      value: `${totalRevenue.toLocaleString()} so'm`,
+      label: t('admin.statsRevenue'),
+      value: `${totalRevenue.toLocaleString()} ${t('common.sum')}`,
       change: revenueChange,
       icon: DollarSign,
       color: 'text-brand bg-brand-pale',
     },
     {
-      label: 'Faol bronlar',
+      label: t('business.activeBookings'),
       value: activeCount.toString(),
       icon: CalendarCheck,
       color: 'text-info bg-info-bg',
     },
     {
-      label: "O'rtacha chek",
-      value: `${avgOrder.toLocaleString()} so'm`,
+      label: t('business.avgOrderAmount'),
+      value: `${avgOrder.toLocaleString()} ${t('common.sum')}`,
       icon: TrendingUp,
       color: 'text-warning bg-warning-bg',
     },
@@ -124,15 +126,15 @@ export default function BusinessRevenueClient({ userId, initialBookings }: Busin
     return (
       <EmptyState
         icon={<DollarSign className="w-12 h-12" />}
-        title="Daromad ma'lumotlari yo'q"
-        description="Tasdiqlangan bronlar paydo bo'lgach, daromad hisoboti shu yerda ko'rinadi"
+        title={t('business.emptyRevenue')}
+        description={t('business.emptyRevenueDesc')}
       />
     )
   }
 
   return (
     <div className="space-y-6">
-      <h1 className="font-display text-2xl font-bold text-ink">Daromad</h1>
+      <h1 className="font-display text-2xl font-bold text-ink">{t('admin.revenuePage.title')}</h1>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {summaryCards.map((card) => (
@@ -156,16 +158,16 @@ export default function BusinessRevenueClient({ userId, initialBookings }: Busin
 
       <Card className="p-5">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="font-display text-base font-bold text-ink">Kunlik daromad</h2>
+          <h2 className="font-display text-base font-bold text-ink">{t('business.dailyRevenue')}</h2>
           <div className="relative">
             <select
               value={range}
               onChange={e => setRange(e.target.value as Range)}
               className="appearance-none h-9 pl-3 pr-8 text-sm bg-white border border-border rounded-lg outline-none text-ink-secondary"
             >
-              <option value="7">7 kun</option>
-              <option value="30">30 kun</option>
-              <option value="90">90 kun</option>
+              <option value="7">{t('business.days7')}</option>
+              <option value="30">{t('business.days30')}</option>
+              <option value="90">{t('business.days90')}</option>
             </select>
             <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-muted pointer-events-none" />
           </div>
@@ -178,7 +180,7 @@ export default function BusinessRevenueClient({ userId, initialBookings }: Busin
                 <YAxis tick={{ fontSize: 11, fill: '#94a3b8' }} axisLine={false} tickLine={false} tickFormatter={v => `${(v / 1000).toFixed(0)}k`} />
                 <Tooltip
                   contentStyle={{ borderRadius: 12, border: '1px solid #e2e8f0', fontSize: 13 }}
-                  formatter={(v) => `${(v as number).toLocaleString()} so'm`}
+                  formatter={(v) => `${(v as number).toLocaleString()} ${t('common.sum')}`}
                   labelFormatter={l => l}
                 />
                 <Bar dataKey="amount" fill="#059669" radius={[6, 6, 0, 0]} />
@@ -186,19 +188,19 @@ export default function BusinessRevenueClient({ userId, initialBookings }: Busin
             </ResponsiveContainer>
           </div>
         ) : (
-          <p className="text-sm text-ink-tertiary py-10 text-center">Bu davrda daromad ma'lumotlari mavjud emas</p>
+          <p className="text-sm text-ink-tertiary py-10 text-center">{t('business.noRevenueData')}</p>
         )}
       </Card>
 
       {range === '30' && (
         <Card className="p-5">
-          <h2 className="font-display text-base font-bold text-ink mb-4">Kumulativ daromad</h2>
+          <h2 className="font-display text-base font-bold text-ink mb-4">{t('business.cumulativeRevenue')}</h2>
           <div className="h-40">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={cumulativeData} margin={{ top: 8, right: 8, left: -16, bottom: 0 }}>
                 <XAxis dataKey="date" tick={{ fontSize: 10, fill: '#94a3b8' }} axisLine={false} tickLine={false} tickFormatter={d => d.slice(5)} />
                 <YAxis tick={{ fontSize: 11, fill: '#94a3b8' }} axisLine={false} tickLine={false} tickFormatter={v => `${(v / 1000).toFixed(0)}k`} />
-                <Tooltip contentStyle={{ borderRadius: 12, border: '1px solid #e2e8f0', fontSize: 13 }} formatter={(v) => `${(v as number).toLocaleString()} so'm`} />
+                <Tooltip contentStyle={{ borderRadius: 12, border: '1px solid #e2e8f0', fontSize: 13 }} formatter={(v) => `${(v as number).toLocaleString()} ${t('common.sum')}`} />
                 <Line type="monotone" dataKey="cum" stroke="#059669" strokeWidth={2} dot={false} />
               </LineChart>
             </ResponsiveContainer>
@@ -208,11 +210,11 @@ export default function BusinessRevenueClient({ userId, initialBookings }: Busin
 
       <Card className="overflow-hidden">
         <div className="px-6 py-4 border-b border-border">
-          <h2 className="font-display text-sm font-bold text-ink">So'nggi tranzaksiyalar</h2>
+          <h2 className="font-display text-sm font-bold text-ink">{t('business.recentTransactions')}</h2>
         </div>
         <div className="divide-y divide-border">
           {recentTransactions.length === 0 ? (
-            <div className="px-6 py-8 text-center text-sm text-ink-tertiary">Tranzaksiyalar yo'q</div>
+            <div className="px-6 py-8 text-center text-sm text-ink-tertiary">{t('business.noTransactions')}</div>
           ) : (
             recentTransactions.map((tx) => (
               <div key={tx.id} className="px-6 py-4 flex items-center justify-between hover:bg-surface-subtle transition-colors">
@@ -222,10 +224,10 @@ export default function BusinessRevenueClient({ userId, initialBookings }: Busin
                 </div>
                 <div className="flex items-center gap-2">
                   <span className={`text-xs font-medium ${tx.status === 'cancelled' ? 'text-error' : 'text-success'}`}>
-                    {tx.status === 'cancelled' ? 'Qaytarildi' : "To'landi"}
+                    {tx.status === 'cancelled' ? t('business.refunded') : t('business.paid')}
                   </span>
                   <span className={`text-sm font-semibold ${tx.status === 'cancelled' ? 'text-error' : 'text-ink'}`}>
-                    {tx.status === 'cancelled' ? '-' : '+'}{(tx.total_price || 0).toLocaleString()} so'm
+                    {tx.status === 'cancelled' ? '-' : '+'}{(tx.total_price || 0).toLocaleString()} {t('common.sum')}
                   </span>
                 </div>
               </div>

@@ -45,7 +45,7 @@ export default async function HomePage() {
       {/* CTA Section */}
       <ScrollReveal direction="up" delay={0.35}>
       <section className="py-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
-        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-brand-600 via-brand-700 to-brand-800 py-16 px-8 text-center">
+        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-brand via-brand-dark to-brand-darker py-16 px-8 text-center">
           <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/2" />
           <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/5 rounded-full translate-y-1/2 -translate-x-1/2" />
           <div className="relative z-10 max-w-2xl mx-auto">
@@ -58,7 +58,7 @@ export default async function HomePage() {
             <div className="flex flex-col sm:flex-row gap-4 justify-center mt-10">
               <a
                 href={ROUTES.REGISTER}
-                className="inline-flex items-center justify-center gap-2 h-14 px-8 bg-white text-brand-600 font-semibold text-base rounded-xl shadow-btn hover:bg-brand-50 transition-colors"
+                className="inline-flex items-center justify-center gap-2 h-14 px-8 bg-white text-brand font-semibold text-base rounded-xl shadow-btn hover:bg-brand-pale transition-colors"
               >
                 {t('home.ctaButton')}
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>

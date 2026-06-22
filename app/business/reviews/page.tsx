@@ -1,7 +1,7 @@
 import { createSupabaseServerClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { ROUTES } from '@/lib/constants/routes'
-import BusinessReviewsClient from './page.client'
+import BusinessReviewsClient, { type ReviewItem } from './page.client'
 
 export const dynamic = 'force-dynamic'
 
@@ -16,8 +16,7 @@ export default async function BusinessReviewsPage() {
     .eq('owner_id', user.id)
   const venueIds = (myVenues || []).map(v => v.id)
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  let initialReviews: any[] = []
+  let initialReviews: ReviewItem[] = []
 
   if (venueIds.length > 0) {
     const { data } = await supabase
@@ -32,8 +31,7 @@ export default async function BusinessReviewsPage() {
     <BusinessReviewsClient
       userId={user.id}
       initialVenues={myVenues || []}
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      initialReviews={initialReviews as any}
+      initialReviews={initialReviews as ReviewItem[]}
     />
   )
 }

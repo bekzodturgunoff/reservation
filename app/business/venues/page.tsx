@@ -2,6 +2,9 @@ import { createSupabaseServerClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { ROUTES } from '@/lib/constants/routes'
 import BusinessVenuesClient from './page.client'
+import type { Venue } from '@/types'
+
+type VenueWithCategory = Venue & { categories: { name_uz: string; name_ru: string; icon: string } | null }
 
 export const dynamic = 'force-dynamic'
 
@@ -19,8 +22,7 @@ export default async function BusinessVenuesPage() {
   return (
     <BusinessVenuesClient
       userId={user.id}
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      initialVenues={(venues || []) as any}
+      initialVenues={(venues || []) as VenueWithCategory[]}
     />
   )
 }

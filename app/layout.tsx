@@ -1,8 +1,11 @@
 import type { Metadata, Viewport } from 'next'
+import { cookies } from 'next/headers'
 import { Inter, Plus_Jakarta_Sans, JetBrains_Mono } from 'next/font/google'
 import './globals.css'
 import { Providers } from './providers'
+import { createServerT } from '@/lib/i18n/server'
 import { AppLoader } from '@/components/layout/AppLoader'
+import { MobileNav } from '@/components/layout/MobileNav'
 import { CookieConsent } from '@/components/ui/CookieConsent'
 import { Analytics } from '@vercel/analytics/react'
 import { SpeedInsights } from '@vercel/speed-insights/next'
@@ -109,11 +112,14 @@ export const viewport: Viewport = {
   maximumScale: 5,
 }
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
+  const cookieStore = await cookies()
+  const locale = cookieStore.get('NEXT_LOCALE')?.value ?? 'uz'
+  const t = createServerT(locale)
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'WebSite',
@@ -159,13 +165,14 @@ export default function RootLayout({
       <body className="font-body antialiased">
         <a
           href="#main-content"
-          className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[9999] focus:px-4 focus:py-2 focus:bg-brand-600 focus:text-white focus:rounded-xl focus:outline-none"
+          className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[9999] focus:px-4 focus:py-2 focus:bg-brand focus:text-white focus:rounded-xl focus:outline-none"
         >
-          Asosiy kontentga o'tish
+          {t('common.skipToContent')}
         </a>
         <Providers>
           <AppLoader>
             <div id="main-content">{children}</div>
+            <MobileNav />
           </AppLoader>
         </Providers>
         <CookieConsent />

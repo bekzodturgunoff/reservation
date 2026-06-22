@@ -203,7 +203,14 @@ export default function BusinessDashboardClient({
       <div>
         <h2 className="font-display text-lg font-bold text-ink mb-4">Bugungi jadval</h2>
         {isLoading ? (
-          <div className="space-y-2"><Skeleton className="h-12 w-full rounded-card" /></div>
+          <div className="space-y-2">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="flex gap-3">
+                <Skeleton className="w-12 h-6 rounded-lg shrink-0" />
+                <Skeleton className="h-12 w-full rounded-card" />
+              </div>
+            ))}
+          </div>
         ) : confirmedBookings.length === 0 && pendingBookings.length === 0 ? (
           <EmptyState
             icon={<CalendarCheck className="w-10 h-10 text-ink-muted" />}
@@ -223,7 +230,7 @@ export default function BusinessDashboardClient({
                     {bkAtHour.length > 0 ? bkAtHour.map((b: TodayBooking) => (
                       <div
                         key={b.id}
-                        className={`p-2 rounded-lg text-xs mb-1 ${b.status === 'pending' ? 'bg-amber-50 border border-amber-200' : 'bg-brand-50 border border-brand-200'}`}
+                        className={`p-2 rounded-lg text-xs mb-1 ${b.status === 'pending' ? 'bg-amber-50 border border-amber-200' : 'bg-brand-pale border border-brand-200'}`}
                       >
                         <div className="flex items-center justify-between">
                           <span className="font-semibold text-ink">{b.profiles?.full_name}</span>

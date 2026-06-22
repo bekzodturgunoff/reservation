@@ -3,6 +3,16 @@ import { redirect } from 'next/navigation'
 import { ROUTES } from '@/lib/constants/routes'
 import BusinessCalendarClient from './page.client'
 
+interface CalendarBooking {
+  id: string
+  booking_date: string
+  start_time: string | null
+  end_time: string | null
+  status: string
+  profiles: { full_name: string | null } | null
+  venues: { name: string | null } | null
+}
+
 export const dynamic = 'force-dynamic'
 
 export default async function BusinessCalendarPage() {
@@ -17,8 +27,7 @@ export default async function BusinessCalendarPage() {
 
   const venueIds = (myVenues || []).map(v => v.id)
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  let initialBookings: any[] = []
+  let initialBookings: CalendarBooking[] = []
   const initialBlockedDates: string[] = []
 
   if (venueIds.length > 0) {
@@ -35,7 +44,7 @@ export default async function BusinessCalendarPage() {
       .gte('booking_date', fromDate)
       .lte('booking_date', toDate)
       .not('status', 'in', '("cancelled","no_show")')
-    initialBookings = bookings || []
+    initialBookings = (bookings || []) as unknown as CalendarBooking[]
 
     const { data: blocked } = await supabase
       .from('blocked_dates')

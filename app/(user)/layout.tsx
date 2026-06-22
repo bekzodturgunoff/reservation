@@ -3,29 +3,31 @@
 import { useEffect } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import Link from 'next/link'
-import { User, Calendar, Settings } from 'lucide-react'
+import { User, Calendar, Settings, Heart } from 'lucide-react'
 import { useAuthStore } from '@/store/auth'
 import { Navbar } from '@/components/layout/Navbar'
 import { ROUTES } from '@/lib/constants/routes'
 
 const sidebarLinks = [
-  { href: '/profile', label: 'Shaxsiy ma\'lumotlar', icon: User },
-  { href: '/bookings', label: 'Buyurtmalarim', icon: Calendar },
-  { href: '/settings', label: 'Sozlamalar', icon: Settings },
+  { href: ROUTES.PROFILE, label: 'Shaxsiy ma\'lumotlar', icon: User },
+  { href: ROUTES.PROFILE_FAVORITES, label: 'Sevimlilar', icon: Heart },
+  { href: ROUTES.PROFILE_BOOKINGS, label: 'Buyurtmalarim', icon: Calendar },
+  { href: ROUTES.PROFILE_SETTINGS, label: 'Sozlamalar', icon: Settings },
 ]
 
 export default function UserLayout({ children }: { children: React.ReactNode }) {
-  const { user, loading } = useAuthStore()
+  const { user, loading, initialized } = useAuthStore()
   const router = useRouter()
   const pathname = usePathname()
 
   useEffect(() => {
-    if (!loading && !user) {
-      router.replace(ROUTES.LOGIN)
+    if (loading || !initialized) return
+    if (!user) {
+      router.replace(`${ROUTES.LOGIN}?returnTo=${pathname}`)
     }
-  }, [user, loading, router])
+  }, [user, loading, initialized, router, pathname])
 
-  if (loading) {
+  if (loading || !initialized) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-surface-bg">
         <div className="w-8 h-8 border-2 border-brand border-t-transparent rounded-full animate-spin" />

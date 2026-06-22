@@ -11,17 +11,26 @@ import { Drawer } from '@/components/shared/Drawer'
 import { ConfirmModal } from '@/components/shared/ConfirmModal'
 import toast from 'react-hot-toast'
 
+export interface AdminBooking {
+  id: string
+  booking_date: string | null
+  start_time: string | null
+  end_time: string | null
+  status: string
+  total_price: number | null
+  profiles: { full_name: string | null; phone: string | null } | null
+  venues: { id: string; name: string | null } | null
+}
+
 interface AdminBookingsClientProps {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  initialBookings: any[]
+  initialBookings: AdminBooking[]
 }
 
 export default function AdminBookingsClient({ initialBookings }: AdminBookingsClientProps) {
   const queryClient = useQueryClient()
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState('')
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [selectedBooking, setSelectedBooking] = useState<any>(null)
+  const [selectedBooking, setSelectedBooking] = useState<AdminBooking | null>(null)
   const [cancelTarget, setCancelTarget] = useState<string | null>(null)
 
   const { data: bookings = [], isLoading } = useQuery({
@@ -32,7 +41,7 @@ export default function AdminBookingsClient({ initialBookings }: AdminBookingsCl
         .select('*, profiles!user_id(full_name, phone), venues!venue_id(id, name)')
         .order('created_at', { ascending: false })
         .limit(100)
-      return data || []
+      return (data || []) as AdminBooking[]
     },
     initialData: initialBookings,
   })

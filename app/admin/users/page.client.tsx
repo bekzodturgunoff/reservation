@@ -253,7 +253,7 @@ export default function AdminUsersClient({ initialUsers }: AdminUsersClientProps
                     key={role}
                     className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-colors ${
                       selectedRole === role
-                        ? 'border-brand bg-brand-50'
+                        ? 'border-brand bg-brand-pale'
                         : 'border-border hover:bg-surface-bg'
                     }`}
                   >

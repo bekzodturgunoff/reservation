@@ -35,7 +35,7 @@ export function ConfirmModal({
             className={`flex-1 h-10 rounded-xl text-sm font-semibold text-white transition-colors ${
               confirmVariant === 'danger'
                 ? 'bg-red-500 hover:bg-red-600'
-                : 'bg-brand-600 hover:bg-brand-700'
+                : 'bg-brand hover:bg-brand-dark'
             } disabled:opacity-50`}
           >
             {isLoading ? '...' : confirmLabel}

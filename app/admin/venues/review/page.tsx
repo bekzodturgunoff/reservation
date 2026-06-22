@@ -1,7 +1,7 @@
 import { createSupabaseServerClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { ROUTES } from '@/lib/constants/routes'
-import AdminVenueReviewClient from './page.client'
+import AdminVenueReviewClient, { type PendingVenue } from './page.client'
 
 export const dynamic = 'force-dynamic'
 
@@ -16,5 +16,5 @@ export default async function AdminVenueReviewPage() {
     .eq('status', 'pending')
     .order('created_at', { ascending: false })
 
-  return <AdminVenueReviewClient initialPendingVenues={pendingVenues || []} />
+  return <AdminVenueReviewClient initialPendingVenues={(pendingVenues || []) as PendingVenue[]} />
 }

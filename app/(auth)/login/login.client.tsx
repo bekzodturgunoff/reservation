@@ -119,7 +119,7 @@ export function LoginClient({ returnTo = ROUTES.HOME }: { returnTo?: string }) {
         <div className="w-full max-w-[400px]">
           {/* Logo */}
           <Link href="/" className="inline-flex items-center gap-0.5 no-underline mb-12">
-            <span className="font-display text-2xl font-extrabold text-brand-600 -tracking-[0.03em]">Bron</span>
+            <span className="font-display text-2xl font-extrabold text-brand -tracking-[0.03em]">Bron</span>
             <span className="font-display text-2xl font-extrabold text-ink -tracking-[0.03em]">Uz</span>
           </Link>
 
@@ -153,7 +153,7 @@ export function LoginClient({ returnTo = ROUTES.HOME }: { returnTo?: string }) {
                   className={`w-full h-[52px] pl-11 pr-4 bg-white border rounded-input text-base text-ink placeholder:text-ink-muted outline-none transition-all ${
                     errors.email
                       ? 'border-status-error shadow-[0_0_0_3px_rgba(239,68,68,0.12)]'
-                      : 'border-line focus:border-brand-600 focus:shadow-[0_0_0_3px_rgba(5,150,105,0.12)]'
+                      : 'border-line focus:border-brand focus:shadow-[0_0_0_3px_rgba(5,150,105,0.12)]'
                   }`}
                 />
               </div>
@@ -178,7 +178,7 @@ export function LoginClient({ returnTo = ROUTES.HOME }: { returnTo?: string }) {
                   className={`w-full h-[52px] pl-11 pr-11 bg-white border rounded-input text-base text-ink placeholder:text-ink-muted outline-none transition-all ${
                     errors.password
                       ? 'border-status-error shadow-[0_0_0_3px_rgba(239,68,68,0.12)]'
-                      : 'border-line focus:border-brand-600 focus:shadow-[0_0_0_3px_rgba(5,150,105,0.12)]'
+                      : 'border-line focus:border-brand focus:shadow-[0_0_0_3px_rgba(5,150,105,0.12)]'
                   }`}
                 />
                 <button
@@ -194,7 +194,7 @@ export function LoginClient({ returnTo = ROUTES.HOME }: { returnTo?: string }) {
                 <p className="text-xs text-status-error mt-1">{errors.password.message}</p>
               )}
               <div className="flex justify-end mt-2">
-                <button type="button" className="text-xs text-brand-600 hover:underline">
+                <button type="button" className="text-xs text-brand hover:underline">
                   {t('auth.forgotPassword')}
                 </button>
               </div>
@@ -212,7 +212,7 @@ export function LoginClient({ returnTo = ROUTES.HOME }: { returnTo?: string }) {
             <button
               type="submit"
               disabled={loading}
-              className="w-full h-[52px] bg-brand-600 hover:bg-brand-700 disabled:opacity-40 disabled:cursor-not-allowed text-white font-semibold text-base rounded-btn shadow-btn transition-all hover:-translate-y-0.5 active:translate-y-0 flex items-center justify-center gap-2"
+              className="w-full h-[52px] bg-brand hover:bg-brand-dark disabled:opacity-40 disabled:cursor-not-allowed text-white font-semibold text-base rounded-btn shadow-btn transition-all hover:-translate-y-0.5 active:translate-y-0 flex items-center justify-center gap-2"
             >
               {loading ? (
                 <span className="flex items-center gap-2">
@@ -228,7 +228,7 @@ export function LoginClient({ returnTo = ROUTES.HOME }: { returnTo?: string }) {
           {/* Register link */}
           <p className="text-sm text-ink-tertiary text-center mt-8">
             {t('auth.noAccount')}{' '}
-            <Link href={ROUTES.REGISTER} className="text-brand-600 font-medium hover:underline">
+            <Link href={ROUTES.REGISTER} className="text-brand font-medium hover:underline">
               {t('auth.registerLink')}
             </Link>
           </p>

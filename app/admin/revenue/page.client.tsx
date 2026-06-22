@@ -2,9 +2,10 @@
 
 import { useTranslation } from 'react-i18next'
 import { useQuery } from '@tanstack/react-query'
-import { TrendingUp, DollarSign, Building2, Star } from 'lucide-react'
+import { TrendingUp, DollarSign, Building2, Star, BarChart3 } from 'lucide-react'
 import { Card } from '@/components/ui/Card'
 import { Skeleton } from '@/components/ui/Skeleton'
+import { EmptyState } from '@/components/ui/EmptyState'
 import { supabase } from '@/lib/supabase'
 
 interface AdminRevenueClientProps {
@@ -150,26 +151,30 @@ export default function AdminRevenueClient({
 
         <Card className="p-6 lg:col-span-2">
           <h2 className="text-sm font-semibold text-ink mb-4">{t('admin.revenuePage.monthlyChart')}</h2>
-          <div className="flex items-end gap-2 h-48">
-            {monthlyRevenue.length === 0 && !isLoading && (
-              <p className="text-sm text-ink-tertiary">{t('admin.revenuePage.noData')}</p>
-            )}
-            {monthlyRevenue.map((month) => (
-              <div key={month.month} className="flex-1 flex flex-col items-center gap-2 relative group">
-                <div className="opacity-0 group-hover:opacity-100 transition-opacity absolute -top-8 left-1/2 -translate-x-1/2 bg-ink text-white text-[11px] px-2 py-1 rounded-lg whitespace-nowrap z-10 pointer-events-none">
-                  {month.amount} {t('admin.revenuePage.millionSuffix')}
+          {monthlyRevenue.length === 0 && !isLoading ? (
+            <EmptyState
+              icon={<BarChart3 className="w-10 h-10" />}
+              title={t('admin.revenuePage.noData')}
+            />
+          ) : (
+            <div className="flex items-end gap-2 h-48">
+              {monthlyRevenue.map((month) => (
+                <div key={month.month} className="flex-1 flex flex-col items-center gap-2 relative group">
+                  <div className="opacity-0 group-hover:opacity-100 transition-opacity absolute -top-8 left-1/2 -translate-x-1/2 bg-ink text-white text-[11px] px-2 py-1 rounded-lg whitespace-nowrap z-10 pointer-events-none">
+                    {month.amount} {t('admin.revenuePage.millionSuffix')}
+                  </div>
+                  <div
+                    className="w-full bg-brand rounded-lg transition-all duration-500"
+                    style={{
+                      height: `${Math.max((month.amount / maxMonthly) * 100, 4)}%`,
+                      opacity: isLoading ? 0.3 : 1,
+                    }}
+                  />
+                  <span className="text-[10px] text-ink-tertiary">{month.month}</span>
                 </div>
-                <div
-                  className="w-full bg-brand rounded-lg transition-all duration-500"
-                  style={{
-                    height: `${Math.max((month.amount / maxMonthly) * 100, 4)}%`,
-                    opacity: isLoading ? 0.3 : 1,
-                  }}
-                />
-                <span className="text-[10px] text-ink-tertiary">{month.month}</span>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </Card>
       </div>
     </div>

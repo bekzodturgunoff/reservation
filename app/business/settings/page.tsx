@@ -13,7 +13,7 @@ export default async function BusinessSettingsPage() {
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('*')
+    .select('id, full_name, phone, avatar_url, role, created_at')
     .eq('id', user.id)
     .single()
 
@@ -29,8 +29,7 @@ export default async function BusinessSettingsPage() {
   return (
     <BusinessSettingsClient
       userId={user.id}
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      initialProfile={(profile as any) as Profile | null}
+      initialProfile={profile as Profile | null}
       initialVenueInfo={(venueInfo as { address: string | null; phone: string | null } | null) ?? null}
       initialVenueDefaults={venueDefaults}
     />

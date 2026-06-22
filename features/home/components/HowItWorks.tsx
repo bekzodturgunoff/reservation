@@ -38,21 +38,21 @@ export function HowItWorks() {
 
         <div className="mt-16 grid md:grid-cols-3 gap-8 relative">
           {steps.map((step, i) => (
-            <div key={step.num} className="relative flex flex-col items-center text-center">
+            <div key={step.num} className="relative flex flex-col items-center text-center group animate-fade-in-up" style={{ animationDelay: `${i * 150}ms` }}>
               {/* Connecting line */}
               {i < 2 && (
-                <div className="hidden md:block absolute top-10 left-[60%] w-[40%] h-0 border-t-2 border-dashed border-brand-200" />
+                <div className="hidden md:block absolute top-10 left-[60%] w-[40%] animate-connector-line" />
               )}
 
               {/* Circle indicator */}
-              <div className="relative w-20 h-20 rounded-full bg-brand-50 border-2 border-brand-200 flex items-center justify-center">
-                <span className="font-display text-xl font-bold text-brand-600">{step.num}</span>
+              <div className="relative w-20 h-20 rounded-full bg-brand-pale border-2 border-brand-200 flex items-center justify-center transition-all duration-normal ease-out-quart group-hover:border-brand group-hover:shadow-md group-hover:scale-105">
+                <span className="font-display text-xl font-bold text-brand transition-colors duration-normal group-hover:text-brand-dark">{step.num}</span>
               </div>
 
               {/* Icon below */}
-              <div className="mt-4 text-brand-600">{step.icon}</div>
+              <div className="mt-4 text-brand transition-all duration-normal ease-out-quart group-hover:scale-110 group-hover:-translate-y-0.5">{step.icon}</div>
 
-              <h3 className="mt-4 font-display text-xl font-bold text-ink">{step.title}</h3>
+              <h3 className="mt-4 font-display text-xl font-bold text-ink transition-colors duration-normal group-hover:text-brand">{step.title}</h3>
               <p className="mt-2 text-sm text-ink-secondary leading-relaxed max-w-[220px]">{step.desc}</p>
             </div>
           ))}

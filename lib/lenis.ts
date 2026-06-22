@@ -1,9 +1,9 @@
 'use client'
 
 import { useEffect } from 'react'
+import type Lenis from 'lenis'
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-let lenisInstance: any = null
+let lenisInstance: Lenis | null = null
 
 export const useLenis = () => {
   useEffect(() => {
@@ -20,7 +20,7 @@ export const useLenis = () => {
       })
 
       lenisInstance.on('scroll', ScrollTrigger.update)
-      gsap.ticker.add((time: number) => lenisInstance.raf(time * 1000))
+      gsap.ticker.add((time: number) => lenisInstance?.raf(time * 1000))
       gsap.ticker.lagSmoothing(0)
     }
 
